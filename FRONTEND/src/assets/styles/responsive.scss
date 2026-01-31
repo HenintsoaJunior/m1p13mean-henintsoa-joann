@@ -1,0 +1,124 @@
+/* Responsive - Media queries simples */
+
+/* Variables de breakpoints */
+$mobile: 768px;
+$tablet: 1024px;
+
+/* Layout principal */
+.main-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive pour mobile */
+@media (max-width: $mobile) {
+  .main-layout {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    order: 2;
+  }
+  
+  .content-area {
+    order: 1;
+  }
+  
+  .navbar {
+    order: 1;
+  }
+  
+  .main-content {
+    order: 3;
+  }
+  
+  /* Tables responsive */
+  table {
+    font-size: 12px;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  /* Cards responsive */
+  .card-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Navbar mobile */
+  .navbar-menu {
+    display: none;
+  }
+  
+  .navbar-mobile {
+    display: block;
+  }
+}
+
+/* Responsive pour tablette */
+@media (min-width: $mobile + 1) and (max-width: $tablet) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop */
+@media (min-width: $tablet + 1) {
+  .navbar-mobile {
+    display: none;
+  }
+  
+  .navbar-menu {
+    display: flex;
+  }
+  
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Grille simple */
+.card-grid {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+/* Flexbox utilitaires */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.items-center {
+  align-items: center;
+}
