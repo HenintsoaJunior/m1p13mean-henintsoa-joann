@@ -1,0 +1,22 @@
+/* Demo Form Component */
+.demo-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Form group spacing */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .demo-container {
+    max-width: 100%;
+    padding: 0 16px;
+  }
+}
