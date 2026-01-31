@@ -1,76 +1,120 @@
-/* Dashboard Admin - Style sobre et organisé */
+/* Dashboard Admin - Design moderne et professionnel */
 .admin-dashboard {
-  padding: 0;
+  width: 100%;
 }
 
 .dashboard-header {
   margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .dashboard-header h1 {
   margin-bottom: 8px;
-  font-size: 24px;
-  color: var(--text-primary);
+  font-size: 32px;
+  color: #111827;
+  font-weight: 700;
+  letter-spacing: -0.025em;
 }
 
 .dashboard-header p {
-  color: var(--text-secondary);
-  font-size: 14px;
+  color: #6b7280;
+  font-size: 16px;
   margin: 0;
+  font-weight: 500;
 }
 
 /* Grille des statistiques */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.stat-card {
-  text-align: center;
-  padding: 24px 16px;
-}
-
-.stat-number {
-  font-size: 28px;
-  font-weight: bold;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
+  gap: 24px;
+  margin-bottom: 40px;
 }
 
 /* Section des tableaux */
 .tables-section {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 32px;
 }
 
-.table-card {
-  background-color: var(--bg-primary);
+/* Actions dans les tableaux spécifiques au dashboard */
+.tables-section .table-actions {
+  gap: 8px;
 }
 
-/* Actions dans les tableaux */
-.table-actions button {
-  margin-right: 8px;
-  padding: 4px 8px;
-  font-size: 12px;
+.tables-section .table-actions button {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Boutons spécialisés pour les actions */
+.tables-section .table-actions button.btn-validate {
+  background-color: #065f46;
+  color: #ffffff;
+  border-color: #065f46;
+}
+
+.tables-section .table-actions button.btn-validate:hover {
+  background-color: #047857;
+}
+
+.tables-section .table-actions button.btn-reject {
+  background-color: #991b1b;
+  color: #ffffff;
+  border-color: #991b1b;
+}
+
+.tables-section .table-actions button.btn-reject:hover {
+  background-color: #7f1d1d;
+}
+
+.tables-section .table-actions button.btn-view {
+  background-color: #1f2937;
+  color: #ffffff;
+  border-color: #1f2937;
+}
+
+.tables-section .table-actions button.btn-view:hover {
+  background-color: #111827;
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .dashboard-header {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+  
+  .dashboard-header p {
+    font-size: 14px;
+  }
+  
+  .tables-section {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 480px) {
   .stats-grid {
     grid-template-columns: 1fr;
   }
@@ -79,11 +123,11 @@
     font-size: 20px;
   }
   
-  .stat-card {
-    padding: 16px;
+  .tables-section .table-actions {
+    flex-direction: column;
   }
   
-  .stat-number {
-    font-size: 24px;
+  .tables-section .table-actions button {
+    width: 100%;
   }
 }

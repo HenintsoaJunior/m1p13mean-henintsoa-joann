@@ -1,58 +1,337 @@
-/* Layout Admin - Structure sobre */
+/* Layout Admin avec header fixe et sidebar responsive */
 .admin-layout {
   min-height: 100vh;
+  background-color: #f8fafc;
   display: flex;
-  flex-direction: column;
-}
-
-.navbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.main-layout {
-  display: flex;
-  flex: 1;
-}
-
-.sidebar {
-  width: 250px;
-  background-color: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-  min-height: calc(100vh - 60px);
+  overflow: hidden;
 }
 
 .content-area {
   flex: 1;
+  margin-left: 280px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 60px);
+  min-height: 100vh;
+  width: calc(100% - 280px);
+  position: relative;
+}
+
+.content-area.sidebar-collapsed {
+  margin-left: 80px;
+  width: calc(100% - 80px);
+}
+
+.navbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  height: 70px;
+  padding: 0 30px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 280px;
+  z-index: 1000;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-collapsed ~ .content-area .navbar,
+.content-area.sidebar-collapsed .navbar {
+  left: 80px;
+}
+
+.navbar-content {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+  flex: 1;
+}
+
+.navbar-content h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.burger-icon {
+  width: 20px;
+  height: 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.burger-icon span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  background-color: #64748b;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
+.burger-icon span:nth-child(1) {
+  width: 100%;
+}
+
+.burger-icon span:nth-child(2) {
+  width: 80%;
+}
+
+.burger-icon span:nth-child(3) {
+  width: 100%;
+}
+
+.breadcrumb {
+  opacity: 0.8;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.notification-btn {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.notification-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.user-menu:hover {
+  background: #e2e8f0;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(45deg, #3660a9, #fab548);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  color: white;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  white-space: nowrap;
 }
 
 .main-content {
   flex: 1;
-  padding: 24px;
-  background-color: var(--bg-primary);
+  padding: 30px;
+  padding-top: 100px; /* Espace pour le header fixe */
+  background-color: #f8fafc;
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: fadeInUp 0.5s ease-out;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: calc(100vh - 70px);
 }
 
-/* Responsive mobile */
-@media (max-width: 768px) {
-  .main-layout {
-    flex-direction: column;
+/* Responsive amélioré */
+@media (max-width: 1200px) {
+  .main-content {
+    padding: 25px;
+    padding-top: 95px;
   }
   
-  .sidebar {
-    width: 100%;
-    min-height: auto;
-    order: 2;
+  .navbar {
+    padding: 0 25px;
   }
-  
+}
+
+@media (max-width: 1024px) {
   .content-area {
-    order: 1;
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .content-area.sidebar-collapsed {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .navbar {
+    left: 0;
+  }
+  
+  .sidebar-collapsed ~ .content-area .navbar,
+  .content-area.sidebar-collapsed .navbar {
+    left: 0;
   }
   
   .main-content {
-    padding: 16px;
+    padding: 20px;
+    padding-top: 90px;
   }
+  
+  .navbar {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-area {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .navbar {
+    padding: 0 15px;
+    height: 60px;
+    left: 0;
+  }
+  
+  .navbar-content h2 {
+    font-size: 18px;
+  }
+  
+  .navbar-left {
+    gap: 2px;
+  }
+  
+  .breadcrumb {
+    display: none;
+  }
+  
+  .user-name {
+    display: none;
+  }
+  
+  .navbar-actions {
+    gap: 15px;
+  }
+  
+  .main-content {
+    padding: 15px;
+    padding-top: 75px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 10px;
+    padding-top: 70px;
+  }
+  
+  .navbar {
+    padding: 0 10px;
+  }
+  
+  .navbar-content h2 {
+    font-size: 16px;
+  }
+}
+
+/* Animation pour le contenu */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Style pour les cardes dans le contenu */
+.main-content :global(.card) {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+/* Assure que le contenu ne déborde pas */
+* {
+  box-sizing: border-box;
+}
+
+/* Fix pour le débordement horizontal */
+.admin-layout {
+  overflow-x: hidden;
+  width: 100%;
+  height: 100vh;
+}
+
+.content-area {
+  min-width: 0;
+  overflow: hidden;
 }
