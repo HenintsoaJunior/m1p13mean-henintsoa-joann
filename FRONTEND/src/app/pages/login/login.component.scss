@@ -1,0 +1,167 @@
+/* Login page - Design simple sans tirets */
+.login-wrapper {
+  min-height: 100vh;
+  background-color: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+}
+
+.login-header {
+  padding: 24px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.login-header h1 {
+  margin-bottom: 8px;
+  font-size: 24px;
+  color: var(--text-primary);
+}
+
+.login-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.login-form {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  font-size: 14px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: 1px solid var(--text-primary);
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.checkbox-wrapper label {
+  margin: 0;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.form-actions {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-btn {
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
+  border: 1px solid var(--text-primary);
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background-color: var(--text-secondary);
+}
+
+.forgot-btn {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 8px;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.login-footer {
+  padding: 24px;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
+}
+
+.profile-section h4 {
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.profile-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 24px;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 14px;
+  background-color: var(--bg-primary);
+}
+
+.profile-link:hover {
+  background-color: var(--accent-color);
+  text-decoration: none;
+}
+
+.profile-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  .login-wrapper {
+    padding: 16px;
+  }
+  
+  .login-header,
+  .login-form,
+  .login-footer {
+    padding: 16px;
+  }
+  
+  .profile-link {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+  }
+}

@@ -1,3 +1,5 @@
+/* Base styles - Thème clair classique */
+
 /* Variables de couleurs */
 :root {
   --bg-primary: #ffffff;
@@ -15,25 +17,13 @@
   box-sizing: border-box;
 }
 
-/* Suppression des puces de liste par défaut */
-ul, ol {
-  list-style: none;
-}
-
 /* Corps de la page */
-html, body {
-  height: 100%;
+body {
   font-family: Arial, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-size: 14px;
   line-height: 1.5;
-}
-
-/* Styles pour l'application */
-app-root {
-  display: block;
-  min-height: 100vh;
 }
 
 /* Titres */
@@ -109,24 +99,6 @@ th {
   font-weight: bold;
 }
 
-/* Layout principal */
-.main-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-.sidebar {
-  width: 250px;
-  background-color: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-}
-
-.content-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
 /* Utilitaires */
 .container {
   max-width: 1200px;
@@ -144,103 +116,4 @@ th {
 
 .visible {
   display: block;
-}
-
-/* Grille simple */
-.card-grid {
-  display: grid;
-  gap: 16px;
-  padding: 16px;
-}
-
-/* Flexbox utilitaires */
-.flex {
-  display: flex;
-}
-
-.flex-column {
-  flex-direction: column;
-}
-
-.flex-1 {
-  flex: 1;
-}
-
-.justify-between {
-  justify-content: space-between;
-}
-
-.items-center {
-  align-items: center;
-}
-
-/* Responsive pour mobile */
-@media (max-width: 768px) {
-  .main-layout {
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    width: 100%;
-    order: 2;
-  }
-  
-  .content-area {
-    order: 1;
-  }
-  
-  /* Tables responsive */
-  table {
-    font-size: 12px;
-  }
-  
-  .table-container {
-    overflow-x: auto;
-  }
-  
-  /* Cards responsive */
-  .card-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* Responsive pour tablette */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar {
-    width: 200px;
-  }
-  
-  .card-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Desktop */
-@media (min-width: 1025px) {
-  .card-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Accessibilité */
-button:focus,
-input:focus,
-textarea:focus,
-select:focus,
-a:focus {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
-}
-
-/* Print styles */
-@media print {
-  .navbar,
-  .sidebar,
-  .footer {
-    display: none;
-  }
-  
-  .main-content {
-    padding: 0;
-  }
 }

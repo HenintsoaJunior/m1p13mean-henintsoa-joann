@@ -1,0 +1,75 @@
+/* Table - Style sobre et classique */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--bg-primary);
+  margin: 0;
+}
+
+.data-table th {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-weight: bold;
+  padding: 12px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+}
+
+.data-table th:last-child {
+  border-right: none;
+}
+
+.data-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.data-table td:last-child {
+  border-right: none;
+}
+
+.data-table tr:nth-child(even) {
+  background-color: var(--bg-secondary);
+}
+
+.data-table tr:hover {
+  background-color: var(--accent-color);
+}
+
+.empty-message {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Actions dans les cellules */
+.table-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.table-actions button {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  .data-table {
+    font-size: 12px;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 6px 4px;
+  }
+}
