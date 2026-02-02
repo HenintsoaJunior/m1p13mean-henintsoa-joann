@@ -5,14 +5,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-loader',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="loader-container" *ngIf="isLoading">
-      <div class="loader-content">
-        <div class="loader-spinner">{{ loadingText }}</div>
-        <p class="loader-message" *ngIf="message">{{ message }}</p>
-      </div>
-    </div>
-  `,
+  templateUrl: './loader.component.html',
   styleUrls: ['./loader.component.scss']
 })
 export class LoaderComponent {

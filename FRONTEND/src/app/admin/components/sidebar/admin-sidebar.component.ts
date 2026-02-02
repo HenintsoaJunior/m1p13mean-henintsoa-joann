@@ -5,155 +5,51 @@ import { CommonModule } from '@angular/common';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { SidebarService } from '../../../services/sidebar.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-admin-sidebar',
   standalone: true,
   imports: [RouterModule, CommonModule],
-  template: `
-    <aside class="modern-sidebar" [class.sidebar-collapsed]="isCollapsed">
-      <!-- Header sans toggle -->
-      <div class="sidebar-header">
-        <div class="brand-section">
-          <div class="brand-icon">🚀</div>
-          <h2 class="brand-title" *ngIf="!isCollapsed">AdminSpace</h2>
-        </div>
-      </div>
-
-      <!-- Profile section -->
-      <div class="profile-section" *ngIf="!isCollapsed">
-        <div class="profile-avatar">
-          <div class="avatar-circle">👨‍💼</div>
-        </div>
-        <div class="profile-info">
-          <h4>Administrateur</h4>
-          <p>Super Admin</p>
-        </div>
-      </div>
-
-      <!-- Navigation -->
-      <nav class="sidebar-navigation">
-        <div class="nav-section">
-          <p class="section-title" *ngIf="!isCollapsed">PRINCIPAL</p>
-          
-          <a routerLink="/admin/dashboard" 
-             routerLinkActive="active"
-             class="nav-item"
-             [attr.title]="isCollapsed ? 'Tableau de bord' : null">
-            <div class="nav-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3,13H11V3H3M3,21H11V15H3M13,21H21V11H13M13,3V9H21V3"/>
-              </svg>
-            </div>
-            <span class="nav-text" *ngIf="!isCollapsed">Tableau de bord</span>
-            <div class="nav-indicator" *ngIf="currentRoute === '/admin/dashboard'"></div>
-          </a>
-
-          <a routerLink="/admin/users" 
-             routerLinkActive="active"
-             class="nav-item"
-             [attr.title]="isCollapsed ? 'Utilisateurs' : null">
-            <div class="nav-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M16,4C18.21,4 20,5.79 20,8C20,10.21 18.21,12 16,12C13.79,12 12,10.21 12,8C12,5.79 13.79,4 16,4M16,14C20.42,14 24,15.79 24,18V20H8V18C8,15.79 11.58,14 16,14Z"/>
-              </svg>
-            </div>
-            <span class="nav-text" *ngIf="!isCollapsed">Utilisateurs</span>
-            <div class="nav-indicator" *ngIf="currentRoute === '/admin/users'"></div>
-          </a>
-
-          <a routerLink="/admin/boutiques" 
-             routerLinkActive="active"
-             class="nav-item"
-             [attr.title]="isCollapsed ? 'Boutiques' : null">
-            <div class="nav-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14M16,16H21V18H16M16,19H21V21H16"/>
-              </svg>
-            </div>
-            <span class="nav-text" *ngIf="!isCollapsed">Boutiques</span>
-            <div class="nav-indicator" *ngIf="currentRoute === '/admin/boutiques'"></div>
-          </a>
-        </div>
-
-        <div class="nav-section">
-          <p class="section-title" *ngIf="!isCollapsed">ANALYTIQUES</p>
-          
-          <a routerLink="/admin/reports" 
-             routerLinkActive="active"
-             class="nav-item"
-             [attr.title]="isCollapsed ? 'Rapports' : null">
-            <div class="nav-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"/>
-              </svg>
-            </div>
-            <span class="nav-text" *ngIf="!isCollapsed">Rapports</span>
-            <div class="nav-indicator" *ngIf="currentRoute === '/admin/reports'"></div>
-          </a>
-        </div>
-
-        <div class="nav-section">
-          <p class="section-title" *ngIf="!isCollapsed">SYSTÈME</p>
-          
-          <a routerLink="/admin/settings" 
-             routerLinkActive="active"
-             class="nav-item"
-             [attr.title]="isCollapsed ? 'Paramètres' : null">
-            <div class="nav-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
-              </svg>
-            </div>
-            <span class="nav-text" *ngIf="!isCollapsed">Paramètres</span>
-            <div class="nav-indicator" *ngIf="currentRoute === '/admin/settings'"></div>
-          </a>
-        </div>
-      </nav>
-
-      <!-- Footer -->
-      <div class="sidebar-footer">
-        <a href="#" class="logout-btn" [attr.title]="isCollapsed ? 'Déconnexion' : null">
-          <div class="nav-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M16,17V14H9V10H16V7L21,12L16,17M14,2A2,2 0 0,1 16,4V6H14V4H5V20H14V18H16V20A2,2 0 0,1 14,22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H14Z"/>
-            </svg>
-          </div>
-          <span *ngIf="!isCollapsed">Déconnexion</span>
-        </a>
-      </div>
-    </aside>
-  `,
-  styleUrls: ['./admin-sidebar.component.scss']
+  templateUrl: './admin-sidebar.component.html',
+  styleUrls: ['./admin-sidebar.component.scss'],
 })
 export class AdminSidebarComponent implements OnInit, OnDestroy {
   isCollapsed = false;
   currentRoute = '';
   private destroy$ = new Subject<void>();
 
-  constructor(private router: Router, private sidebarService: SidebarService) {}
+  constructor(
+    private router: Router,
+    private sidebarService: SidebarService,
+    private authService: AuthService,
+  ) {}
 
   ngOnInit() {
     this.currentRoute = this.router.url;
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       )
       .subscribe((event: NavigationEnd) => {
         this.currentRoute = event.url;
       });
 
     // Écouter les changements d'état du sidebar
-    this.sidebarService.collapsed$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(collapsed => {
-        this.isCollapsed = collapsed;
-      });
+    this.sidebarService.collapsed$.pipe(takeUntil(this.destroy$)).subscribe((collapsed) => {
+      this.isCollapsed = collapsed;
+    });
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  onLogout(event: Event) {
+    event.preventDefault();
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

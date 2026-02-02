@@ -1,0 +1,178 @@
+<div class="register-wrapper">
+  <div class="register-container">
+    <div class="register-header">
+      <div class="brand-section">
+        <img src="logo.png" alt="Logo" class="brand-icon-img" />
+        <h1>Créer votre compte</h1>
+      </div>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        Ou
+        <a routerLink="/login" class="font-medium text-indigo-600 hover:text-indigo-500">
+          connectez-vous à votre compte existant
+        </a>
+      </p>
+    </div>
+
+    <form class="register-form" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required" for="prenom">Prénom</label>
+          <input
+            type="text"
+            id="prenom"
+            class="form-input"
+            [class.error]="
+              registerForm.get('prenom')?.invalid && registerForm.get('prenom')?.touched
+            "
+            formControlName="prenom"
+            placeholder="Votre prénom"
+          />
+          <div
+            class="form-error"
+            *ngIf="registerForm.get('prenom')?.invalid && registerForm.get('prenom')?.touched"
+          >
+            Le prénom est requis (minimum 2 caractères)
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required" for="nom">Nom</label>
+          <input
+            type="text"
+            id="nom"
+            class="form-input"
+            [class.error]="registerForm.get('nom')?.invalid && registerForm.get('nom')?.touched"
+            formControlName="nom"
+            placeholder="Votre nom de famille"
+          />
+          <div
+            class="form-error"
+            *ngIf="registerForm.get('nom')?.invalid && registerForm.get('nom')?.touched"
+          >
+            Le nom est requis (minimum 2 caractères)
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required" for="email">Adresse email</label>
+          <input
+            type="email"
+            id="email"
+            class="form-input"
+            [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+            formControlName="email"
+            placeholder="admin@exemple.com"
+          />
+          <div
+            class="form-error"
+            *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          >
+            <span *ngIf="registerForm.get('email')?.errors?.['required']">L'email est requis</span>
+            <span *ngIf="registerForm.get('email')?.errors?.['email']"
+              >Format d'email invalide</span
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="telephone">Numéro de téléphone</label>
+          <input
+            type="tel"
+            id="telephone"
+            class="form-input"
+            [class.error]="
+              registerForm.get('telephone')?.invalid && registerForm.get('telephone')?.touched
+            "
+            formControlName="telephone"
+            placeholder="+33 1 23 45 67 89"
+          />
+          <div
+            class="form-error"
+            *ngIf="registerForm.get('telephone')?.invalid && registerForm.get('telephone')?.touched"
+          >
+            Format de téléphone invalide
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required" for="password">Mot de passe</label>
+          <input
+            type="password"
+            id="password"
+            class="form-input"
+            [class.error]="
+              registerForm.get('password')?.invalid && registerForm.get('password')?.touched
+            "
+            formControlName="password"
+            placeholder="••••••••"
+          />
+          <div
+            class="form-error"
+            *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          >
+            <span *ngIf="registerForm.get('password')?.errors?.['required']"
+              >Le mot de passe est requis</span
+            >
+            <span *ngIf="registerForm.get('password')?.errors?.['minlength']"
+              >Minimum 6 caractères</span
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required" for="confirmPassword">Confirmer le mot de passe</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            class="form-input"
+            [class.error]="
+              registerForm.get('confirmPassword')?.invalid &&
+              registerForm.get('confirmPassword')?.touched
+            "
+            formControlName="confirmPassword"
+            placeholder="••••••••"
+          />
+          <div
+            class="form-error"
+            *ngIf="
+              registerForm.get('confirmPassword')?.invalid &&
+              registerForm.get('confirmPassword')?.touched
+            "
+          >
+            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']"
+              >La confirmation est requise</span
+            >
+            <span *ngIf="registerForm.get('confirmPassword')?.errors?.['mismatch']"
+              >Les mots de passe ne correspondent pas</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div
+        *ngIf="errorMessage"
+        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+      >
+        {{ errorMessage }}
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="register-btn btn-primary"
+          [disabled]="registerForm.invalid || isLoading"
+        >
+          <span
+            *ngIf="isLoading"
+            class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+          ></span>
+          {{ isLoading ? 'Inscription en cours...' : "S'inscrire" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Logo/Titre -->
+    <div class="navbar-brand">
+      <h1>Administration</h1>
+    </div>
+    
+    <!-- Menu desktop -->
+    <div class="navbar-menu" *ngIf="currentUser$ | async as user">
+      <div class="user-info">
+        <div class="user-avatar">
+          {{ user.nom.charAt(0).toUpperCase() }}
+        </div>
+        <span class="user-name">{{ user.nom }}</span>
+      </div>
+      <button (click)="onLogout()" class="logout-btn">Déconnexion</button>
+    </div>
+    
+    <!-- Menu mobile -->
+    <div class="navbar-mobile" *ngIf="currentUser$ | async as user">
+      <button (click)="toggleMobileMenu()" class="mobile-menu-btn">
+        {{ showMobileMenu ? '✕' : '☰' }}
+      </button>
+      <div class="mobile-menu" [class.visible]="showMobileMenu">
+        <div class="mobile-user-info">
+          <div class="user-avatar">
+            {{ user.nom.charAt(0).toUpperCase() }}
+          </div>
+          <span class="user-name">{{ user.nom }}</span>
+        </div>
+        <button (click)="onLogout()" class="mobile-logout-btn">Déconnexion</button>
+      </div>
+    </div>
+  </div>
+</nav>
