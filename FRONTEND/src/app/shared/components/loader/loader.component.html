@@ -1,0 +1,6 @@
+<div class="loader-container" *ngIf="isLoading">
+  <div class="loader-content">
+    <div class="loader-spinner">{{ loadingText }}</div>
+    <p class="loader-message" *ngIf="message">{{ message }}</p>
+  </div>
+</div>

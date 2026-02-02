@@ -14,86 +14,8 @@ export interface BreadcrumbItem {
   selector: 'app-breadcrumb',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  template: `
-    <nav class="breadcrumb-nav" aria-label="Breadcrumb">
-      <ol class="breadcrumb-list">
-        <li class="breadcrumb-item" *ngFor="let breadcrumb of breadcrumbs; let isLast = last">
-          <a 
-            *ngIf="breadcrumb.url && !isLast; else labelOnly"
-            [routerLink]="breadcrumb.url"
-            class="breadcrumb-link">
-            {{ breadcrumb.label }}
-          </a>
-          <ng-template #labelOnly>
-            <span class="breadcrumb-current">{{ breadcrumb.label }}</span>
-          </ng-template>
-          <svg 
-            *ngIf="!isLast" 
-            class="breadcrumb-separator"
-            width="6" 
-            height="10" 
-            viewBox="0 0 6 10" 
-            fill="currentColor">
-            <path d="M1 1l4 4-4 4"/>
-          </svg>
-        </li>
-      </ol>
-    </nav>
-  `,
-  styles: [`
-    .breadcrumb-nav {
-      padding: 0;
-      margin: 0;
-    }
-
-    .breadcrumb-list {
-      display: flex;
-      align-items: center;
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      gap: 8px;
-    }
-
-    .breadcrumb-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-
-    .breadcrumb-link {
-      color: #64748b;
-      text-decoration: none;
-      font-weight: 500;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-    }
-
-    .breadcrumb-link:hover {
-      color: #3660a9;
-      background-color: #f1f5f9;
-      text-decoration: none;
-    }
-
-    .breadcrumb-current {
-      color: #334155;
-      font-weight: 600;
-      padding: 4px 8px;
-    }
-
-    .breadcrumb-separator {
-      color: #94a3b8;
-      flex-shrink: 0;
-    }
-
-    @media (max-width: 768px) {
-      .breadcrumb-item {
-        font-size: 13px;
-      }
-    }
-  `]
+  templateUrl: './breadcrumb.component.html',
+  styleUrls: ['./breadcrumb.component.scss']
 })
 export class BreadcrumbComponent implements OnInit, OnDestroy {
   breadcrumbs: BreadcrumbItem[] = [];
