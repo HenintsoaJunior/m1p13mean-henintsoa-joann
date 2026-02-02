@@ -1,0 +1,24 @@
+<nav class="breadcrumb-nav" aria-label="Breadcrumb">
+  <ol class="breadcrumb-list">
+    <li class="breadcrumb-item" *ngFor="let breadcrumb of breadcrumbs; let isLast = last">
+      <a 
+        *ngIf="breadcrumb.url && !isLast; else labelOnly"
+        [routerLink]="breadcrumb.url"
+        class="breadcrumb-link">
+        {{ breadcrumb.label }}
+      </a>
+      <ng-template #labelOnly>
+        <span class="breadcrumb-current">{{ breadcrumb.label }}</span>
+      </ng-template>
+      <svg 
+        *ngIf="!isLast" 
+        class="breadcrumb-separator"
+        width="6" 
+        height="10" 
+        viewBox="0 0 6 10" 
+        fill="currentColor">
+        <path d="M1 1l4 4-4 4"/>
+      </svg>
+    </li>
+  </ol>
+</nav>
