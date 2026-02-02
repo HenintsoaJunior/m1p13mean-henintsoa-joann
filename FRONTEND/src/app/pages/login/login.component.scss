@@ -33,9 +33,16 @@
   margin-bottom: var(--space-4);
 }
 
+.brand-icon-img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: var(--space-4);
+}
+
 .brand-icon {
-  width: 56px;
-  height: 56px;
+  width: 100px;
+  height: 100px;
   background: #fab548;
   color: #3660a9;
   font-size: var(--text-4xl);
@@ -244,9 +251,9 @@
     font-size: var(--text-4xl);
   }
 
-  .brand-icon {
-    width: 48px;
-    height: 48px;
+  .brand-icon-img {
+    width: 80px;
+    height: 80px;
     font-size: var(--text-3xl);
   }
 

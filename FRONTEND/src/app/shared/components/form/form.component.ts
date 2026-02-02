@@ -6,11 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   selector: 'app-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  template: `
-    <form class="form" [class.form-horizontal]="layout === 'horizontal'">
-      <ng-content></ng-content>
-    </form>
-  `,
+  templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss']
 })
 export class FormComponent {

@@ -29,11 +29,23 @@
 }
 
 .brand-icon {
-  width: 40px; height: 40px;
+  width: 56px; height: 56px;
   background: var(--gradient-accent);
   color: var(--sidebar-primary);
   display: flex; align-items: center; justify-content: center;
   font-size: var(--text-3xl); font-weight: var(--font-bold);
+  flex-shrink: 0;
+}
+
+.brand-icon-img {
+  width: 56px; height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.brand-icon-small {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 

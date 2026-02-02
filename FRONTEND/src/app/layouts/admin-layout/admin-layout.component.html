@@ -1,0 +1,33 @@
+<div class="admin-layout">
+  <app-admin-sidebar></app-admin-sidebar>
+  <div class="content-area" [class.sidebar-collapsed]="sidebarCollapsed">
+    <nav class="navbar">
+      <div class="navbar-content">
+        <div class="navbar-left">
+          <button class="toggle-btn" (click)="toggleSidebar()" title="Toggle menu">
+            <div class="burger-icon">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </button>
+          <app-breadcrumb class="breadcrumb"></app-breadcrumb>
+        </div>
+        <div class="navbar-actions">
+          <button class="notification-btn" title="Notifications">
+            🔔
+            <span class="notification-badge">3</span>
+          </button>
+          <div class="user-menu">
+            <div class="user-avatar">👨‍💼</div>
+            <span class="user-name">Admin</span>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+    <app-footer></app-footer>
+  </div>
+</div>
