@@ -48,7 +48,12 @@
           class="form-error"
           *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
         >
-          Mot de passe requis
+          <span *ngIf="loginForm.get('password')?.errors?.['required']"
+            >Le mot de passe est requis</span
+          >
+          <span *ngIf="loginForm.get('password')?.errors?.['minlength']"
+            >Minimum 6 caractères</span
+          >
         </div>
       </div>
 
