@@ -20,5 +20,10 @@ mongoose
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/admin"));
 
+// Routes publiques pour le plan-centre (temporaire pour les tests)
+const centreController = require("./controllers/admin/CentreController");
+app.get("/api/public/centres", centreController.getAllCentres);
+app.get("/api/public/centres/:id/plan", centreController.getCentreWithPlan);
+
 // Démarrage du serveur
 app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));
