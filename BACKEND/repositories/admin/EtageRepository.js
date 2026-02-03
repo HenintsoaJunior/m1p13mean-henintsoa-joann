@@ -28,6 +28,10 @@ class EtageRepository {
     return await this.findAll({ batiment_id: batimentId }, options);
   }
 
+  async findByBatimentId(batimentId) {
+    return await Etage.find({ batiment_id: batimentId }).sort({ niveau: 1 });
+  }
+
   async update(id, data) {
     return await Etage.findByIdAndUpdate(id, data, { new: true, runValidators: true });
   }

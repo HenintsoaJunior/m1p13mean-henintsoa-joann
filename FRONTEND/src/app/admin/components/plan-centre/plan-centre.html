@@ -1,0 +1,182 @@
+<div class="plan-centre-container">
+  <!-- Informations du centre -->
+  <div class="centre-info-card" *ngIf="selectedCentre">
+    <div class="card-header">
+      <h2>{{ selectedCentre.nom }}</h2>
+      <span class="centre-slug">{{ selectedCentre.slug }}</span>
+    </div>
+    <div class="card-content">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Adresse</span>
+          <span class="info-value">
+            {{ selectedCentre.adresse.rue }}, {{ selectedCentre.adresse.ville }} 
+            {{ selectedCentre.adresse.code_postal }}
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Contact</span>
+          <span class="info-value">{{ selectedCentre.telephone_contact }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Email</span>
+          <span class="info-value">{{ selectedCentre.email_contact }}</span>
+        </div>
+      </div>
+      <p class="centre-description">{{ selectedCentre.description }}</p>
+    </div>
+  </div>
+
+  <!-- Liste des bâtiments avec représentation géométrique -->
+  <div class="batiments-section">
+    <h3 class="section-title">Bâtiments du centre</h3>
+    
+    <div class="batiments-grid">
+      <div 
+        class="batiment-card" 
+        *ngFor="let batiment of getBatimentsForCentre(); let i = index"
+        [class.selected]="selectedBatiment?._id === batiment._id"
+        (click)="selectBatiment(batiment)"
+      >
+        <div class="batiment-header">
+          <h4>{{ batiment.nom }}</h4>
+          <span class="etages-count">{{ getEtagesForBatiment(batiment._id).length }} étage(s)</span>
+        </div>
+        <p class="batiment-description">{{ batiment.description }}</p>
+        
+        <!-- Détails des étages quand le bâtiment est sélectionné -->
+        <div class="etages-details" *ngIf="selectedBatiment?._id === batiment._id">
+          <h5>Détails des étages</h5>
+          <div class="etages-list">
+            <div 
+              class="etage-item" 
+              *ngFor="let etage of getEtagesForBatiment(batiment._id)"
+            >
+              <div class="etage-header">
+                <div class="etage-info">
+                  <span class="etage-nom">{{ etage.nom }}</span>
+                  <span class="etage-niveau">Niveau {{ etage.niveau }}</span>
+                </div>
+                <div class="etage-details">
+                  <span class="surface">{{ etage.surface_totale_m2 }} m²</span>
+                  <span class="hauteur">{{ etage.hauteur_sous_plafond_m }}m hauteur</span>
+                </div>
+              </div>
+              
+              <!-- Plan de l'étage avec emplacements -->
+              <div class="etage-plan">
+                <h6>Emplacements ({{ getEmplacementsForEtage(etage._id).length }})</h6>
+                <div class="plan-container">
+                  <svg width="400" height="150" viewBox="0 0 400 150" class="plan-svg">
+                    <!-- Contour de l'étage -->
+                    <rect x="5" y="5" width="390" height="140" 
+                          fill="var(--bg-tertiary)" 
+                          stroke="var(--border-primary)" 
+                          stroke-width="2"/>
+                    
+                    <!-- Emplacements -->
+                    <g *ngFor="let emplacement of getEmplacementsForEtage(etage._id)">
+                      <polygon 
+                        [attr.points]="getPolygonPoints(emplacement.position.coordonnees)"
+                        [attr.fill]="getStatutColor(emplacement.statut)"
+                        [attr.stroke]="'var(--border-primary)'"
+                        stroke-width="1"
+                        opacity="0.8"
+                        class="emplacement-shape"
+                        [attr.title]="emplacement.code + ' - ' + emplacement.nom">
+                      </polygon>
+                      
+                      <!-- Code de l'emplacement -->
+                      <text 
+                        [attr.x]="(emplacement.position.coordonnees[0][0] + emplacement.position.coordonnees[2][0]) / 2"
+                        [attr.y]="(emplacement.position.coordonnees[0][1] + emplacement.position.coordonnees[2][1]) / 2"
+                        text-anchor="middle"
+                        dominant-baseline="middle"
+                        fill="var(--color-white)"
+                        font-size="10"
+                        font-weight="600"
+                        class="emplacement-code">
+                        {{ emplacement.code }}
+                      </text>
+                    </g>
+                  </svg>
+                </div>
+                
+                <!-- Légende des emplacements -->
+                <div class="emplacements-legend">
+                  <div 
+                    class="emplacement-info" 
+                    *ngFor="let emplacement of getEmplacementsForEtage(etage._id)"
+                  >
+                    <div class="emplacement-status" [style.background-color]="getStatutColor(emplacement.statut)"></div>
+                    <span class="emplacement-code-legend">{{ emplacement.code }}</span>
+                    <span class="emplacement-name">{{ emplacement.nom }}</span>
+                    <span class="emplacement-surface">{{ emplacement.surface_m2 }}m²</span>
+                    <span class="emplacement-statut">{{ emplacement.statut }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="batiment-actions">
+          <button class="btn btn-primary btn-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5Z"/>
+            </svg>
+            Voir le plan
+          </button>
+          <button class="btn btn-secondary btn-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
+            </svg>
+            Gérer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques rapides -->
+  <div class="stats-section">
+    <h3 class="section-title">Aperçu rapide</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3,3H21V5H3V3M3,7H15V9H3V7M3,11H21V13H3V11M3,15H15V17H3V15M3,19H21V21H3V19Z"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ getBatimentsForCentre().length }}</span>
+          <span class="stat-label">Bâtiments</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,3L2,12H5V20H19V12H22L12,3Z"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ etages.length }}</span>
+          <span class="stat-label">Étages</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ getTotalSurface() }} m²</span>
+          <span class="stat-label">Surface totale</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import { AdminDashboardComponent } from './admin/components/dashboard/admin-dashboard.component';
+import { PlanCentreComponent } from './admin/components/plan-centre/plan-centre';
 import { LoginComponent } from './pages/login/login.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { authGuard } from './shared/guards/auth.guard';
@@ -25,6 +26,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: AdminDashboardComponent },
+      { path: 'plan-centre', component: PlanCentreComponent },
     ],
   },
   { path: '**', redirectTo: '/login' },
