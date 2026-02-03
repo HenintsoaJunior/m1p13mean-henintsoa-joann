@@ -1,0 +1,553 @@
+.plan-centre-container {
+  padding: var(--space-8);
+  max-width: var(--container-2xl);
+  margin: 0 auto;
+}
+
+/* En-tête */
+.page-header {
+  margin-bottom: var(--space-8);
+}
+
+.header-content {
+  text-align: center;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  font-size: var(--text-5xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.title-icon {
+  color: var(--sidebar-primary);
+}
+
+.page-description {
+  font-size: var(--text-xl);
+  color: var(--text-secondary);
+  margin: var(--space-2) 0 0 0;
+}
+
+/* Carte d'information du centre */
+.centre-info-card {
+  background: var(--gradient-sidebar);
+  padding: var(--space-8);
+  color: var(--color-white);
+  margin-bottom: var(--space-8);
+  box-shadow: var(--shadow-md);
+  border: var(--card-border-width) solid var(--border-primary);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.card-header h2 {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  margin: 0;
+  color: var(--color-white);
+}
+
+.centre-slug {
+  background: var(--color-gray-800);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-white);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.info-label {
+  font-size: var(--text-sm);
+  opacity: 0.8;
+  font-weight: var(--font-medium);
+  color: var(--color-white);
+}
+
+.info-value {
+  font-weight: var(--font-semibold);
+  color: var(--color-white);
+}
+
+.centre-description {
+  margin: var(--space-6) 0 0 0;
+  line-height: var(--leading-relaxed);
+  opacity: 0.9;
+  color: var(--color-white);
+}
+
+/* Section des bâtiments */
+.batiments-section {
+  margin-bottom: var(--space-12);
+}
+
+.section-title {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.batiments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--space-6);
+}
+
+/* Formes géométriques pour les bâtiments */
+.batiment-card {
+  position: relative;
+  background: var(--bg-primary);
+  padding: var(--card-padding);
+  border: var(--card-border-width) solid var(--border-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.batiment-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--space-2);
+  background: var(--sidebar-primary);
+}
+
+.batiment-card:hover {
+  border-color: var(--sidebar-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.batiment-card.selected {
+  border-color: var(--sidebar-primary);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow);
+}
+
+/* Représentation géométrique des étages */
+.batiment-geometry {
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+}
+
+.etage-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.etage-block {
+  width: 100%;
+  height: var(--space-8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--border-primary);
+  position: relative;
+}
+
+.etage-block:first-child {
+  width: 90%;
+}
+
+.etage-block:nth-child(2) {
+  width: 95%;
+}
+
+.etage-block:nth-child(3) {
+  width: 85%;
+}
+
+.etage-text {
+  color: var(--text-primary);
+}
+
+.batiment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.batiment-header h4 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.etages-count {
+  background: var(--bg-tertiary);
+  color: var(--sidebar-primary);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--border-secondary);
+}
+
+.batiment-description {
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* Détails des étages */
+.etages-details {
+  margin: var(--space-6) 0;
+  padding: var(--space-4);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+}
+
+.etages-details h5 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.etages-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.etage-item {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  position: relative;
+  gap: var(--space-4);
+}
+
+.etage-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--space-1);
+  background: var(--sidebar-primary);
+}
+
+.etage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.etage-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.etage-nom {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.etage-niveau {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.etage-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+.surface {
+  font-weight: var(--font-semibold);
+  color: var(--color-success);
+}
+
+.hauteur {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+/* Plan de l'étage */
+.etage-plan {
+  margin-top: var(--space-4);
+}
+
+.etage-plan h6 {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.plan-container {
+  background: var(--bg-secondary);
+  padding: var(--space-4);
+  border: 1px solid var(--border-primary);
+  margin-bottom: var(--space-4);
+}
+
+.plan-svg {
+  width: 100%;
+  height: auto;
+}
+
+.emplacement-shape {
+  cursor: pointer;
+}
+
+.emplacement-shape:hover {
+  opacity: 1;
+  stroke-width: 2;
+}
+
+.emplacement-code {
+  pointer-events: none;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Légende des emplacements */
+.emplacements-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.emplacement-info {
+  display: grid;
+  grid-template-columns: auto 1fr 2fr 1fr 1.5fr;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  font-size: var(--text-sm);
+}
+
+.emplacement-status {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.emplacement-code-legend {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.emplacement-name {
+  color: var(--text-secondary);
+}
+
+.emplacement-surface {
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.emplacement-statut {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  text-transform: capitalize;
+}
+
+/* Actions des bâtiments */
+.batiment-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border: var(--input-border-width) solid var(--border-primary);
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-sm {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.btn-primary {
+  background: var(--sidebar-primary);
+  color: var(--color-white);
+  border-color: var(--sidebar-primary);
+}
+
+.btn-primary:hover {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-800);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-secondary);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-secondary);
+}
+
+/* Section des statistiques */
+.stats-section {
+  margin-bottom: var(--space-8);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-6);
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--bg-primary);
+  padding: var(--space-6);
+  border: var(--card-border-width) solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--space-1);
+  background: var(--sidebar-accent);
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-12);
+  height: var(--space-12);
+  background: var(--bg-tertiary);
+  color: var(--sidebar-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stat-value {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-medium);
+}
+
+/* Formes géométriques dans les stats */
+.stats-grid .stat-card:nth-child(1) .stat-icon {
+  background: var(--sidebar-primary);
+  color: var(--color-white);
+}
+
+.stats-grid .stat-card:nth-child(2) .stat-icon {
+  background: var(--color-green-600);
+  color: var(--color-white);
+}
+
+.stats-grid .stat-card:nth-child(3) .stat-icon {
+  background: var(--color-amber-500);
+  color: var(--color-white);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .plan-centre-container {
+    padding: var(--space-4);
+  }
+
+  .page-title {
+    font-size: var(--text-4xl);
+  }
+
+  .batiments-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .etage-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .etage-details {
+    align-items: flex-start;
+  }
+
+  .batiment-actions {
+    flex-direction: column;
+  }
+}

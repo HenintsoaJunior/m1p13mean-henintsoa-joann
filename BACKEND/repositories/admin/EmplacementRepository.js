@@ -31,6 +31,10 @@ class EmplacementRepository {
     return await this.findAll({ etage_id: etageId }, options);
   }
 
+  async findByEtageId(etageId) {
+    return await Emplacement.find({ etage_id: etageId }).sort({ code: 1 });
+  }
+
   async findByStatut(statut, options = {}) {
     return await this.findAll({ statut }, options);
   }
