@@ -74,6 +74,23 @@
         <span class="nav-text" *ngIf="!isCollapsed">Boutiques</span>
         <div class="nav-indicator" *ngIf="currentRoute === '/admin/boutiques'"></div>
       </a>
+
+      <a
+        routerLink="/admin/plan-centre"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Plan Centre Commercial' : null"
+      >
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M15,7H20.5L20,4H17V2H15M6.5,2V4H3.5L3,7H8.5V2M9,7H15V9H9M15,10V15H13V12H11V15H9V10M8,17V22H10V17M14,17V22H16V17M5,9H19V17H17V15H13V17H11V15H7V17H5Z"
+            />
+          </svg>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Plan Centre Commercial</span>
+        <div class="nav-indicator" *ngIf="currentRoute === '/admin/plan-centre'"></div>
+      </a>
     </div>
 
     <div class="nav-section">

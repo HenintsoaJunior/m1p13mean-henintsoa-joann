@@ -28,6 +28,10 @@ class BatimentRepository {
     return await this.findAll({ centre_id: centreId }, options);
   }
 
+  async findByCentreId(centreId) {
+    return await Batiment.find({ centre_id: centreId }).sort({ nom: 1 });
+  }
+
   async update(id, data) {
     return await Batiment.findByIdAndUpdate(id, data, { new: true, runValidators: true });
   }

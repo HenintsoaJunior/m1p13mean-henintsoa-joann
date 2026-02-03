@@ -72,6 +72,16 @@ class CentreController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  async getCentreWithPlan(req, res) {
+    try {
+      const centreId = req.params.id;
+      const centreWithPlan = await centreService.getCentreWithPlan(centreId);
+      res.status(200).json({ success: true, data: centreWithPlan });
+    } catch (error) {
+      res.status(404).json({ success: false, message: error.message });
+    }
+  }
 }
 
 module.exports = new CentreController();
