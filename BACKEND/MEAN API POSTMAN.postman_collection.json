@@ -1,1353 +1,1123 @@
 {
-	"info": {
-		"_postman_id": "1d899058-7a46-4e52-b8e6-600c49aa8c5e",
-		"name": "MEAN API POSTMAN",
-		"description": "Collection complète pour tester l'API Admin avec authentification JWT",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "39672081"
-	},
-	"item": [
-		{
-			"name": "🔐 Auth",
-			"item": [
-				{
-					"name": "Login Admin",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 200) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set(\"token\", jsonData.token);",
-									"    pm.collectionVariables.set(\"utilisateur_id\", jsonData.utilisateur._id);",
-									"    console.log(\"Token enregistré avec succès\");",
-									"}"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"daxido@gmail.com\",\n  \"mot_de_passe\": \"Henintsoa2318\"\n}"
-						},
-						"url": {
-							"raw": "{{authUrl}}/auth/connexion",
-							"host": [
-								"{{authUrl}}"
-							],
-							"path": [
-								"auth",
-								"connexion"
-							]
-						},
-						"description": "⚠️ COMMENCEZ ICI : Connectez-vous avec un compte admin pour obtenir le token JWT.\n\nLe token sera automatiquement enregistré dans la variable de collection et utilisé pour toutes les requêtes suivantes.\n\n📝 Modifiez l'email et le mot_de_passe avec vos identifiants admin."
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Logs",
-			"item": [
-				{
-					"name": "Create Log",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"utilisateur_id\": \"{{utilisateur_id}}\",\n  \"details\": \"Action effectuée par l'utilisateur\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/logs",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"logs"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Logs",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/logs?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"logs"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Log By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/logs/{{log_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"logs",
-								"{{log_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Logs By Utilisateur",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/logs/utilisateur/{{utilisateur_id}}?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"logs",
-								"utilisateur",
-								"{{utilisateur_id}}"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Log",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/logs/{{log_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"logs",
-								"{{log_id}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Centres",
-			"item": [
-				{
-					"name": "Create Centre",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set(\"centre_id\", jsonData.data._id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"nom\": \"Akoor Antananarivo\",\n  \"slug\": \"akoor-antananarivo\",\n  \"adresse\": {\n    \"rue\": \"123 Avenue de l'Indépendance\",\n    \"ville\": \"Antananarivo\",\n    \"code_postal\": \"101\",\n    \"pays\": \"Madagascar\",\n    \"coordonnees\": {\n      \"type\": \"Point\",\n      \"coordinates\": [47.5079, -18.8792]\n    }\n  },\n  \"description\": \"Centre commercial principal\",\n  \"horaires_ouverture\": {\n    \"lundi\": \"08:00-20:00\",\n    \"mardi\": \"08:00-20:00\",\n    \"mercredi\": \"08:00-20:00\",\n    \"jeudi\": \"08:00-20:00\",\n    \"vendredi\": \"08:00-22:00\",\n    \"samedi\": \"09:00-22:00\",\n    \"dimanche\": \"10:00-18:00\"\n  },\n  \"email_contact\": \"contact@akoor.mg\",\n  \"telephone_contact\": \"+261 20 22 123 45\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/centres",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"centres"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Centres",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/centres?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"centres"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Centre By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/centres/{{centre_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"centres",
-								"{{centre_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Centre By Slug",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/centres/slug/akoor-antananarivo",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"centres",
-								"slug",
-								"akoor-antananarivo"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Find Near Centres",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/centres/near?longitude=47.5079&latitude=-18.8792&maxDistance=10000",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"centres",
-								"near"
-							],
-							"query": [
-								{
-									"key": "longitude",
-									"value": "47.5079"
-								},
-								{
-									"key": "latitude",
-									"value": "-18.8792"
-								},
-								{
-									"key": "maxDistance",
-									"value": "10000"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Centre",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"description\": \"Centre commercial rénové\",\n  \"telephone_contact\": \"+261 20 22 123 99\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/centres/{{centre_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"centres",
-								"{{centre_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Centre",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/centres/{{centre_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"centres",
-								"{{centre_id}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Batiments",
-			"item": [
-				{
-					"name": "Create Batiment",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set(\"batiment_id\", jsonData.data._id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"centre_id\": \"{{centre_id}}\",\n  \"nom\": \"Bâtiment Principal\",\n  \"description\": \"Bâtiment principal avec commerces\",\n  \"nombre_etages\": 3\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/batiments",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"batiments"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Batiments",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/batiments?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"batiments"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Batiment By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/batiments/{{batiment_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"batiments",
-								"{{batiment_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Batiments By Centre",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/batiments/centre/{{centre_id}}?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"batiments",
-								"centre",
-								"{{centre_id}}"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Batiment",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"nombre_etages\": 4,\n  \"description\": \"Bâtiment avec extension\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/batiments/{{batiment_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"batiments",
-								"{{batiment_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Batiment",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/batiments/{{batiment_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"batiments",
-								"{{batiment_id}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Etages",
-			"item": [
-				{
-					"name": "Create Etage",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set(\"etage_id\", jsonData.data._id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"batiment_id\": \"{{batiment_id}}\",\n  \"nom\": \"Rez-de-chaussée\",\n  \"niveau\": 0,\n  \"surface_totale_m2\": 1200,\n  \"hauteur_sous_plafond_m\": 3.5\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/etages",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"etages"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Etages",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/etages?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"etages"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Etage By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/etages/{{etage_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"etages",
-								"{{etage_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Etages By Batiment",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/etages/batiment/{{batiment_id}}?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"etages",
-								"batiment",
-								"{{batiment_id}}"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Etage",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"surface_totale_m2\": 1300\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/etages/{{etage_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"etages",
-								"{{etage_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Etage",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/etages/{{etage_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"etages",
-								"{{etage_id}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Emplacements",
-			"item": [
-				{
-					"name": "Create Emplacement",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set(\"emplacement_id\", jsonData.data._id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"etage_id\": \"{{etage_id}}\",\n  \"code\": \"A-12\",\n  \"type\": \"box\",\n  \"nom\": \"Boutique Mode\",\n  \"surface_m2\": 25,\n  \"position\": {\n    \"type\": \"polygone\",\n    \"coordonnees\": [[0, 0], [5, 0], [5, 5], [0, 5], [0, 0]]\n  },\n  \"statut\": \"libre\",\n  \"loyer_mensuel\": 500000\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/emplacements",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"emplacements"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Emplacements",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/emplacements?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"emplacements"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Emplacement By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/emplacements/{{emplacement_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"emplacements",
-								"{{emplacement_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Emplacements By Etage",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/emplacements/etage/{{etage_id}}?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"emplacements",
-								"etage",
-								"{{etage_id}}"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Emplacements By Statut",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/emplacements/statut/libre?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"emplacements",
-								"statut",
-								"libre"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Emplacement",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"statut\": \"occupe\",\n  \"loyer_mensuel\": 550000\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/emplacements/{{emplacement_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"emplacements",
-								"{{emplacement_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Emplacement",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/emplacements/{{emplacement_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"emplacements",
-								"{{emplacement_id}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Appels d'Offre",
-			"item": [
-				{
-					"name": "Create Appel d'Offre",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set(\"appel_offre_id\", jsonData.data._id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"emplacement_id\": \"{{emplacement_id}}\",\n  \"description\": \"Appel d'offre pour emplacement commercial\",\n  \"statut\": \"ouvert\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/appels-offre",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"appels-offre"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Appels d'Offre",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/appels-offre?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"appels-offre"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Appel d'Offre By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/appels-offre/{{appel_offre_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"appels-offre",
-								"{{appel_offre_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Appels d'Offre By Emplacement",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/appels-offre/emplacement/{{emplacement_id}}?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"appels-offre",
-								"emplacement",
-								"{{emplacement_id}}"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Appels d'Offre By Statut",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/appels-offre/statut/ouvert?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"appels-offre",
-								"statut",
-								"ouvert"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Appel d'Offre",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"statut\": \"ferme\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/appels-offre/{{appel_offre_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"appels-offre",
-								"{{appel_offre_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Appel d'Offre",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/appels-offre/{{appel_offre_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"appels-offre",
-								"{{appel_offre_id}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Boutiques",
-			"item": [
-				{
-					"name": "Create Boutique",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    var jsonData = pm.response.json();",
-									"    pm.collectionVariables.set(\"boutique_id\", jsonData.data._id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"appel_offre_id\": \"{{appel_offre_id}}\",\n  \"contact\": {\n    \"nom\": \"Rakoto\",\n    \"prenom\": \"Jean\",\n    \"telephone\": \"+261 34 12 345 67\",\n    \"email\": \"jean.rakoto@example.mg\",\n    \"adresse\": \"Lot 123 Antananarivo\"\n  },\n  \"statut\": \"en_attente\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/boutiques",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"boutiques"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get All Boutiques",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/boutiques?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"boutiques"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Boutique By ID",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/boutiques/{{boutique_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"boutiques",
-								"{{boutique_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Boutiques By Appel d'Offre",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/boutiques/appel-offre/{{appel_offre_id}}?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"boutiques",
-								"appel-offre",
-								"{{appel_offre_id}}"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Boutiques By Statut",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/boutiques/statut/active?page=1&limit=10",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"boutiques",
-								"statut",
-								"active"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Boutique",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"statut\": \"active\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/boutiques/{{boutique_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"boutiques",
-								"{{boutique_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Boutique",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/boutiques/{{boutique_id}}",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"boutiques",
-								"{{boutique_id}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{token}}",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"requests": {},
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"packages": {},
-				"requests": {},
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:3000/api/admin"
-		},
-		{
-			"key": "authUrl",
-			"value": "http://localhost:3000/api/auth"
-		},
-		{
-			"key": "token",
-			"value": ""
-		},
-		{
-			"key": "centre_id",
-			"value": ""
-		},
-		{
-			"key": "batiment_id",
-			"value": ""
-		},
-		{
-			"key": "etage_id",
-			"value": ""
-		},
-		{
-			"key": "emplacement_id",
-			"value": ""
-		},
-		{
-			"key": "appel_offre_id",
-			"value": ""
-		},
-		{
-			"key": "boutique_id",
-			"value": ""
-		}
-	]
+  "info": {
+    "_postman_id": "1d899058-7a46-4e52-b8e6-600c49aa8c5e",
+    "name": "MEAN API POSTMAN",
+    "description": "Collection complète pour tester l'API Admin avec authentification JWT",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "39672081"
+  },
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "    pm.collectionVariables.set(\"utilisateur_id\", jsonData.utilisateur._id);",
+                  "    console.log(\"Token enregistré avec succès\");",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"daxido@gmail.com\",\n  \"mot_de_passe\": \"Henintsoa2318\"\n}"
+            },
+            "url": {
+              "raw": "{{authUrl}}/auth/connexion",
+              "host": ["{{authUrl}}"],
+              "path": ["auth", "connexion"]
+            },
+            "description": "⚠️ COMMENCEZ ICI : Connectez-vous avec un compte admin pour obtenir le token JWT.\n\nLe token sera automatiquement enregistré dans la variable de collection et utilisé pour toutes les requêtes suivantes.\n\n📝 Modifiez l'email et le mot_de_passe avec vos identifiants admin."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Logs",
+      "item": [
+        {
+          "name": "Create Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utilisateur_id\": \"{{utilisateur_id}}\",\n  \"details\": \"Action effectuée par l'utilisateur\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/logs",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logs?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Log By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logs/{{log_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs", "{{log_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Logs By Utilisateur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logs/utilisateur/{{utilisateur_id}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs", "utilisateur", "{{utilisateur_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Log",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logs/{{log_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["logs", "{{log_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Centres",
+      "item": [
+        {
+          "name": "Create Centre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"centre_id\", jsonData.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Akoor Antananarivo\",\n  \"slug\": \"akoor-antananarivo\",\n  \"adresse\": {\n    \"rue\": \"123 Avenue de l'Indépendance\",\n    \"ville\": \"Antananarivo\",\n    \"code_postal\": \"101\",\n    \"pays\": \"Madagascar\",\n    \"coordonnees\": {\n      \"type\": \"Point\",\n      \"coordinates\": [47.5079, -18.8792]\n    }\n  },\n  \"description\": \"Centre commercial principal\",\n  \"horaires_ouverture\": {\n    \"lundi\": \"08:00-20:00\",\n    \"mardi\": \"08:00-20:00\",\n    \"mercredi\": \"08:00-20:00\",\n    \"jeudi\": \"08:00-20:00\",\n    \"vendredi\": \"08:00-22:00\",\n    \"samedi\": \"09:00-22:00\",\n    \"dimanche\": \"10:00-18:00\"\n  },\n  \"email_contact\": \"contact@akoor.mg\",\n  \"telephone_contact\": \"+261 20 22 123 45\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/centres",
+              "host": ["{{baseUrl}}"],
+              "path": ["centres"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Centres",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/centres?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["centres"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Centre By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/centres/{{centre_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["centres", "{{centre_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Centre By Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/centres/slug/akoor-antananarivo",
+              "host": ["{{baseUrl}}"],
+              "path": ["centres", "slug", "akoor-antananarivo"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Find Near Centres",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/centres/near?longitude=47.5079&latitude=-18.8792&maxDistance=10000",
+              "host": ["{{baseUrl}}"],
+              "path": ["centres", "near"],
+              "query": [
+                {
+                  "key": "longitude",
+                  "value": "47.5079"
+                },
+                {
+                  "key": "latitude",
+                  "value": "-18.8792"
+                },
+                {
+                  "key": "maxDistance",
+                  "value": "10000"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Centre",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Centre commercial rénové\",\n  \"telephone_contact\": \"+261 20 22 123 99\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/centres/{{centre_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["centres", "{{centre_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Centre",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/centres/{{centre_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["centres", "{{centre_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Batiments",
+      "item": [
+        {
+          "name": "Create Batiment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"batiment_id\", jsonData.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"centre_id\": \"{{centre_id}}\",\n  \"nom\": \"Bâtiment Principal\",\n  \"description\": \"Bâtiment principal avec commerces\",\n  \"nombre_etages\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/batiments",
+              "host": ["{{baseUrl}}"],
+              "path": ["batiments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Batiments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/batiments?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["batiments"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Batiment By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/batiments/{{batiment_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["batiments", "{{batiment_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Batiments By Centre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/batiments/centre/{{centre_id}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["batiments", "centre", "{{centre_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Batiment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_etages\": 4,\n  \"description\": \"Bâtiment avec extension\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/batiments/{{batiment_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["batiments", "{{batiment_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Batiment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/batiments/{{batiment_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["batiments", "{{batiment_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Etages",
+      "item": [
+        {
+          "name": "Create Etage",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"etage_id\", jsonData.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batiment_id\": \"{{batiment_id}}\",\n  \"nom\": \"Rez-de-chaussée\",\n  \"niveau\": 0,\n  \"surface_totale_m2\": 1200,\n  \"hauteur_sous_plafond_m\": 3.5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/etages",
+              "host": ["{{baseUrl}}"],
+              "path": ["etages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Etages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/etages?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["etages"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Etage By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/etages/{{etage_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["etages", "{{etage_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Etages By Batiment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/etages/batiment/{{batiment_id}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["etages", "batiment", "{{batiment_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Etage",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"surface_totale_m2\": 1300\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/etages/{{etage_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["etages", "{{etage_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Etage",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/etages/{{etage_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["etages", "{{etage_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Emplacements",
+      "item": [
+        {
+          "name": "Create Emplacement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"emplacement_id\", jsonData.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"etage_id\": \"{{etage_id}}\",\n  \"code\": \"A-12\",\n  \"type\": \"box\",\n  \"nom\": \"Boutique Mode\",\n  \"surface_m2\": 25,\n  \"position\": {\n    \"type\": \"polygone\",\n    \"coordonnees\": [[0, 0], [5, 0], [5, 5], [0, 5], [0, 0]]\n  },\n  \"statut\": \"libre\",\n  \"loyer_mensuel\": 500000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emplacements",
+              "host": ["{{baseUrl}}"],
+              "path": ["emplacements"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Emplacements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emplacements?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["emplacements"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Emplacement By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emplacements/{{emplacement_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["emplacements", "{{emplacement_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Emplacements By Etage",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emplacements/etage/{{etage_id}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["emplacements", "etage", "{{etage_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Emplacements By Statut",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emplacements/statut/libre?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["emplacements", "statut", "libre"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Emplacement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"occupe\",\n  \"loyer_mensuel\": 550000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/emplacements/{{emplacement_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["emplacements", "{{emplacement_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Emplacement",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/emplacements/{{emplacement_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["emplacements", "{{emplacement_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Appels d'Offre",
+      "item": [
+        {
+          "name": "Create Appel d'Offre",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"appel_offre_id\", jsonData.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emplacement_id\": \"{{emplacement_id}}\",\n  \"description\": \"Appel d'offre pour emplacement commercial\",\n  \"statut\": \"ouvert\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appels-offre",
+              "host": ["{{baseUrl}}"],
+              "path": ["appels-offre"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Appels d'Offre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appels-offre?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["appels-offre"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appel d'Offre By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appels-offre/{{appel_offre_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["appels-offre", "{{appel_offre_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appels d'Offre By Emplacement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appels-offre/emplacement/{{emplacement_id}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["appels-offre", "emplacement", "{{emplacement_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appels d'Offre By Statut",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appels-offre/statut/ouvert?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["appels-offre", "statut", "ouvert"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Appel d'Offre",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"ferme\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appels-offre/{{appel_offre_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["appels-offre", "{{appel_offre_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Appel d'Offre",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/appels-offre/{{appel_offre_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["appels-offre", "{{appel_offre_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Boutiques",
+      "item": [
+        {
+          "name": "Create Boutique",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"boutique_id\", jsonData.data._id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appel_offre_id\": \"{{appel_offre_id}}\",\n  \"contact\": {\n    \"nom\": \"Rakoto\",\n    \"prenom\": \"Jean\",\n    \"telephone\": \"+261 34 12 345 67\",\n    \"email\": \"jean.rakoto@example.mg\",\n    \"adresse\": \"Lot 123 Antananarivo\"\n  },\n  \"statut\": \"en_attente\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boutiques",
+              "host": ["{{baseUrl}}"],
+              "path": ["boutiques"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Boutiques",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boutiques?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["boutiques"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Boutique By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boutiques/{{boutique_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["boutiques", "{{boutique_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Boutiques By Appel d'Offre",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boutiques/appel-offre/{{appel_offre_id}}?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["boutiques", "appel-offre", "{{appel_offre_id}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Boutiques By Statut",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boutiques/statut/active?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["boutiques", "statut", "active"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Boutique",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/boutiques/{{boutique_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["boutiques", "{{boutique_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Boutique",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/boutiques/{{boutique_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["boutiques", "{{boutique_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/admin"
+    },
+    {
+      "key": "authUrl",
+      "value": "http://localhost:3000/api/auth"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "centre_id",
+      "value": ""
+    },
+    {
+      "key": "batiment_id",
+      "value": ""
+    },
+    {
+      "key": "etage_id",
+      "value": ""
+    },
+    {
+      "key": "emplacement_id",
+      "value": ""
+    },
+    {
+      "key": "appel_offre_id",
+      "value": ""
+    },
+    {
+      "key": "boutique_id",
+      "value": ""
+    }
+  ]
 }
