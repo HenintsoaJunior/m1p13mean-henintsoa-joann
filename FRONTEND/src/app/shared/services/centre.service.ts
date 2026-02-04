@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Centre } from '../interfaces/centre.interface';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CentreService {
-  private readonly apiUrl = 'http://localhost:5000/api/public/centres';
+  private readonly apiUrl = `${environment.apiUrl}/api/public/centres`;
 
   constructor(private http: HttpClient) {}
 
