@@ -21,6 +21,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         toastService.showError('Session expirée, veuillez vous reconnecter');
         return throwError(() => error);
       } else if (error.status === 403) {
+        // Accès non autorisé - vérifier si l'utilisateur est connecté
+        if (req.url.includes('/api/admin/')) {
+          authService.logout();
+          router.navigate(['/login']);
+          toastService.showError('Accès non autorisé, veuillez vous connecter');
+          return throwError(() => error);
+        }
         errorMessage = 'Accès non autorisé';
       } else if (error.status === 404) {
         errorMessage = 'Ressource non trouvée';
