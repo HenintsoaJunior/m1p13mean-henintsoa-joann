@@ -1,0 +1,268 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CentresService, Batiment, Centre } from '../../services/centres.service';
+
+@Component({
+  selector: 'app-batiments-crud',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
+  template: `
+    <div class="page-container">
+      <div class="page-header">
+        <h1 class="page-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="title-icon">
+            <path d="M6,2V22H18V2M8,4H16V6H8M8,8H16V10H8M8,12H16V14H8M8,16H16V18H8" />
+          </svg>
+          Gestion des Bâtiments
+        </h1>
+        <button class="btn btn-primary" (click)="openCreateModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+          </svg>
+          Nouveau Bâtiment
+        </button>
+      </div>
+
+      <!-- Table des bâtiments -->
+      <div class="table-container">
+        <div class="table-header">
+          <h3 class="table-title">Liste des Bâtiments</h3>
+          <div class="filters">
+            <select [(ngModel)]="selectedCentreId" (change)="filterByCentre()" class="form-control">
+              <option value="">Tous les centres</option>
+              <option *ngFor="let centre of centres" [value]="centre._id">{{ centre.nom }}</option>
+            </select>
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="search-icon">
+                <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L20.49,19.78L19.78,20.49L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,4A5.5,5.5 0 0,0 4,9.5A5.5,5.5 0 0,0 9.5,15A5.5,5.5 0 0,0 15,9.5A5.5,5.5 0 0,0 9.5,4Z" />
+              </svg>
+              <input type="text" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="filterBatiments()">
+            </div>
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Centre</th>
+              <th>Nombre d'étages</th>
+              <th>Description</th>
+              <th>Créé le</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let batiment of filteredBatiments" class="table-row">
+              <td>
+                <div class="batiment-name">{{ batiment.nom }}</div>
+              </td>
+              <td>{{ getCentreNom(batiment.centre_id) }}</td>
+              <td>
+                <span class="badge badge-primary">{{ batiment.nombre_etages }} étage(s)</span>
+              </td>
+              <td>{{ batiment.description || '-' }}</td>
+              <td>{{ batiment.cree_le | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-icon btn-edit" (click)="editBatiment(batiment)" title="Modifier">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                    </svg>
+                  </button>
+                  <button class="btn-icon btn-delete" (click)="deleteBatiment(batiment._id!)" title="Supprimer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredBatiments.length === 0" class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" class="empty-icon">
+            <path d="M6,2V22H18V2M8,4H16V6H8M8,8H16V10H8M8,12H16V14H8M8,16H16V18H8" />
+          </svg>
+          <h3>Aucun bâtiment trouvé</h3>
+          <p>Commencez par créer votre premier bâtiment</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal pour créer/modifier un bâtiment -->
+    <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ editingBatiment ? 'Modifier le bâtiment' : 'Nouveau bâtiment' }}</h2>
+          <button class="btn-close" (click)="closeModal()">×</button>
+        </div>
+
+        <div class="modal-body">
+          <form [formGroup]="batimentForm" (ngSubmit)="onSubmit()" class="form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="centre_id">Centre *</label>
+                <select id="centre_id" formControlName="centre_id" class="form-control">
+                  <option value="">Sélectionner un centre</option>
+                  <option *ngFor="let centre of centres" [value]="centre._id">{{ centre.nom }}</option>
+                </select>
+                <div *ngIf="batimentForm.get('centre_id')?.errors && batimentForm.get('centre_id')?.touched" class="error-message">
+                  Le centre est requis
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="nom">Nom du bâtiment *</label>
+                <input type="text" id="nom" formControlName="nom" class="form-control" placeholder="Ex: Bâtiment Principal">
+                <div *ngIf="batimentForm.get('nom')?.errors && batimentForm.get('nom')?.touched" class="error-message">
+                  Le nom est requis
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="nombre_etages">Nombre d'étages</label>
+                <input type="number" id="nombre_etages" formControlName="nombre_etages" class="form-control" placeholder="0" min="0">
+              </div>
+
+              <div class="form-group full-width">
+                <label for="description">Description</label>
+                <textarea id="description" formControlName="description" class="form-control" rows="3" placeholder="Description du bâtiment..."></textarea>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
+              <button type="submit" class="btn btn-primary" [disabled]="batimentForm.invalid || isSubmitting">
+                {{ isSubmitting ? 'En cours...' : (editingBatiment ? 'Modifier' : 'Créer') }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .batiment-name {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+  `]
+})
+export class BatimentsCrudComponent implements OnInit {
+  batiments: Batiment[] = [];
+  filteredBatiments: Batiment[] = [];
+  centres: Centre[] = [];
+  searchTerm = '';
+  selectedCentreId = '';
+  showModal = false;
+  editingBatiment: Batiment | null = null;
+  isSubmitting = false;
+  batimentForm: FormGroup;
+
+  constructor(
+    private centresService: CentresService,
+    private formBuilder: FormBuilder
+  ) {
+    this.batimentForm = this.formBuilder.group({
+      centre_id: ['', [Validators.required]],
+      nom: ['', [Validators.required]],
+      description: [''],
+      nombre_etages: [0, [Validators.min(0)]]
+    });
+  }
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  loadData() {
+    this.centresService.getCentres().subscribe(centres => {
+      this.centres = centres;
+    });
+
+    this.centresService.getBatiments().subscribe(batiments => {
+      this.batiments = batiments;
+      this.filteredBatiments = batiments;
+    });
+  }
+
+  filterByCentre() {
+    this.filterBatiments();
+  }
+
+  filterBatiments() {
+    this.filteredBatiments = this.batiments.filter(batiment => {
+      const matchesSearch = batiment.nom.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                          batiment.description?.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesCentre = !this.selectedCentreId || batiment.centre_id === this.selectedCentreId;
+      return matchesSearch && matchesCentre;
+    });
+  }
+
+  getCentreNom(centreId: string): string {
+    const centre = this.centres.find(c => c._id === centreId);
+    return centre ? centre.nom : 'Centre inconnu';
+  }
+
+  openCreateModal() {
+    this.editingBatiment = null;
+    this.batimentForm.reset();
+    this.batimentForm.patchValue({ nombre_etages: 0 });
+    this.showModal = true;
+  }
+
+  editBatiment(batiment: Batiment) {
+    this.editingBatiment = batiment;
+    this.batimentForm.patchValue(batiment);
+    this.showModal = true;
+  }
+
+  closeModal() {
+    this.showModal = false;
+    this.editingBatiment = null;
+    this.batimentForm.reset();
+  }
+
+  onSubmit() {
+    if (this.batimentForm.valid) {
+      this.isSubmitting = true;
+      const batimentData = this.batimentForm.value;
+
+      if (this.editingBatiment) {
+        this.centresService.updateBatiment(this.editingBatiment._id!, batimentData).subscribe({
+          next: () => {
+            this.loadData();
+            this.closeModal();
+            this.isSubmitting = false;
+          },
+          error: () => {
+            this.isSubmitting = false;
+          }
+        });
+      } else {
+        this.centresService.createBatiment(batimentData).subscribe({
+          next: () => {
+            this.loadData();
+            this.closeModal();
+            this.isSubmitting = false;
+          },
+          error: () => {
+            this.isSubmitting = false;
+          }
+        });
+      }
+    }
+  }
+
+  deleteBatiment(id: string) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce bâtiment ?')) {
+      this.centresService.deleteBatiment(id).subscribe(() => {
+        this.loadData();
+      });
+    }
+  }
+}

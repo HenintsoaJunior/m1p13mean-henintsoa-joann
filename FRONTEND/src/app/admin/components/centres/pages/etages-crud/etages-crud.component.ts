@@ -1,0 +1,241 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { CentresService, Etage, Batiment } from '../../services/centres.service';
+
+@Component({
+  selector: 'app-etages-crud',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
+  template: `
+    <div class="page-container">
+      <div class="page-header">
+        <h1 class="page-title">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="title-icon">
+            <path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7L17,12H15V18H9V12H7L12,7.7M11,13V16H13V13H11Z" />
+          </svg>
+          Gestion des Étages
+        </h1>
+        <button class="btn btn-primary" (click)="openCreateModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+          </svg>
+          Nouvel Étage
+        </button>
+      </div>
+
+      <div class="table-container">
+        <div class="table-header">
+          <h3 class="table-title">Liste des Étages</h3>
+          <div class="filters">
+            <select [(ngModel)]="selectedBatimentId" (change)="filterByBatiment()" class="form-control">
+              <option value="">Tous les bâtiments</option>
+              <option *ngFor="let batiment of batiments" [value]="batiment._id">{{ batiment.nom }}</option>
+            </select>
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="search-icon">
+                <path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L20.49,19.78L19.78,20.49L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,4A5.5,5.5 0 0,0 4,9.5A5.5,5.5 0 0,0 9.5,15A5.5,5.5 0 0,0 15,9.5A5.5,5.5 0 0,0 9.5,4Z" />
+              </svg>
+              <input type="text" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="filterEtages()">
+            </div>
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Bâtiment</th>
+              <th>Niveau</th>
+              <th>Surface (m²)</th>
+              <th>Hauteur (m)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let etage of filteredEtages" class="table-row">
+              <td>{{ etage.nom }}</td>
+              <td>{{ getBatimentNom(etage.batiment_id!) }}</td>
+              <td><span class="badge badge-level">Niveau {{ etage.niveau }}</span></td>
+              <td>{{ etage.surface_totale_m2 || '-' }}</td>
+              <td>{{ etage.hauteur_sous_plafond_m || '-' }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn-icon btn-edit" (click)="editEtage(etage)" title="Modifier">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                    </svg>
+                  </button>
+                  <button class="btn-icon btn-delete" (click)="deleteEtage(etage._id!)" title="Supprimer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="filteredEtages.length === 0" class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" class="empty-icon">
+            <path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7L17,12H15V18H9V12H7L12,7.7M11,13V16H13V13H11Z" />
+          </svg>
+          <h3>Aucun étage trouvé</h3>
+          <p>Commencez par créer votre premier étage</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">{{ editingEtage ? 'Modifier l\'étage' : 'Nouvel étage' }}</h2>
+          <button class="btn-close" (click)="closeModal()">×</button>
+        </div>
+
+        <div class="modal-body">
+          <form [formGroup]="etageForm" (ngSubmit)="onSubmit()" class="form">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="batiment_id">Bâtiment</label>
+                <select id="batiment_id" formControlName="batiment_id" class="form-control">
+                  <option value="">Sélectionner un bâtiment</option>
+                  <option *ngFor="let batiment of batiments" [value]="batiment._id">{{ batiment.nom }}</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="nom">Nom *</label>
+                <input type="text" id="nom" formControlName="nom" class="form-control" placeholder="Ex: RDC">
+              </div>
+
+              <div class="form-group">
+                <label for="niveau">Niveau *</label>
+                <input type="number" id="niveau" formControlName="niveau" class="form-control" placeholder="0">
+              </div>
+
+              <div class="form-group">
+                <label for="surface_totale_m2">Surface totale (m²)</label>
+                <input type="number" id="surface_totale_m2" formControlName="surface_totale_m2" class="form-control" step="0.01">
+              </div>
+
+              <div class="form-group">
+                <label for="hauteur_sous_plafond_m">Hauteur sous plafond (m)</label>
+                <input type="number" id="hauteur_sous_plafond_m" formControlName="hauteur_sous_plafond_m" class="form-control" step="0.01">
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
+              <button type="submit" class="btn btn-primary" [disabled]="etageForm.invalid">
+                {{ editingEtage ? 'Modifier' : 'Créer' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `
+})
+export class EtagesCrudComponent implements OnInit {
+  etages: Etage[] = [];
+  filteredEtages: Etage[] = [];
+  batiments: Batiment[] = [];
+  searchTerm = '';
+  selectedBatimentId = '';
+  showModal = false;
+  editingEtage: Etage | null = null;
+  etageForm: FormGroup;
+
+  constructor(
+    private centresService: CentresService,
+    private formBuilder: FormBuilder
+  ) {
+    this.etageForm = this.formBuilder.group({
+      batiment_id: [''],
+      nom: ['', [Validators.required]],
+      niveau: [0, [Validators.required]],
+      surface_totale_m2: [null],
+      hauteur_sous_plafond_m: [null]
+    });
+  }
+
+  ngOnInit() {
+    this.loadData();
+  }
+
+  loadData() {
+    this.centresService.getBatiments().subscribe(batiments => {
+      this.batiments = batiments;
+    });
+
+    this.centresService.getEtages().subscribe(etages => {
+      this.etages = etages;
+      this.filteredEtages = etages;
+    });
+  }
+
+  filterByBatiment() {
+    this.filterEtages();
+  }
+
+  filterEtages() {
+    this.filteredEtages = this.etages.filter(etage => {
+      const matchesSearch = etage.nom.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesBatiment = !this.selectedBatimentId || etage.batiment_id === this.selectedBatimentId;
+      return matchesSearch && matchesBatiment;
+    });
+  }
+
+  getBatimentNom(batimentId: string): string {
+    const batiment = this.batiments.find(b => b._id === batimentId);
+    return batiment ? batiment.nom : 'Bâtiment inconnu';
+  }
+
+  openCreateModal() {
+    this.editingEtage = null;
+    this.etageForm.reset();
+    this.showModal = true;
+  }
+
+  editEtage(etage: Etage) {
+    this.editingEtage = etage;
+    this.etageForm.patchValue(etage);
+    this.showModal = true;
+  }
+
+  closeModal() {
+    this.showModal = false;
+    this.editingEtage = null;
+    this.etageForm.reset();
+  }
+
+  onSubmit() {
+    if (this.etageForm.valid) {
+      const etageData = this.etageForm.value;
+
+      if (this.editingEtage) {
+        this.centresService.updateEtage(this.editingEtage._id!, etageData).subscribe(() => {
+          this.loadData();
+          this.closeModal();
+        });
+      } else {
+        this.centresService.createEtage(etageData).subscribe(() => {
+          this.loadData();
+          this.closeModal();
+        });
+      }
+    }
+  }
+
+  deleteEtage(id: string) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cet étage ?')) {
+      this.centresService.deleteEtage(id).subscribe(() => {
+        this.loadData();
+      });
+    }
+  }
+}

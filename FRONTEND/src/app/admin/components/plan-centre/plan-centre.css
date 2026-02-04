@@ -39,9 +39,10 @@
 
 /* Carte d'information du centre */
 .centre-info-card {
-  background: var(--gradient-sidebar);
+  background: #3660a9 !important; /* Fallback couleur bleu sidebar */
+  background: var(--sidebar-primary) !important;
   padding: var(--space-8);
-  color: var(--color-white);
+  color: black;
   margin-bottom: var(--space-8);
   box-shadow: var(--shadow-md);
   border: var(--card-border-width) solid var(--border-primary);
@@ -58,7 +59,7 @@
   font-size: var(--text-4xl);
   font-weight: var(--font-bold);
   margin: 0;
-  color: var(--color-white);
+  color: black;
 }
 
 .centre-slug {
@@ -86,19 +87,19 @@
   font-size: var(--text-sm);
   opacity: 0.8;
   font-weight: var(--font-medium);
-  color: var(--color-white);
+  color: black;
 }
 
 .info-value {
   font-weight: var(--font-semibold);
-  color: var(--color-white);
+  color: black;
 }
 
 .centre-description {
   margin: var(--space-6) 0 0 0;
   line-height: var(--leading-relaxed);
   opacity: 0.9;
-  color: var(--color-white);
+  color: black;
 }
 
 /* Section des bâtiments */
@@ -497,34 +498,90 @@
   color: var(--color-white);
 }
 
-/* Popup pour les emplacements - styles cohérents avec le modal system */
+/* =================================
+   POPUP MODAL EMPLACEMENTS - Z-INDEX ÉLEVÉ
+   ================================= */
+
 .popup-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
-  animation: fadeIn 0.3s ease;
+  z-index: 9999;
   padding: var(--space-4);
 }
 
-/* Container adaptatif selon l'état de la sidebar */
 .popup-container {
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  background: var(--bg-primary);
+  max-width: 90vw;
+  max-height: 90vh;
   width: 100%;
-  height: 100%;
-  max-width: min(95%, 1000px);
-  max-height: min(85vh, 700px);
+  box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
-  animation: slideIn 0.3s ease;
   overflow: hidden;
+  border: var(--card-border-width) solid var(--border-primary);
+}
+
+.popup-header {
+  background: var(--bg-secondary);
+  border-bottom: var(--card-border-width) solid var(--border-primary);
+  padding: var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.popup-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: 20px;
+  font-weight: var(--font-bold);
+  line-height: 1;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.popup-close:hover {
+  color: var(--color-red-600);
+  background: var(--bg-tertiary);
+}
+
+.popup-close:active {
+  color: var(--color-red-700);
+  background: var(--bg-tertiary);
+  transform: scale(0.98);
+}
+
+.popup-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
 }
 
 .popup-header {
@@ -586,15 +643,6 @@
 .popup-close:focus {
   outline: 2px solid #3b82f6;
   outline-offset: 1px;
-}
-
-.popup-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
-  background-color: #ffffff;
-  color: #374151;
-  line-height: 1.6;
 }
 
 .plan-info-bar {
@@ -682,8 +730,8 @@
   stroke-width: 4;
 }
 
-.emplacement-code-popup, 
-.emplacement-nom-popup, 
+.emplacement-code-popup,
+.emplacement-nom-popup,
 .emplacement-surface-popup {
   pointer-events: none;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
@@ -760,81 +808,45 @@
   gap: var(--space-2);
 }
 
-.legend-type, .legend-surface, .legend-statut, .legend-loyer {
+.legend-type,
+.legend-surface,
+.legend-statut,
+.legend-loyer {
   font-size: var(--text-sm);
   color: var(--text-secondary);
 }
 
-.legend-surface, .legend-loyer {
+.legend-surface,
+.legend-loyer {
   font-weight: var(--font-semibold);
   color: var(--text-primary);
 }
 
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideIn {
-  from { 
-    opacity: 0;
-    transform: scale(0.9) translateY(-20px);
-  }
-  to { 
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-/* Responsive */
+/* Responsive optimisé */
 @media (max-width: 768px) {
-  .plan-centre-container { padding: var(--space-4); }
-  .page-title { font-size: var(--text-4xl); }
-  .batiments-grid, .stats-grid { grid-template-columns: 1fr; }
-  .card-header { flex-direction: column; align-items: flex-start; gap: var(--space-4); }
-  .info-grid { grid-template-columns: 1fr; }
-  .etage-item { flex-direction: column; align-items: flex-start; gap: var(--space-2); }
-  .etage-details { align-items: flex-start; }
-  .batiment-actions { flex-direction: column; }
-  .summary-stats { flex-direction: column; gap: var(--space-2); }
-  .summary-item { flex-direction: row; align-items: center; gap: var(--space-2); }
-  .popup-overlay { 
-    padding: var(--space-2);
+  .plan-centre-container {
+    padding: var(--space-4);
   }
-  .popup-container { 
-    width: 100%; 
-    height: 100%; 
-    max-width: 100%; 
+  .batiments-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  .popup-container {
+    width: 100%;
+    max-width: 100%;
     max-height: 95vh;
   }
-  .popup-header { padding: var(--space-3); }
-  .popup-header h3 { font-size: var(--text-lg); }
-  .popup-svg-container { padding: var(--space-2); }
+  .popup-header {
+    padding: var(--space-3);
+  }
 }
 
-/* Ajustements pour écrans avec sidebar visible */
 @media (min-width: 769px) {
   .popup-container {
     max-width: min(90%, 900px);
     max-height: min(80vh, 650px);
   }
-}
-
-/* Ajustements pour écrans plus larges */
-@media (min-width: 1200px) {
-  .popup-container {
-    max-width: min(85%, 1000px);
-    max-height: min(85vh, 700px);
-  }
-}
-
-@media (max-width: 480px) {
-  .popup-header h3 { font-size: var(--text-base); }
-  .plan-info-bar { grid-template-columns: 1fr; }
-  .popup-content { padding: var(--space-3); }
-  .legend-grid { grid-template-columns: 1fr; }
-  .legend-details { grid-template-columns: 1fr; }
-  .popup-svg-container { padding: var(--space-2); }
-  .legend-item { padding: var(--space-2); }
 }
