@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CentresService, Emplacement, Etage } from '../../services/centres.service';
+import { ToastService } from '../../../../../services/toast.service';
 
 @Component({
   selector: 'app-emplacements-crud',
@@ -189,7 +190,8 @@ export class EmplacementsCrudComponent implements OnInit {
 
   constructor(
     private centresService: CentresService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private toastService: ToastService
   ) {
     this.emplacementForm = this.formBuilder.group({
       etage_id: ['', [Validators.required]],
@@ -261,14 +263,26 @@ export class EmplacementsCrudComponent implements OnInit {
       const emplacementData = this.emplacementForm.value;
 
       if (this.editingEmplacement) {
-        this.centresService.updateEmplacement(this.editingEmplacement._id!, emplacementData).subscribe(() => {
-          this.loadData();
-          this.closeModal();
+        this.centresService.updateEmplacement(this.editingEmplacement._id!, emplacementData).subscribe({
+          next: () => {
+            this.loadData();
+            this.closeModal();
+            this.toastService.showSuccess('Emplacement modifié avec succès!');
+          },
+          error: () => {
+            this.toastService.showError('Erreur lors de la modification de l\'emplacement');
+          }
         });
       } else {
-        this.centresService.createEmplacement(emplacementData).subscribe(() => {
-          this.loadData();
-          this.closeModal();
+        this.centresService.createEmplacement(emplacementData).subscribe({
+          next: () => {
+            this.loadData();
+            this.closeModal();
+            this.toastService.showSuccess('Emplacement créé avec succès!');
+          },
+          error: () => {
+            this.toastService.showError('Erreur lors de la création de l\'emplacement');
+          }
         });
       }
     }
@@ -276,8 +290,14 @@ export class EmplacementsCrudComponent implements OnInit {
 
   deleteEmplacement(id: string) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet emplacement ?')) {
-      this.centresService.deleteEmplacement(id).subscribe(() => {
-        this.loadData();
+      this.centresService.deleteEmplacement(id).subscribe({
+        next: () => {
+          this.loadData();
+          this.toastService.showSuccess('Emplacement supprimé avec succès!');
+        },
+        error: () => {
+          this.toastService.showError('Erreur lors de la suppression de l\'emplacement');
+        }
       });
     }
   }

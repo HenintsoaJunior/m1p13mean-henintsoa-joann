@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
 
 export interface Centre {
@@ -78,7 +79,33 @@ export class CentresService {
 
   // Centres CRUD
   getCentres(): Observable<Centre[]> {
-    return this.http.get<Centre[]>(`${this.apiUrl}/centres`, { headers: this.getAuthHeaders() });
+    return this.http.get<any>(`${this.apiUrl}/centres`, { headers: this.getAuthHeaders() })
+      .pipe(
+        map(response => {
+          // Si la réponse est un objet avec success et data
+          if (response && response.success && response.data) {
+            // Si data contient centres (pagination spécifique)
+            if (response.data.centres && Array.isArray(response.data.centres)) {
+              return response.data.centres;
+            }
+            // Si data contient des docs (pagination)
+            if (response.data.docs && Array.isArray(response.data.docs)) {
+              return response.data.docs;
+            }
+            // Si data est directement un tableau
+            if (Array.isArray(response.data)) {
+              return response.data;
+            }
+          }
+          // Si la réponse est déjà un tableau
+          if (Array.isArray(response)) {
+            return response;
+          }
+          // Sinon retourner un tableau vide
+          console.warn('Format de réponse inattendu:', response);
+          return [];
+        })
+      );
   }
 
   getCentre(id: string): Observable<Centre> {
@@ -100,7 +127,26 @@ export class CentresService {
   // Bâtiments CRUD
   getBatiments(centreId?: string): Observable<Batiment[]> {
     const url = centreId ? `${this.apiUrl}/batiments?centre_id=${centreId}` : `${this.apiUrl}/batiments`;
-    return this.http.get<Batiment[]>(url, { headers: this.getAuthHeaders() });
+    return this.http.get<any>(url, { headers: this.getAuthHeaders() })
+      .pipe(
+        map(response => {
+          if (response && response.success && response.data) {
+            if (response.data.batiments && Array.isArray(response.data.batiments)) {
+              return response.data.batiments;
+            }
+            if (response.data.docs && Array.isArray(response.data.docs)) {
+              return response.data.docs;
+            }
+            if (Array.isArray(response.data)) {
+              return response.data;
+            }
+          }
+          if (Array.isArray(response)) {
+            return response;
+          }
+          return [];
+        })
+      );
   }
 
   getBatiment(id: string): Observable<Batiment> {
@@ -122,7 +168,26 @@ export class CentresService {
   // Étages CRUD
   getEtages(batimentId?: string): Observable<Etage[]> {
     const url = batimentId ? `${this.apiUrl}/etages?batiment_id=${batimentId}` : `${this.apiUrl}/etages`;
-    return this.http.get<Etage[]>(url, { headers: this.getAuthHeaders() });
+    return this.http.get<any>(url, { headers: this.getAuthHeaders() })
+      .pipe(
+        map(response => {
+          if (response && response.success && response.data) {
+            if (response.data.etages && Array.isArray(response.data.etages)) {
+              return response.data.etages;
+            }
+            if (response.data.docs && Array.isArray(response.data.docs)) {
+              return response.data.docs;
+            }
+            if (Array.isArray(response.data)) {
+              return response.data;
+            }
+          }
+          if (Array.isArray(response)) {
+            return response;
+          }
+          return [];
+        })
+      );
   }
 
   getEtage(id: string): Observable<Etage> {
@@ -144,7 +209,26 @@ export class CentresService {
   // Emplacements CRUD
   getEmplacements(etageId?: string): Observable<Emplacement[]> {
     const url = etageId ? `${this.apiUrl}/emplacements?etage_id=${etageId}` : `${this.apiUrl}/emplacements`;
-    return this.http.get<Emplacement[]>(url, { headers: this.getAuthHeaders() });
+    return this.http.get<any>(url, { headers: this.getAuthHeaders() })
+      .pipe(
+        map(response => {
+          if (response && response.success && response.data) {
+            if (response.data.emplacements && Array.isArray(response.data.emplacements)) {
+              return response.data.emplacements;
+            }
+            if (response.data.docs && Array.isArray(response.data.docs)) {
+              return response.data.docs;
+            }
+            if (Array.isArray(response.data)) {
+              return response.data;
+            }
+          }
+          if (Array.isArray(response)) {
+            return response;
+          }
+          return [];
+        })
+      );
   }
 
   getEmplacement(id: string): Observable<Emplacement> {

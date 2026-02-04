@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CentresService, Batiment, Centre } from '../../services/centres.service';
+import { ToastService } from '../../../../../services/toast.service';
 
 @Component({
   selector: 'app-batiments-crud',
@@ -165,7 +166,8 @@ export class BatimentsCrudComponent implements OnInit {
 
   constructor(
     private centresService: CentresService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private toastService: ToastService
   ) {
     this.batimentForm = this.formBuilder.group({
       centre_id: ['', [Validators.required]],
@@ -238,9 +240,11 @@ export class BatimentsCrudComponent implements OnInit {
             this.loadData();
             this.closeModal();
             this.isSubmitting = false;
+            this.toastService.showSuccess('Bâtiment modifié avec succès!');
           },
           error: () => {
             this.isSubmitting = false;
+            this.toastService.showError('Erreur lors de la modification du bâtiment');
           }
         });
       } else {
@@ -249,9 +253,11 @@ export class BatimentsCrudComponent implements OnInit {
             this.loadData();
             this.closeModal();
             this.isSubmitting = false;
+            this.toastService.showSuccess('Bâtiment créé avec succès!');
           },
           error: () => {
             this.isSubmitting = false;
+            this.toastService.showError('Erreur lors de la création du bâtiment');
           }
         });
       }
@@ -260,8 +266,14 @@ export class BatimentsCrudComponent implements OnInit {
 
   deleteBatiment(id: string) {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce bâtiment ?')) {
-      this.centresService.deleteBatiment(id).subscribe(() => {
-        this.loadData();
+      this.centresService.deleteBatiment(id).subscribe({
+        next: () => {
+          this.loadData();
+          this.toastService.showSuccess('Bâtiment supprimé avec succès!');
+        },
+        error: () => {
+          this.toastService.showError('Erreur lors de la suppression du bâtiment');
+        }
       });
     }
   }

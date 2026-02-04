@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CentresService, Etage, Batiment } from '../../services/centres.service';
+import { ToastService } from '../../../../../services/toast.service';
 
 @Component({
   selector: 'app-etages-crud',
@@ -152,7 +153,8 @@ export class EtagesCrudComponent implements OnInit {
 
   constructor(
     private centresService: CentresService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private toastService: ToastService
   ) {
     this.etageForm = this.formBuilder.group({
       batiment_id: [''],
@@ -218,14 +220,26 @@ export class EtagesCrudComponent implements OnInit {
       const etageData = this.etageForm.value;
 
       if (this.editingEtage) {
-        this.centresService.updateEtage(this.editingEtage._id!, etageData).subscribe(() => {
-          this.loadData();
-          this.closeModal();
+        this.centresService.updateEtage(this.editingEtage._id!, etageData).subscribe({
+          next: () => {
+            this.loadData();
+            this.closeModal();
+            this.toastService.showSuccess('Étage modifié avec succès!');
+          },
+          error: () => {
+            this.toastService.showError('Erreur lors de la modification de l\'étage');
+          }
         });
       } else {
-        this.centresService.createEtage(etageData).subscribe(() => {
-          this.loadData();
-          this.closeModal();
+        this.centresService.createEtage(etageData).subscribe({
+          next: () => {
+            this.loadData();
+            this.closeModal();
+            this.toastService.showSuccess('Étage créé avec succès!');
+          },
+          error: () => {
+            this.toastService.showError('Erreur lors de la création de l\'étage');
+          }
         });
       }
     }
@@ -233,8 +247,14 @@ export class EtagesCrudComponent implements OnInit {
 
   deleteEtage(id: string) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet étage ?')) {
-      this.centresService.deleteEtage(id).subscribe(() => {
-        this.loadData();
+      this.centresService.deleteEtage(id).subscribe({
+        next: () => {
+          this.loadData();
+          this.toastService.showSuccess('Étage supprimé avec succès!');
+        },
+        error: () => {
+          this.toastService.showError('Erreur lors de la suppression de l\'étage');
+        }
       });
     }
   }
