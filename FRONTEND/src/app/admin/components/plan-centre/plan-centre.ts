@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { Centre, Batiment, Etage, Emplacement } from '../../../shared/interfaces/centre.interface';
 import { CentreService } from '../../../shared/services/centre.service';
+import { SidebarService } from '../../../services/sidebar.service';
 
 @Component({
   selector: 'app-plan-centre',
@@ -18,10 +19,15 @@ export class PlanCentreComponent implements OnInit {
   emplacements: Emplacement[] = [];
   selectedCentre: Centre | null = null;
   selectedBatiment: Batiment | null = null;
+  selectedEtageForPopup: Etage | null = null;
+  showEmplacementsPopup = false;
   loading = false;
   error: string | null = null;
 
-  constructor(private centreService: CentreService) {}
+  constructor(
+    private centreService: CentreService,
+    public sidebarService: SidebarService
+  ) {}
 
   ngOnInit() {
     this.loadCentres();
@@ -407,5 +413,107 @@ export class PlanCentreComponent implements OnInit {
 
   getPolygonPoints(coordonnees: number[][]): string {
     return coordonnees.map(point => `${point[0]},${point[1]}`).join(' ');
+  }
+
+  // Fonctions pour la popup des emplacements
+  openEmplacementsPopup(etage: Etage) {
+    this.selectedEtageForPopup = etage;
+    this.showEmplacementsPopup = true;
+  }
+
+  closeEmplacementsPopup() {
+    this.showEmplacementsPopup = false;
+    this.selectedEtageForPopup = null;
+  }
+
+  // Méthodes de normalisation optimisées
+  private getNormalizationParams(etageId: string) {
+    const emplacements = this.getEmplacementsForEtage(etageId);
+    if (emplacements.length === 0) return { scaleX: 2, scaleY: 2, scale: 2 };
+    
+    const allCoords = emplacements.flatMap(e => e.position.coordonnees);
+    const maxX = Math.max(...allCoords.map(coord => coord[0]));
+    const maxY = Math.max(...allCoords.map(coord => coord[1]));
+    const minX = Math.min(...allCoords.map(coord => coord[0]));
+    const minY = Math.min(...allCoords.map(coord => coord[1]));
+    
+    const scaleX = Math.min(2.5, (730) / (maxX - minX + 100));
+    const scaleY = Math.min(2.5, (430) / (maxY - minY + 100));
+    const scale = Math.min(scaleX, scaleY);
+    
+    return { scaleX, scaleY, scale, minX, minY, maxX, maxY };
+  }
+
+  getScaledPolygonPoints(coordonnees: number[][]): string {
+    if (!this.selectedEtageForPopup) return '';
+    
+    const params = this.getNormalizationParams(this.selectedEtageForPopup._id);
+    const scaledCoords = coordonnees.map(coord => [
+      Math.max(60, Math.min(740, (coord[0] * params.scale) + 60)),
+      Math.max(60, Math.min(440, (coord[1] * params.scale) + 60))
+    ]);
+    return scaledCoords.map(point => `${point[0]},${point[1]}`).join(' ');
+  }
+
+  getScaledEmplacementCenterX(emplacement: Emplacement): number {
+    if (!this.selectedEtageForPopup) return 0;
+    
+    const params = this.getNormalizationParams(this.selectedEtageForPopup._id);
+    const centerX = emplacement.position.coordonnees.reduce((sum, point) => sum + point[0], 0) / emplacement.position.coordonnees.length;
+    return Math.max(60, Math.min(740, (centerX * params.scale) + 60));
+  }
+
+  getScaledEmplacementCenterY(emplacement: Emplacement): number {
+    if (!this.selectedEtageForPopup) return 0;
+    
+    const params = this.getNormalizationParams(this.selectedEtageForPopup._id);
+    const centerY = emplacement.position.coordonnees.reduce((sum, point) => sum + point[1], 0) / emplacement.position.coordonnees.length;
+    return Math.max(60, Math.min(440, (centerY * params.scale) + 60));
+  }
+
+  getEmplacementCenterX(emplacement: Emplacement): number {
+    const coords = emplacement.position.coordonnees;
+    return coords.reduce((sum, point) => sum + point[0], 0) / coords.length;
+  }
+
+  getEmplacementCenterY(emplacement: Emplacement): number {
+    const coords = emplacement.position.coordonnees;
+    return coords.reduce((sum, point) => sum + point[1], 0) / coords.length;
+  }
+
+  getTypeDisplayName(type: string): string {
+    const types = {
+      'box': 'Boutique',
+      'kiosque': 'Kiosque',
+      'zone_loisirs': 'Zone Loisirs',
+      'zone_commune': 'Zone Commune',
+      'pop_up': 'Pop-up',
+      'autre': 'Autre'
+    };
+    return types[type as keyof typeof types] || type;
+  }
+
+  getStatutDisplayName(statut: string): string {
+    const statuts = {
+      'libre': 'Libre',
+      'occupe': 'Occupé',
+      'reserve': 'Réservé',
+      'en_travaux': 'En travaux',
+      'en_negociation': 'En négociation'
+    };
+    return statuts[statut as keyof typeof statuts] || statut;
+  }
+
+  // Méthodes pour compter les emplacements par statut
+  getEmplacementsLibresCount(etageId: string): number {
+    return this.getEmplacementsForEtage(etageId).filter(e => e.statut === 'libre').length;
+  }
+
+  getEmplacementsOccupesCount(etageId: string): number {
+    return this.getEmplacementsForEtage(etageId).filter(e => e.statut === 'occupe').length;
+  }
+
+  getEmplacementsAutresCount(etageId: string): number {
+    return this.getEmplacementsForEtage(etageId).filter(e => !['libre', 'occupe'].includes(e.statut)).length;
   }
 }
