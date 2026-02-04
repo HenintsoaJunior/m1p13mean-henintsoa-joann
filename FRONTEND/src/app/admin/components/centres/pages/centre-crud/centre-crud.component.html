@@ -1,28 +1,32 @@
 <div class="page-container">
-  <div class="page-header">
-    <h1 class="page-title">
-      <i class="fas fa-store" style="color: white; margin-right: 10px;"></i>
-      Gestion des Centres
-    </h1>
-    <button class="btn btn-primary" (click)="openCreateModal()">
-      <i class="fas fa-plus" style="color: white; margin-right: 8px;"></i>
-      Nouveau Centre
-    </button>
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filters-header">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtres</span>
+      </div>
+      <div class="filters-content">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher un centre..."
+            [(ngModel)]="searchTerm"
+            (input)="filterCentres()"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Table des centres -->
   <div class="table-container">
     <div class="table-header">
       <h3 class="table-title">Liste des Centres Commerciaux</h3>
-      <div class="search-box">
-        <i class="fas fa-search" style="color: #999;"></i>
-        <input
-          type="text"
-          placeholder="Rechercher un centre..."
-          [(ngModel)]="searchTerm"
-          (input)="filterCentres()"
-        />
-      </div>
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <i class="fas fa-plus" style="color: white; margin-right: 8px;"></i>
+        Nouveau Centre
+      </button>
     </div>
 
     <table class="data-table">
