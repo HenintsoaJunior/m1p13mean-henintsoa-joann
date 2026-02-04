@@ -25,7 +25,7 @@ export interface Centre {
 
 export interface Batiment {
   _id?: string;
-  centre_id: string;
+  centre_id: string | { _id: string; nom: string; slug?: string };
   nom: string;
   description?: string;
   nombre_etages: number;
@@ -35,7 +35,7 @@ export interface Batiment {
 
 export interface Etage {
   _id?: string;
-  batiment_id?: string;
+  batiment_id?: string | { _id: string; nom: string; centre_id?: string };
   nom: string;
   niveau: number;
   surface_totale_m2?: number;
@@ -46,7 +46,7 @@ export interface Etage {
 
 export interface Emplacement {
   _id?: string;
-  etage_id: string;
+  etage_id: string | { _id: string; nom: string; niveau?: number; batiment_id?: any };
   code: string;
   type: 'box' | 'kiosque' | 'zone_loisirs' | 'zone_commune' | 'pop_up' | 'autre';
   nom?: string;

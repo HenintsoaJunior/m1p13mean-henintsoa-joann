@@ -69,7 +69,12 @@ export class EmplacementsCrudComponent implements OnInit {
     });
   }
 
-  getEtageNom(etageId: string): string {
+  getEtageNom(etageId: string | { _id: string; nom: string }): string {
+    // Si c'est un objet populé, on retourne directement le nom
+    if (typeof etageId === 'object' && etageId !== null) {
+      return etageId.nom;
+    }
+    // Sinon, on cherche dans la liste des étages
     const etage = this.etages.find(e => e._id === etageId);
     return etage ? etage.nom : 'Étage inconnu';
   }
@@ -83,7 +88,12 @@ export class EmplacementsCrudComponent implements OnInit {
 
   editEmplacement(emplacement: Emplacement) {
     this.editingEmplacement = emplacement;
-    this.emplacementForm.patchValue(emplacement);
+    // Extraire l'ID si etage_id est un objet populé
+    const etageId = typeof emplacement.etage_id === 'object' ? emplacement.etage_id._id : emplacement.etage_id;
+    this.emplacementForm.patchValue({
+      ...emplacement,
+      etage_id: etageId
+    });
     this.showModal = true;
   }
 
