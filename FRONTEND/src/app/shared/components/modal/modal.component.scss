@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 2001;
   backdrop-filter: blur(2px);
 }
 
@@ -43,23 +43,40 @@
 }
 
 .modal-close {
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  color: #6b7280;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 18px;
-  font-weight: 400;
+  font-size: 20px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.modal-close .close-icon {
+  color: #1e293b;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .modal-close:hover {
-  background-color: #f9fafb;
-  color: #374151;
-  border-color: #9ca3af;
+  background-color: #e2e8f0;
+  color: #0f172a;
+  border-color: #64748b;
+  transform: scale(1.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.modal-close:hover .close-icon {
+  color: #0f172a;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .modal-close:focus {

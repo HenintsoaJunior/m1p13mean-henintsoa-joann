@@ -132,13 +132,17 @@
   margin-right: var(--space-3); flex-shrink: 0;
 }
 
-.nav-icon svg {
+.nav-icon svg,
+.nav-icon i {
   color: rgba(255, 255, 255, 0.8);
   transition: color var(--transition-base);
+  font-size: 20px;
 }
 
 .nav-item:hover .nav-icon svg,
-.nav-item.active .nav-icon svg {
+.nav-item:hover .nav-icon i,
+.nav-item.active .nav-icon svg,
+.nav-item.active .nav-icon i {
   color: var(--sidebar-accent);
 }
 
@@ -463,7 +467,8 @@
   transform: translateY(-2px);
 }
 
-.logout-btn:hover .nav-icon svg {
+.logout-btn:hover .nav-icon svg,
+.logout-btn:hover .nav-icon i {
   color: #fca5a5;
 }
 
