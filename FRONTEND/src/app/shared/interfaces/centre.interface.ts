@@ -37,6 +37,7 @@ export interface Centre {
   slug: string;
   adresse: Adresse;
   description: string;
+  image_url?: string;
   horaires_ouverture: Map<string, string>;
   email_contact: string;
   telephone_contact: string;

@@ -64,7 +64,12 @@ export class BatimentsCrudComponent implements OnInit {
     });
   }
 
-  getCentreNom(centreId: string): string {
+  getCentreNom(centreId: string | { _id: string; nom: string }): string {
+    // Si c'est un objet populé, on retourne directement le nom
+    if (typeof centreId === 'object' && centreId !== null) {
+      return centreId.nom;
+    }
+    // Sinon, on cherche dans la liste des centres
     const centre = this.centres.find(c => c._id === centreId);
     return centre ? centre.nom : 'Centre inconnu';
   }
@@ -78,7 +83,12 @@ export class BatimentsCrudComponent implements OnInit {
 
   editBatiment(batiment: Batiment) {
     this.editingBatiment = batiment;
-    this.batimentForm.patchValue(batiment);
+    // Extraire l'ID si centre_id est un objet populé
+    const centreId = typeof batiment.centre_id === 'object' ? batiment.centre_id._id : batiment.centre_id;
+    this.batimentForm.patchValue({
+      ...batiment,
+      centre_id: centreId
+    });
     this.showModal = true;
   }
 

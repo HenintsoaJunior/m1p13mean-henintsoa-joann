@@ -31,6 +31,10 @@ const centreSchema = new mongoose.Schema({
     }
   },
   description: String,
+  image_url: {
+    type: String,
+    default: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800&h=600&fit=crop'
+  },
   horaires_ouverture: {
     type: Map,
     of: String
