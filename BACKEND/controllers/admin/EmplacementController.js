@@ -3,9 +3,13 @@ const emplacementService = require("../../services/admin/EmplacementService");
 class EmplacementController {
   async createEmplacement(req, res) {
     try {
+      console.log('=== CREATE EMPLACEMENT ===');
+      console.log('Données reçues:', JSON.stringify(req.body, null, 2));
       const emplacement = await emplacementService.createEmplacement(req.body);
+      console.log('Emplacement créé:', emplacement);
       res.status(201).json({ success: true, data: emplacement });
     } catch (error) {
+      console.error('Erreur création emplacement:', error);
       res.status(400).json({ success: false, message: error.message });
     }
   }

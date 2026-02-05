@@ -30,7 +30,7 @@ export class EtagesCrudComponent implements OnInit {
     private toastService: ToastService
   ) {
     this.etageForm = this.formBuilder.group({
-      batiment_id: [''],
+      batiment_id: ['', [Validators.required]],
       nom: ['', [Validators.required]],
       niveau: [0, [Validators.required]],
       surface_totale_m2: [null],
@@ -114,13 +114,22 @@ export class EtagesCrudComponent implements OnInit {
   openCreateModal() {
     this.editingEtage = null;
     this.etageForm.reset();
+    this.etageForm.patchValue({ niveau: 0 });
     this.showModal = true;
+  }
+
+  // Obtenir le nom complet d'un bâtiment avec son centre
+  getBatimentFullName(batiment: Batiment): string {
+    const centreId = typeof batiment.centre_id === 'object' ? batiment.centre_id._id : batiment.centre_id;
+    const centre = this.centres.find(c => c._id === centreId);
+    return centre ? `${batiment.nom} - ${centre.nom}` : batiment.nom;
   }
 
   editEtage(etage: Etage) {
     this.editingEtage = etage;
     // Extraire l'ID si batiment_id est un objet populé
     const batimentId = typeof etage.batiment_id === 'object' && etage.batiment_id ? etage.batiment_id._id : etage.batiment_id;
+    
     this.etageForm.patchValue({
       ...etage,
       batiment_id: batimentId

@@ -4,6 +4,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { Centre, Batiment, Etage, Emplacement } from '../../../shared/interfaces/centre.interface';
 import { CentreService } from '../../../shared/services/centre.service';
 import { SidebarService } from '../../../services/sidebar.service';
+import { BreadcrumbService } from '../../../shared/services/breadcrumb.service';
 
 @Component({
   selector: 'app-plan-centre',
@@ -21,16 +22,34 @@ export class PlanCentreComponent implements OnInit {
   selectedBatiment: Batiment | null = null;
   selectedEtageForPopup: Etage | null = null;
   showEmplacementsPopup = false;
+  showCentresList = true;
   loading = false;
   error: string | null = null;
 
   constructor(
     private centreService: CentreService,
-    public sidebarService: SidebarService
+    public sidebarService: SidebarService,
+    private breadcrumbService: BreadcrumbService
   ) {}
 
   ngOnInit() {
     this.loadCentres();
+    this.updateBreadcrumbs();
+  }
+
+  private updateBreadcrumbs() {
+    if (!this.selectedCentre) {
+      this.breadcrumbService.setBreadcrumbs([
+        { label: 'Administration', url: '/admin' },
+        { label: 'Centres' }
+      ]);
+    } else {
+      this.breadcrumbService.setBreadcrumbs([
+        { label: 'Administration', url: '/admin' },
+        { label: 'Centres', clickHandler: () => this.backToCentresList() },
+        { label: this.selectedCentre.nom }
+      ]);
+    }
   }
 
   private loadCentres() {
@@ -39,10 +58,6 @@ export class PlanCentreComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data.centres) {
           this.centres = response.data.centres;
-          if (this.centres.length > 0) {
-            this.selectedCentre = this.centres[0];
-            this.loadCentreDetails(this.selectedCentre._id);
-          }
         }
         this.loading = false;
       },
@@ -95,7 +110,16 @@ export class PlanCentreComponent implements OnInit {
   onCentreChange(centre: Centre) {
     this.selectedCentre = centre;
     this.selectedBatiment = null;
+    this.showCentresList = false;
+    this.updateBreadcrumbs();
     this.loadCentreDetails(centre._id);
+  }
+
+  backToCentresList() {
+    this.showCentresList = true;
+    this.selectedCentre = null;
+    this.selectedBatiment = null;
+    this.updateBreadcrumbs();
   }
 
   private loadMockData() {
@@ -105,6 +129,7 @@ export class PlanCentreComponent implements OnInit {
         _id: '1',
         nom: 'Akoor Antananarivo',
         slug: 'akoor-antananarivo',
+        image_url: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800&h=600&fit=crop',
         adresse: {
           rue: '123 Avenue de l\'Indépendance',
           ville: 'Antananarivo',
@@ -125,6 +150,60 @@ export class PlanCentreComponent implements OnInit {
         email_contact: 'contact@akoor-antananarivo.mg',
         telephone_contact: '+261 20 22 123 45',
         cree_le: new Date('2023-01-15'),
+        modifie_le: new Date('2024-01-15')
+      },
+      {
+        _id: '2',
+        nom: 'Akoor Antsirabe',
+        slug: 'akoor-antsirabe',
+        image_url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&h=600&fit=crop',
+        adresse: {
+          rue: '45 Route de Fianarantsoa',
+          ville: 'Antsirabe',
+          code_postal: '110',
+          pays: 'Madagascar',
+          coordonnees: { type: 'Point', coordinates: [-19.8659, 47.0358] }
+        },
+        description: 'Centre commercial dans la ville thermale d\'Antsirabe',
+        horaires_ouverture: new Map([
+          ['lundi', '08:00-19:00'],
+          ['mardi', '08:00-19:00'],
+          ['mercredi', '08:00-19:00'],
+          ['jeudi', '08:00-19:00'],
+          ['vendredi', '08:00-19:00'],
+          ['samedi', '08:00-20:00'],
+          ['dimanche', '09:00-17:00']
+        ]),
+        email_contact: 'contact@akoor-antsirabe.mg',
+        telephone_contact: '+261 20 44 567 89',
+        cree_le: new Date('2023-06-20'),
+        modifie_le: new Date('2024-01-15')
+      },
+      {
+        _id: '3',
+        nom: 'Akoor Toamasina',
+        slug: 'akoor-toamasina',
+        image_url: 'https://images.unsplash.com/photo-1567449303183-e3174ddc1d1c?w=800&h=600&fit=crop',
+        adresse: {
+          rue: '78 Boulevard de la Mer',
+          ville: 'Toamasina',
+          code_postal: '501',
+          pays: 'Madagascar',
+          coordonnees: { type: 'Point', coordinates: [-18.1443, 49.3957] }
+        },
+        description: 'Centre commercial sur la côte est de Madagascar',
+        horaires_ouverture: new Map([
+          ['lundi', '08:00-20:00'],
+          ['mardi', '08:00-20:00'],
+          ['mercredi', '08:00-20:00'],
+          ['jeudi', '08:00-20:00'],
+          ['vendredi', '08:00-20:00'],
+          ['samedi', '08:00-21:00'],
+          ['dimanche', '09:00-18:00']
+        ]),
+        email_contact: 'contact@akoor-toamasina.mg',
+        telephone_contact: '+261 20 53 234 56',
+        cree_le: new Date('2023-09-10'),
         modifie_le: new Date('2024-01-15')
       }
     ];
@@ -227,10 +306,8 @@ export class PlanCentreComponent implements OnInit {
       }
     ];
 
-    // Sélectionner le premier centre par défaut
-    if (this.centres.length > 0) {
-      this.selectedCentre = this.centres[0];
-    }
+    // Ne pas sélectionner automatiquement un centre
+    this.selectedCentre = null;
 
     // Données mock pour les emplacements
     this.emplacements = [
@@ -412,7 +489,10 @@ export class PlanCentreComponent implements OnInit {
   }
 
   getPolygonPoints(coordonnees: number[][]): string {
-    return coordonnees.map(point => `${point[0]},${point[1]}`).join(' ');
+    if (!coordonnees || coordonnees.length === 0) {
+      return '0,0 100,0 100,100 0,100'; // Rectangle par défaut
+    }
+    return coordonnees.map(point => `${point[0] || 0},${point[1] || 0}`).join(' ');
   }
 
   // Fonctions pour la popup des emplacements
@@ -445,40 +525,52 @@ export class PlanCentreComponent implements OnInit {
   }
 
   getScaledPolygonPoints(coordonnees: number[][]): string {
-    if (!this.selectedEtageForPopup) return '';
+    if (!this.selectedEtageForPopup || !coordonnees || coordonnees.length === 0) {
+      return '100,100 200,100 200,200 100,200'; // Rectangle par défaut
+    }
     
     const params = this.getNormalizationParams(this.selectedEtageForPopup._id);
     const scaledCoords = coordonnees.map(coord => [
-      Math.max(60, Math.min(740, (coord[0] * params.scale) + 60)),
-      Math.max(60, Math.min(440, (coord[1] * params.scale) + 60))
+      Math.max(60, Math.min(740, ((coord[0] || 0) * params.scale) + 60)),
+      Math.max(60, Math.min(440, ((coord[1] || 0) * params.scale) + 60))
     ]);
     return scaledCoords.map(point => `${point[0]},${point[1]}`).join(' ');
   }
 
   getScaledEmplacementCenterX(emplacement: Emplacement): number {
-    if (!this.selectedEtageForPopup) return 0;
+    if (!this.selectedEtageForPopup || !emplacement.position?.coordonnees || emplacement.position.coordonnees.length === 0) {
+      return 400; // Centre par défaut
+    }
     
     const params = this.getNormalizationParams(this.selectedEtageForPopup._id);
-    const centerX = emplacement.position.coordonnees.reduce((sum, point) => sum + point[0], 0) / emplacement.position.coordonnees.length;
+    const centerX = emplacement.position.coordonnees.reduce((sum, point) => sum + (point[0] || 0), 0) / emplacement.position.coordonnees.length;
     return Math.max(60, Math.min(740, (centerX * params.scale) + 60));
   }
 
   getScaledEmplacementCenterY(emplacement: Emplacement): number {
-    if (!this.selectedEtageForPopup) return 0;
+    if (!this.selectedEtageForPopup || !emplacement.position?.coordonnees || emplacement.position.coordonnees.length === 0) {
+      return 250; // Centre par défaut
+    }
     
     const params = this.getNormalizationParams(this.selectedEtageForPopup._id);
-    const centerY = emplacement.position.coordonnees.reduce((sum, point) => sum + point[1], 0) / emplacement.position.coordonnees.length;
+    const centerY = emplacement.position.coordonnees.reduce((sum, point) => sum + (point[1] || 0), 0) / emplacement.position.coordonnees.length;
     return Math.max(60, Math.min(440, (centerY * params.scale) + 60));
   }
 
   getEmplacementCenterX(emplacement: Emplacement): number {
+    if (!emplacement.position?.coordonnees || emplacement.position.coordonnees.length === 0) {
+      return 0;
+    }
     const coords = emplacement.position.coordonnees;
-    return coords.reduce((sum, point) => sum + point[0], 0) / coords.length;
+    return coords.reduce((sum, point) => sum + (point[0] || 0), 0) / coords.length;
   }
 
   getEmplacementCenterY(emplacement: Emplacement): number {
+    if (!emplacement.position?.coordonnees || emplacement.position.coordonnees.length === 0) {
+      return 0;
+    }
     const coords = emplacement.position.coordonnees;
-    return coords.reduce((sum, point) => sum + point[1], 0) / coords.length;
+    return coords.reduce((sum, point) => sum + (point[1] || 0), 0) / coords.length;
   }
 
   getTypeDisplayName(type: string): string {

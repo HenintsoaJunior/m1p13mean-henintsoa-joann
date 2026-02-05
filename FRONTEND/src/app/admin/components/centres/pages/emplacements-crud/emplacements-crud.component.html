@@ -91,16 +91,19 @@
     <div class="modal-body">
       <form [formGroup]="emplacementForm" (ngSubmit)="onSubmit()" class="form">
         <div class="form-grid">
-          <div class="form-group">
-            <label for="etage_id">Étage *</label>
+          <div class="form-group full-width">
+            <label for="etage_id">Étage <span class="required">*</span></label>
             <select id="etage_id" formControlName="etage_id" class="form-control">
               <option value="">Sélectionner un étage</option>
-              <option *ngFor="let etage of etages" [value]="etage._id">{{ etage.nom }}</option>
+              <option *ngFor="let etage of etages" [value]="etage._id">
+                {{ getEtageFullName(etage) }}
+              </option>
             </select>
+            <small class="form-hint">Format: Étage - Bâtiment - Centre Commercial</small>
           </div>
 
           <div class="form-group">
-            <label for="code">Code *</label>
+            <label for="code">Code <span class="required">*</span></label>
             <input type="text" id="code" formControlName="code" class="form-control" placeholder="Ex: A-12">
           </div>
 
@@ -110,7 +113,7 @@
           </div>
 
           <div class="form-group">
-            <label for="type">Type *</label>
+            <label for="type">Type <span class="required">*</span></label>
             <select id="type" formControlName="type" class="form-control">
               <option value="">Sélectionner un type</option>
               <option value="box">Box</option>
@@ -123,7 +126,7 @@
           </div>
 
           <div class="form-group">
-            <label for="statut">Statut *</label>
+            <label for="statut">Statut <span class="required">*</span></label>
             <select id="statut" formControlName="statut" class="form-control">
               <option value="libre">Libre</option>
               <option value="occupe">Occupé</option>
@@ -139,8 +142,21 @@
           </div>
 
           <div class="form-group">
-            <label for="loyer_mensuel">Loyer mensuel (€)</label>
+            <label for="loyer_mensuel">Loyer mensuel (Ar)</label>
             <input type="number" id="loyer_mensuel" formControlName="loyer_mensuel" class="form-control" step="0.01">
+          </div>
+
+          <div class="form-group full-width">
+            <label for="coordonnees">Coordonnées du polygone</label>
+            <textarea 
+              id="coordonnees" 
+              [(ngModel)]="coordonnees" 
+              [ngModelOptions]="{standalone: true}"
+              (blur)="parseCoordonneesFromText()"
+              class="form-control" 
+              rows="3" 
+              placeholder="Format: x1,y1 x2,y2 x3,y3 x4,y4 (ex: 10,10 100,10 100,100 10,100)"></textarea>
+            <small class="form-hint">Définit la forme et position de l'emplacement sur le plan. Format: coordonnées séparées par des espaces.</small>
           </div>
         </div>
 
