@@ -1,15 +1,24 @@
 <nav class="breadcrumb-nav" aria-label="Breadcrumb">
   <ol class="breadcrumb-list">
     <li class="breadcrumb-item" *ngFor="let breadcrumb of breadcrumbs; let isLast = last">
+      <!-- Breadcrumb avec clickHandler -->
       <a 
-        *ngIf="breadcrumb.url && !isLast; else labelOnly"
+        *ngIf="breadcrumb.clickHandler && !isLast"
+        (click)="breadcrumb.clickHandler(); $event.preventDefault()"
+        class="breadcrumb-link"
+        style="cursor: pointer;">
+        {{ breadcrumb.label }}
+      </a>
+      <!-- Breadcrumb avec URL -->
+      <a 
+        *ngIf="!breadcrumb.clickHandler && breadcrumb.url && !isLast"
         [routerLink]="breadcrumb.url"
         class="breadcrumb-link">
         {{ breadcrumb.label }}
       </a>
-      <ng-template #labelOnly>
-        <span class="breadcrumb-current">{{ breadcrumb.label }}</span>
-      </ng-template>
+      <!-- Breadcrumb actuel (dernier) -->
+      <span *ngIf="isLast" class="breadcrumb-current">{{ breadcrumb.label }}</span>
+      
       <svg 
         *ngIf="!isLast" 
         class="breadcrumb-separator"

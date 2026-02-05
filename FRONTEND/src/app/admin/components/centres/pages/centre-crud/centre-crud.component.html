@@ -1,28 +1,32 @@
 <div class="page-container">
-  <div class="page-header">
-    <h1 class="page-title">
-      <i class="fas fa-store" style="color: white; margin-right: 10px;"></i>
-      Gestion des Centres
-    </h1>
-    <button class="btn btn-primary" (click)="openCreateModal()">
-      <i class="fas fa-plus" style="color: white; margin-right: 8px;"></i>
-      Nouveau Centre
-    </button>
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filters-header">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtres</span>
+      </div>
+      <div class="filters-content">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher un centre..."
+            [(ngModel)]="searchTerm"
+            (input)="filterCentres()"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Table des centres -->
   <div class="table-container">
     <div class="table-header">
       <h3 class="table-title">Liste des Centres Commerciaux</h3>
-      <div class="search-box">
-        <i class="fas fa-search" style="color: #999;"></i>
-        <input
-          type="text"
-          placeholder="Rechercher un centre..."
-          [(ngModel)]="searchTerm"
-          (input)="filterCentres()"
-        />
-      </div>
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <i class="fas fa-plus" style="color: white; margin-right: 8px;"></i>
+        Nouveau Centre
+      </button>
     </div>
 
     <table class="data-table">
@@ -86,13 +90,14 @@
       <form [formGroup]="centreForm" (ngSubmit)="onSubmit()" class="form">
         <div class="form-grid">
           <div class="form-group">
-            <label for="nom">Nom du centre *</label>
+            <label for="nom">Nom du centre <span class="required">*</span></label>
             <input
               type="text"
               id="nom"
               formControlName="nom"
               class="form-control"
               placeholder="Ex: Akoor Antananarivo"
+              (blur)="generateSlug()"
             />
             <div
               *ngIf="centreForm.get('nom')?.errors && centreForm.get('nom')?.touched"
@@ -100,6 +105,53 @@
             >
               Le nom est requis
             </div>
+          </div>
+
+          <div class="form-group">
+            <label for="slug">Slug (URL) <span class="required">*</span></label>
+            <input
+              type="text"
+              id="slug"
+              formControlName="slug"
+              class="form-control"
+              placeholder="Ex: akoor-antananarivo"
+            />
+            <small class="form-hint">Généré automatiquement à partir du nom. Format: lettres minuscules et tirets uniquement.</small>
+            <div
+              *ngIf="centreForm.get('slug')?.errors && centreForm.get('slug')?.touched"
+              class="error-message"
+            >
+              Le slug est requis (format: minuscules-avec-tirets)
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="image_url">Image du centre</label>
+            <div class="file-upload-container">
+              <div class="file-input-wrapper">
+                <label for="imageFile" class="file-input-label">
+                  <i class="fas fa-upload"></i>
+                  Choisir une image
+                </label>
+                <input
+                  type="file"
+                  id="imageFile"
+                  accept="image/*"
+                  (change)="onFileSelected($event)"
+                />
+              </div>
+              
+              <div class="image-preview" *ngIf="imagePreview">
+                <img [src]="imagePreview" alt="Aperçu de l'image">
+              </div>
+              <div class="image-preview" *ngIf="!imagePreview">
+                <div class="image-preview-placeholder">
+                  <i class="fas fa-image"></i>
+                  <p>Aucune image</p>
+                </div>
+              </div>
+            </div>
+            <small class="form-hint">Format accepté: JPG, PNG, GIF (max 2MB). L'image sera automatiquement compressée.</small>
           </div>
 
           <div class="form-group">
