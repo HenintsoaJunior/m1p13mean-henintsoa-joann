@@ -1,5 +1,49 @@
 <div class="plan-centre-container">
-  <!-- Header compact avec infos du centre -->
+  <!-- Liste des centres -->
+  <div class="centres-list-view" *ngIf="showCentresList">
+    <div class="centres-list-header">
+      <h1 class="centres-list-title">Nos Centres Commerciaux</h1>
+      <p class="centres-list-subtitle">Sélectionnez un centre pour voir les détails</p>
+    </div>
+
+    <div class="centres-grid">
+      <div class="centre-card" *ngFor="let centre of centres" (click)="onCentreChange(centre)">
+        <div class="centre-card-image">
+          <img [src]="centre.image_url || 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800&h=600&fit=crop'" 
+               [alt]="centre.nom" 
+               onerror="this.src='https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800&h=600&fit=crop'">
+          <div class="centre-card-overlay">
+            <button class="btn-view-details">
+              <i class="fas fa-eye"></i>
+              Voir les détails
+            </button>
+          </div>
+        </div>
+        <div class="centre-card-content">
+          <h3 class="centre-card-title">{{ centre.nom }}</h3>
+          <p class="centre-card-description">{{ centre.description }}</p>
+          <div class="centre-card-info">
+            <div class="info-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>{{ centre.adresse.ville }}, {{ centre.adresse.pays }}</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-envelope"></i>
+              <span>{{ centre.email_contact }}</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-phone"></i>
+              <span>{{ centre.telephone_contact }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails du centre (vue existante) -->
+  <div class="centre-details-view" *ngIf="!showCentresList && selectedCentre">
+    <!-- Header compact avec infos du centre -->
   <div class="centre-header" *ngIf="selectedCentre">
     <div class="centre-title-section">
       <h2 class="centre-name">{{ selectedCentre.nom }}</h2>
@@ -36,50 +80,48 @@
         </div>
         <p class="batiment-description">{{ batiment.description }}</p>
 
-        <!-- Détails des étages quand le bâtiment est sélectionné -->
-        <div class="etages-details" *ngIf="selectedBatiment?._id === batiment._id">
-          <div class="etages-grid">
-            <div class="etage-card" *ngFor="let etage of getEtagesForBatiment(batiment._id)">
-              <!-- Header de l'étage -->
-              <div class="etage-card-header">
-                <div class="etage-title-section">
-                  <h5 class="etage-card-nom">{{ etage.nom }}</h5>
-                  <span class="etage-niveau-badge">Niveau {{ etage.niveau }}</span>
-                </div>
+        <!-- Étages dans le conteneur du bâtiment -->
+        <div class="etages-list" *ngIf="selectedBatiment?._id === batiment._id">
+          <div class="etage-item" *ngFor="let etage of getEtagesForBatiment(batiment._id)">
+            <!-- Header de l'étage -->
+            <div class="etage-card-header">
+              <div class="etage-title-section">
+                <h5 class="etage-card-nom">{{ etage.nom }}</h5>
+                <span class="etage-niveau-badge">Niveau {{ etage.niveau }}</span>
               </div>
-
-              <!-- Infos de l'étage -->
-              <div class="etage-info-grid">
-                <div class="etage-info-item">
-                  <i class="fas fa-ruler-combined"></i>
-                  <div>
-                    <span class="info-value-main">{{ etage.surface_totale_m2 }}</span>
-                    <span class="info-unit">m²</span>
-                  </div>
-                </div>
-                <div class="etage-info-item">
-                  <i class="fas fa-arrows-alt-v"></i>
-                  <div>
-                    <span class="info-value-main">{{ etage.hauteur_sous_plafond_m }}</span>
-                    <span class="info-unit">m hauteur</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Statistiques des emplacements -->
-              <div class="emplacements-stats">
-                <div class="stats-header">
-                  <i class="fas fa-store"></i>
-                  <span>{{ getEmplacementsForEtage(etage._id).length }} Emplacements</span>
-                </div>
-              </div>
-
-              <!-- Action -->
-              <button class="btn-view-emplacements" (click)="openEmplacementsPopup(etage)">
-                <i class="fas fa-eye"></i>
-                Voir tous les emplacements
-              </button>
             </div>
+
+            <!-- Infos de l'étage -->
+            <div class="etage-info-grid">
+              <div class="etage-info-item">
+                <i class="fas fa-ruler-combined"></i>
+                <div>
+                  <span class="info-value-main">{{ etage.surface_totale_m2 }}</span>
+                  <span class="info-unit">m²</span>
+                </div>
+              </div>
+              <div class="etage-info-item">
+                <i class="fas fa-arrows-alt-v"></i>
+                <div>
+                  <span class="info-value-main">{{ etage.hauteur_sous_plafond_m }}</span>
+                  <span class="info-unit">m hauteur</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Statistiques des emplacements -->
+            <div class="emplacements-stats">
+              <div class="stats-header">
+                <i class="fas fa-store"></i>
+                <span>{{ getEmplacementsForEtage(etage._id).length }} Emplacements</span>
+              </div>
+            </div>
+
+            <!-- Action -->
+            <button class="btn-view-emplacements" (click)="openEmplacementsPopup(etage); $event.stopPropagation()">
+              <i class="fas fa-eye"></i>
+              Voir tous les emplacements
+            </button>
           </div>
         </div>
 

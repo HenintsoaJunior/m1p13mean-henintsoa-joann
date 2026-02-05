@@ -2,7 +2,18 @@ const Emplacement = require("../../models/admin/Emplacement");
 
 class EmplacementRepository {
   async create(data) {
-    return await Emplacement.create(data);
+    try {
+      console.log('Repository - Tentative de création avec:', data);
+      const emplacement = await Emplacement.create(data);
+      console.log('Repository - Emplacement créé avec succès:', emplacement._id);
+      return emplacement;
+    } catch (error) {
+      console.error('Repository - Erreur de création:', error.message);
+      if (error.name === 'ValidationError') {
+        console.error('Erreurs de validation:', error.errors);
+      }
+      throw error;
+    }
   }
 
   async findAll(filters = {}, options = {}) {

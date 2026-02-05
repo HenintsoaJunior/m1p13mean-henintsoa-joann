@@ -4,11 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { filter, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-
-export interface BreadcrumbItem {
-  label: string;
-  url?: string;
-}
+import { BreadcrumbService, BreadcrumbItem } from '../../services/breadcrumb.service';
 
 @Component({
   selector: 'app-breadcrumb',
@@ -38,10 +34,25 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private activatedRoute: ActivatedRoute
+    private activatedRoute: ActivatedRoute,
+    private breadcrumbService: BreadcrumbService
   ) {}
 
   ngOnInit() {
+    // S'abonner au service de breadcrumb
+    this.breadcrumbService.breadcrumbs$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(breadcrumbs => {
+        if (breadcrumbs && breadcrumbs.length > 0) {
+          // Utiliser les breadcrumbs du service
+          this.breadcrumbs = breadcrumbs;
+        } else {
+          // Fallback: créer les breadcrumbs depuis la route
+          this.breadcrumbs = this.createBreadcrumbs(this.activatedRoute.root);
+        }
+      });
+
+    // Écouter les changements de route pour le fallback
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd),
@@ -49,11 +60,19 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
-        this.breadcrumbs = this.createBreadcrumbs(this.activatedRoute.root);
+        const serviceBreadcrumbs = this.breadcrumbService.getBreadcrumbs();
+        if (!serviceBreadcrumbs || serviceBreadcrumbs.length === 0) {
+          this.breadcrumbs = this.createBreadcrumbs(this.activatedRoute.root);
+        }
       });
 
     // Initialiser les breadcrumbs
-    this.breadcrumbs = this.createBreadcrumbs(this.activatedRoute.root);
+    const serviceBreadcrumbs = this.breadcrumbService.getBreadcrumbs();
+    if (serviceBreadcrumbs && serviceBreadcrumbs.length > 0) {
+      this.breadcrumbs = serviceBreadcrumbs;
+    } else {
+      this.breadcrumbs = this.createBreadcrumbs(this.activatedRoute.root);
+    }
   }
 
   ngOnDestroy() {

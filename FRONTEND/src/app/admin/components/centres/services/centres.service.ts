@@ -16,6 +16,7 @@ export interface Centre {
     coordonnees?: { type: string; coordinates: number[] };
   };
   description?: string;
+  image_url?: string;
   horaires_ouverture?: { [key: string]: string };
   email_contact?: string;
   telephone_contact?: string;
@@ -126,7 +127,8 @@ export class CentresService {
 
   // Bâtiments CRUD
   getBatiments(centreId?: string): Observable<Batiment[]> {
-    const url = centreId ? `${this.apiUrl}/batiments?centre_id=${centreId}` : `${this.apiUrl}/batiments`;
+    const baseUrl = `${this.apiUrl}/batiments?limit=1000`;
+    const url = centreId ? `${baseUrl}&centre_id=${centreId}` : baseUrl;
     return this.http.get<any>(url, { headers: this.getAuthHeaders() })
       .pipe(
         map(response => {
@@ -167,7 +169,8 @@ export class CentresService {
 
   // Étages CRUD
   getEtages(batimentId?: string): Observable<Etage[]> {
-    const url = batimentId ? `${this.apiUrl}/etages?batiment_id=${batimentId}` : `${this.apiUrl}/etages`;
+    const baseUrl = `${this.apiUrl}/etages?limit=1000`;
+    const url = batimentId ? `${baseUrl}&batiment_id=${batimentId}` : baseUrl;
     return this.http.get<any>(url, { headers: this.getAuthHeaders() })
       .pipe(
         map(response => {
@@ -208,12 +211,16 @@ export class CentresService {
 
   // Emplacements CRUD
   getEmplacements(etageId?: string): Observable<Emplacement[]> {
-    const url = etageId ? `${this.apiUrl}/emplacements?etage_id=${etageId}` : `${this.apiUrl}/emplacements`;
+    // Passer un limit élevé pour récupérer tous les emplacements
+    const baseUrl = `${this.apiUrl}/emplacements?limit=1000`;
+    const url = etageId ? `${baseUrl}&etage_id=${etageId}` : baseUrl;
     return this.http.get<any>(url, { headers: this.getAuthHeaders() })
       .pipe(
         map(response => {
+          console.log('Réponse getEmplacements:', response);
           if (response && response.success && response.data) {
             if (response.data.emplacements && Array.isArray(response.data.emplacements)) {
+              console.log('Emplacements trouvés:', response.data.emplacements.length);
               return response.data.emplacements;
             }
             if (response.data.docs && Array.isArray(response.data.docs)) {
