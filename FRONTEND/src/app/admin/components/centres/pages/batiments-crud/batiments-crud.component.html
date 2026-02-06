@@ -116,6 +116,7 @@
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
           <button type="submit" class="btn btn-primary" [disabled]="batimentForm.invalid || isSubmitting">
+            <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i>
             {{ isSubmitting ? 'En cours...' : (editingBatiment ? 'Modifier' : 'Créer') }}
           </button>
         </div>
