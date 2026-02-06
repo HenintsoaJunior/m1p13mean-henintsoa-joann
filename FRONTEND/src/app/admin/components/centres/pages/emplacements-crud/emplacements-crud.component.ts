@@ -23,6 +23,7 @@ export class EmplacementsCrudComponent implements OnInit {
   selectedStatut = '';
   showModal = false;
   editingEmplacement: Emplacement | null = null;
+  isSubmitting = false;
   emplacementForm: FormGroup;
   coordonnees: string = ''; // Pour stocker les coordonnées en format texte
 
@@ -211,6 +212,7 @@ export class EmplacementsCrudComponent implements OnInit {
 
   onSubmit() {
     if (this.emplacementForm.valid) {
+      this.isSubmitting = true;
       // Parser les coordonnées avant l'envoi si elles n'ont pas été parsées
       if (this.coordonnees.trim()) {
         this.parseCoordonneesFromText();
@@ -231,10 +233,12 @@ export class EmplacementsCrudComponent implements OnInit {
             console.log('Emplacement modifié:', response);
             this.loadData();
             this.closeModal();
+            this.isSubmitting = false;
             this.toastService.showSuccess('Emplacement modifié avec succès!');
           },
           error: (error) => {
             console.error('Erreur modification:', error);
+            this.isSubmitting = false;
             this.toastService.showError('Erreur lors de la modification de l\'emplacement');
           }
         });
@@ -244,11 +248,13 @@ export class EmplacementsCrudComponent implements OnInit {
             console.log('Emplacement créé - Réponse complète:', response);
             this.loadData();
             this.closeModal();
+            this.isSubmitting = false;
             this.toastService.showSuccess('Emplacement créé avec succès!');
           },
           error: (error) => {
             console.error('Erreur création - Détails:', error);
             console.error('Erreur message:', error.error?.message || error.message);
+            this.isSubmitting = false;
             this.toastService.showError(error.error?.message || 'Erreur lors de la création de l\'emplacement');
           }
         });

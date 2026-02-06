@@ -117,8 +117,9 @@
 
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
-          <button type="submit" class="btn btn-primary" [disabled]="etageForm.invalid">
-            {{ editingEtage ? 'Modifier' : 'Créer' }}
+          <button type="submit" class="btn btn-primary" [disabled]="etageForm.invalid || isSubmitting">
+            <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i>
+            {{ isSubmitting ? 'En cours...' : editingEtage ? 'Modifier' : 'Créer' }}
           </button>
         </div>
       </form>

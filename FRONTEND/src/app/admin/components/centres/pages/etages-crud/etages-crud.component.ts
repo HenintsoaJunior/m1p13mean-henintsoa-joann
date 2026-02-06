@@ -22,6 +22,7 @@ export class EtagesCrudComponent implements OnInit {
   selectedCentreId = '';
   showModal = false;
   editingEtage: Etage | null = null;
+  isSubmitting = false;
   etageForm: FormGroup;
 
   constructor(
@@ -145,6 +146,7 @@ export class EtagesCrudComponent implements OnInit {
 
   onSubmit() {
     if (this.etageForm.valid) {
+      this.isSubmitting = true;
       const etageData = this.etageForm.value;
 
       if (this.editingEtage) {
@@ -152,9 +154,11 @@ export class EtagesCrudComponent implements OnInit {
           next: () => {
             this.loadData();
             this.closeModal();
+            this.isSubmitting = false;
             this.toastService.showSuccess('Étage modifié avec succès!');
           },
           error: () => {
+            this.isSubmitting = false;
             this.toastService.showError('Erreur lors de la modification de l\'étage');
           }
         });
@@ -163,9 +167,11 @@ export class EtagesCrudComponent implements OnInit {
           next: () => {
             this.loadData();
             this.closeModal();
+            this.isSubmitting = false;
             this.toastService.showSuccess('Étage créé avec succès!');
           },
           error: () => {
+            this.isSubmitting = false;
             this.toastService.showError('Erreur lors de la création de l\'étage');
           }
         });
