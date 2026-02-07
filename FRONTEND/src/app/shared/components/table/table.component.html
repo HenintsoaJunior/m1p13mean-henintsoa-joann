@@ -12,7 +12,7 @@
           {{ getValue(row, column.key) }}
         </td>
         <td *ngIf="hasActions">
-          <ng-content select="[slot=actions]"></ng-content>
+          <ng-container *ngIf="actionTemplate" [ngTemplateOutlet]="actionTemplate" [ngTemplateOutletContext]="{ $implicit: row }"></ng-container>
         </td>
       </tr>
       <tr *ngIf="data.length === 0">

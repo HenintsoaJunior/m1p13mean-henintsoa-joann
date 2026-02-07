@@ -66,6 +66,7 @@ export class RegisterComponent {
         mot_de_passe: formValue.password,
         telephone: formValue.telephone || null,
         confirmPassword: formValue.confirmPassword,
+        role: 'admin',
       };
 
       this.authService.register(registerData).subscribe({

@@ -6,11 +6,10 @@ class LogsRepository {
   }
 
   async findAll(filters = {}, options = {}) {
-    const { page = 1, limit = 10, sort = { date_heure: -1 } } = options;
+    const { page = 1, limit = 10, sort = { dateHeure: -1 } } = options;
     const skip = (page - 1) * limit;
 
     const logs = await Logs.find(filters)
-      .populate("utilisateur_id", "email prenom nom")
       .sort(sort)
       .skip(skip)
       .limit(limit);
@@ -21,11 +20,11 @@ class LogsRepository {
   }
 
   async findById(id) {
-    return await Logs.findById(id).populate("utilisateur_id", "email prenom nom");
+    return await Logs.findById(id);
   }
 
   async findByUtilisateur(utilisateurId, options = {}) {
-    return await this.findAll({ utilisateur_id: utilisateurId }, options);
+    return await this.findAll({ utilisateurId: utilisateurId }, options);
   }
 
   async deleteById(id) {
