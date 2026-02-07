@@ -1,0 +1,138 @@
+<div class="page-container">
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filters-header">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtres</span>
+      </div>
+      <div class="filters-content">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher par entité..."
+            [(ngModel)]="filtreEntity"
+            (input)="onFilterChange()"
+          />
+        </div>
+
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher par action..."
+            [(ngModel)]="filtreAction"
+            (input)="onFilterChange()"
+          />
+        </div>
+
+        <button class="btn btn-danger" (click)="clearFilters()">Effacer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date & Heure</th>
+          <th>Utilisateur</th>
+          <th>Action</th>
+          <th>Collection</th>
+          <th>ID Enregistrement</th>
+          <th>Détails</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of filteredLogs; trackBy: trackByFn">
+          <td>{{ log.timestamp | date:'short' }}</td>
+          <td>{{ log.utilisateur?.email || ('Utilisateur ' + log.userId) }}</td>
+          <td>
+            <span 
+              class="badge" 
+              [class.badge-success]="log.action === 'CREATE'"
+              [class.badge-warning]="log.action === 'UPDATE'"
+              [class.badge-danger]="log.action === 'DELETE'"
+            >
+              {{ getActionIcon(log.action) }} {{ getActionLabel(log.action) }}
+            </span>
+          </td>
+          <td>{{ getEntityLabel(log.entity) }}</td>
+          <td>{{ log.entityId || 'N/A' }}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" (click)="openDetailsModal(log)">
+              Détails
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="filteredLogs.length === 0">
+          <td [attr.colspan]="6" class="empty-message">
+            Aucun historique d'activité trouvé.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Modal pour les détails -->
+  <div *ngIf="showDetailsModal" class="modal-overlay" (click)="closeDetailsModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Détails de l'activité</h2>
+        <button class="btn-close" (click)="closeDetailsModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="selectedLog" class="form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Date & Heure</label>
+              <input type="text" class="form-control" [value]="selectedLog.timestamp | date:'medium'" readonly />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Utilisateur</label>
+              <input type="text" class="form-control" [value]="selectedLog.utilisateur?.email || ('Utilisateur ' + selectedLog.userId)" readonly />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Action</label>
+              <div class="form-control">
+                <span class="badge"
+                  [class.badge-success]="selectedLog.action === 'CREATE'"
+                  [class.badge-warning]="selectedLog.action === 'UPDATE'"
+                  [class.badge-danger]="selectedLog.action === 'DELETE'">
+                  {{ getActionIcon(selectedLog.action) }} {{ getActionLabel(selectedLog.action) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Collection</label>
+              <input type="text" class="form-control" [value]="getEntityLabel(selectedLog.entity)" readonly />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">ID Enregistrement</label>
+              <input type="text" class="form-control" [value]="selectedLog.entityId || 'N/A'" readonly />
+            </div>
+
+            <div class="form-group full-width" *ngIf="selectedLog.oldValue">
+              <label class="form-label">Anciennes valeurs</label>
+              <div class="form-control" style="min-height: 150px; overflow-x: auto; white-space: pre-wrap;">{{ selectedLog.oldValue | json }}</div>
+            </div>
+
+            <div class="form-group full-width" *ngIf="selectedLog.newValue">
+              <label class="form-label">Nouvelles valeurs</label>
+              <div class="form-control" style="min-height: 150px; overflow-x: auto; white-space: pre-wrap;">{{ selectedLog.newValue | json }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button (click)="closeDetailsModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>

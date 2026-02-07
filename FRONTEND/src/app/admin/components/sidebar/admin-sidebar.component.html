@@ -66,7 +66,7 @@
       </a>
 
       <a
-        routerLink="/admin/users"
+        routerLink="/admin/utilisateurs"
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Utilisateurs' : null"
@@ -75,7 +75,7 @@
           <i class="fas fa-users"></i>
         </div>
         <span class="nav-text" *ngIf="!isCollapsed">Utilisateurs</span>
-        <div class="nav-indicator" *ngIf="currentRoute === '/admin/users'"></div>
+        <div class="nav-indicator" *ngIf="currentRoute.startsWith('/admin/utilisateurs')"></div>
       </a>
 
       <a
@@ -113,16 +113,16 @@
       <p class="section-title" *ngIf="!isCollapsed">SYSTÈME</p>
 
       <a
-        routerLink="/admin/settings"
+        routerLink="/admin/activity-history"
         routerLinkActive="active"
         class="nav-item"
-        [attr.title]="isCollapsed ? 'Paramètres' : null"
+        [attr.title]="isCollapsed ? 'Historique des activités' : null"
       >
         <div class="nav-icon">
-          <i class="fas fa-cog"></i>
+          <i class="fas fa-history"></i>
         </div>
-        <span class="nav-text" *ngIf="!isCollapsed">Paramètres</span>
-        <div class="nav-indicator" *ngIf="currentRoute === '/admin/settings'"></div>
+        <span class="nav-text" *ngIf="!isCollapsed">Historique des activités</span>
+        <div class="nav-indicator" *ngIf="currentRoute === '/admin/activity-history'"></div>
       </a>
     </div>
   </nav>
