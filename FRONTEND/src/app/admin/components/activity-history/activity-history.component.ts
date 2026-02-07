@@ -18,6 +18,13 @@ export class ActivityHistoryComponent implements OnInit {
   filtreEntity: string = '';
   filtreAction: string = '';
   
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pageSizeOptions: number[] = [5, 10, 25, 50];
+  
   // Variables pour le modal
   showDetailsModal: boolean = false;
   selectedLog: LogEntry | null = null;
@@ -29,30 +36,39 @@ export class ActivityHistoryComponent implements OnInit {
   }
 
   loadLogs(): void {
-    this.logService.getLogs().subscribe({
+    this.logService.getLogs(this.currentPage, this.pageSize).subscribe({
       next: (response: any) => {
-        // Handle both direct array and response object with data property
         let logsData: LogEntry[] = [];
         
         if (Array.isArray(response)) {
           logsData = response;
+          this.totalItems = response.length;
+          this.totalPages = 1;
         } else if (response && response.data && Array.isArray(response.data)) {
           logsData = response.data;
+          this.totalItems = response.total || 0;
+          this.totalPages = response.pages || 0;
         } else {
-          console.warn('Unexpected response format:', response);
+          console.warn('Format de réponse inattendu:', response);
           logsData = [];
         }
         
-        this.logs = logsData.map(log => ({
+        this.logs = logsData.map((log: any) => ({
           ...log,
-          timestamp: new Date(log.timestamp),
+          // Compatibilité avec les anciens logs (champs anglais)
+          utilisateurId: log.utilisateurId || log.userId || '0',
+          entite: log.entite || log.entity || 'inconnu',
+          entiteId: log.entiteId || log.entityId || null,
+          ancienneValeur: log.ancienneValeur || log.oldValue || null,
+          nouvelleValeur: log.nouvelleValeur || log.newValue || null,
+          dateHeure: new Date(log.dateHeure || log.timestamp),
           details: this.getLogDetails(log)
-        })).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort by newest first
+        }));
         
         this.applyFilters();
       },
       error: (error: any) => {
-        console.error('Error loading logs:', error);
+        console.error('Erreur chargement des logs:', error);
       }
     });
   }
@@ -69,7 +85,7 @@ export class ActivityHistoryComponent implements OnInit {
   applyFilters(): void {
     this.filteredLogs = this.logs.filter(log => {
       const correspondEntity = !this.filtreEntity || 
-        log.entity.toLowerCase().includes(this.filtreEntity.toLowerCase());
+        log.entite.toLowerCase().includes(this.filtreEntity.toLowerCase());
       
       const correspondAction = !this.filtreAction || 
         log.action.toLowerCase().includes(this.filtreAction.toLowerCase());
@@ -110,7 +126,7 @@ export class ActivityHistoryComponent implements OnInit {
     }
   }
   
-  getEntityLabel(entity: string): string {
+  getEntityLabel(entite: string): string {
     const entityLabels: { [key: string]: string } = {
       'utilisateurs': 'Utilisateurs',
       'centres': 'Centres',
@@ -123,7 +139,7 @@ export class ActivityHistoryComponent implements OnInit {
       'logs': 'Journaux d\'activité'
     };
     
-    return entityLabels[entity] || entity.charAt(0).toUpperCase() + entity.slice(1);
+    return entityLabels[entite] || entite.charAt(0).toUpperCase() + entite.slice(1);
   }
   
   openDetailsModal(log: LogEntry): void {
@@ -138,5 +154,31 @@ export class ActivityHistoryComponent implements OnInit {
   
   stopPropagation(event: Event): void {
     event.stopPropagation();
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.loadLogs();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.loadLogs();
+  }
+
+  get pages(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 }

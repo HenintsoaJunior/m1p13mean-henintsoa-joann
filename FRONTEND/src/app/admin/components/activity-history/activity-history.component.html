@@ -45,8 +45,8 @@
       </thead>
       <tbody>
         <tr *ngFor="let log of filteredLogs; trackBy: trackByFn">
-          <td>{{ log.timestamp | date:'short' }}</td>
-          <td>{{ log.utilisateur?.email || ('Utilisateur ' + log.userId) }}</td>
+          <td>{{ log.dateHeure | date:'short' }}</td>
+          <td>{{ log.utilisateur?.email || ('Utilisateur ' + log.utilisateurId) }}</td>
           <td>
             <span 
               class="badge" 
@@ -57,8 +57,8 @@
               {{ getActionIcon(log.action) }} {{ getActionLabel(log.action) }}
             </span>
           </td>
-          <td>{{ getEntityLabel(log.entity) }}</td>
-          <td>{{ log.entityId || 'N/A' }}</td>
+          <td>{{ getEntityLabel(log.entite) }}</td>
+          <td>{{ log.entiteId || 'N/A' }}</td>
           <td>
             <button class="btn btn-sm btn-outline-primary" (click)="openDetailsModal(log)">
               Détails
@@ -72,6 +72,33 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="totalPages >= 1">
+      <div class="pagination-info">
+        <span>Affichage page {{ currentPage }} sur {{ totalPages }} ({{ totalItems }} résultats)</span>
+        <select class="page-size-select" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} par page</option>
+        </select>
+      </div>
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button class="pagination-btn" (click)="goToPage(1)" [disabled]="currentPage === 1" title="Première page">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button class="pagination-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" title="Page précédente">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        <button *ngFor="let p of pages" class="pagination-btn" [class.active]="p === currentPage" (click)="goToPage(p)">
+          {{ p }}
+        </button>
+        <button class="pagination-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages" title="Page suivante">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button class="pagination-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages" title="Dernière page">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
   </div>
   
   <!-- Modal pour les détails -->
@@ -87,12 +114,12 @@
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Date & Heure</label>
-              <input type="text" class="form-control" [value]="selectedLog.timestamp | date:'medium'" readonly />
+              <input type="text" class="form-control" [value]="selectedLog.dateHeure | date:'medium'" readonly />
             </div>
 
             <div class="form-group">
               <label class="form-label">Utilisateur</label>
-              <input type="text" class="form-control" [value]="selectedLog.utilisateur?.email || ('Utilisateur ' + selectedLog.userId)" readonly />
+              <input type="text" class="form-control" [value]="selectedLog.utilisateur?.email || ('Utilisateur ' + selectedLog.utilisateurId)" readonly />
             </div>
 
             <div class="form-group">
@@ -109,22 +136,22 @@
 
             <div class="form-group">
               <label class="form-label">Collection</label>
-              <input type="text" class="form-control" [value]="getEntityLabel(selectedLog.entity)" readonly />
+              <input type="text" class="form-control" [value]="getEntityLabel(selectedLog.entite)" readonly />
             </div>
 
             <div class="form-group">
               <label class="form-label">ID Enregistrement</label>
-              <input type="text" class="form-control" [value]="selectedLog.entityId || 'N/A'" readonly />
+              <input type="text" class="form-control" [value]="selectedLog.entiteId || 'N/A'" readonly />
             </div>
 
-            <div class="form-group full-width" *ngIf="selectedLog.oldValue">
+            <div class="form-group full-width" *ngIf="selectedLog.ancienneValeur">
               <label class="form-label">Anciennes valeurs</label>
-              <div class="form-control" style="min-height: 150px; overflow-x: auto; white-space: pre-wrap;">{{ selectedLog.oldValue | json }}</div>
+              <div class="form-control" style="min-height: 150px; overflow-x: auto; white-space: pre-wrap;">{{ selectedLog.ancienneValeur | json }}</div>
             </div>
 
-            <div class="form-group full-width" *ngIf="selectedLog.newValue">
+            <div class="form-group full-width" *ngIf="selectedLog.nouvelleValeur">
               <label class="form-label">Nouvelles valeurs</label>
-              <div class="form-control" style="min-height: 150px; overflow-x: auto; white-space: pre-wrap;">{{ selectedLog.newValue | json }}</div>
+              <div class="form-control" style="min-height: 150px; overflow-x: auto; white-space: pre-wrap;">{{ selectedLog.nouvelleValeur | json }}</div>
             </div>
           </div>
         </div>

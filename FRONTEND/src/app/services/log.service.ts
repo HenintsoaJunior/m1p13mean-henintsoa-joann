@@ -6,20 +6,20 @@ import { environment } from '../../environments/environment';
 
 export interface LogEntry {
   id?: number;
-  userId: number | string;
+  utilisateurId: number | string;
   action: string; // CREATE, UPDATE, DELETE
-  entity: string; // The entity affected (users, centres, etc.)
-  entityId?: number | string; // ID of the entity affected
-  oldValue?: any; // Previous values for updates
-  newValue?: any; // New values for updates/creates
-  timestamp: Date;
-  ipAddress?: string;
-  userAgent?: string;
+  entite: string; // L'entité concernée (utilisateurs, centres, etc.)
+  entiteId?: number | string; // ID de l'entité concernée
+  ancienneValeur?: any; // Valeurs précédentes (pour les modifications/suppressions)
+  nouvelleValeur?: any; // Nouvelles valeurs (pour les créations/modifications)
+  dateHeure: Date;
+  adresseIp?: string;
+  navigateur?: string;
   utilisateur?: {
     nom: string;
     email: string;
     role: string;
-  }; // Information de l'utilisateur associé
+  };
 }
 
 @Injectable({
@@ -31,56 +31,53 @@ export class LogService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Log an activity to the backend
+   * Enregistrer une activité dans le backend
    */
-  logActivity(logData: Omit<LogEntry, 'id' | 'timestamp'>): Observable<any> {
+  logActivity(logData: Omit<LogEntry, 'id' | 'dateHeure'>): Observable<any> {
     const logEntry: LogEntry = {
       ...logData,
-      timestamp: new Date()
+      dateHeure: new Date()
     };
     
-    // Send to backend, but handle errors gracefully if backend endpoint doesn't exist yet
     return this.http.post(this.apiUrl, logEntry).pipe(
       catchError(error => {
-        console.warn('Backend logging endpoint not available yet. Logging to console:', logEntry);
-        // Still return a successful observable to prevent errors in the interceptor
+        console.warn('Endpoint de logging non disponible. Log console:', logEntry);
         return of({ success: true, data: logEntry });
       })
     );
   }
 
   /**
-   * Get all logs from the backend
+   * Récupérer tous les logs avec pagination
    */
-  getLogs(): Observable<LogEntry[]> {
-    // Return empty array if backend endpoint doesn't exist yet
-    return this.http.get<LogEntry[]>(this.apiUrl).pipe(
+  getLogs(page: number = 1, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&limit=${limit}`).pipe(
       catchError(error => {
-        console.warn('Backend logs endpoint not available yet. Returning empty array.');
+        console.warn('Endpoint de logs non disponible.');
+        return of({ success: true, data: [], total: 0, page: 1, pages: 0 });
+      })
+    );
+  }
+
+  /**
+   * Récupérer les logs par entité
+   */
+  getLogsByEntity(entite: string): Observable<LogEntry[]> {
+    return this.http.get<LogEntry[]>(`${this.apiUrl}/entity/${entite}`).pipe(
+      catchError(error => {
+        console.warn(`Endpoint de logs par entité non disponible pour: ${entite}`);
         return of([]);
       })
     );
   }
 
   /**
-   * Get logs for a specific entity
-   */
-  getLogsByEntity(entity: string): Observable<LogEntry[]> {
-    return this.http.get<LogEntry[]>(`${this.apiUrl}/entity/${entity}`).pipe(
-      catchError(error => {
-        console.warn(`Backend logs by entity endpoint not available yet. Returning empty array for entity: ${entity}`);
-        return of([]);
-      })
-    );
-  }
-
-  /**
-   * Get logs by action type
+   * Récupérer les logs par action
    */
   getLogsByAction(action: string): Observable<LogEntry[]> {
     return this.http.get<LogEntry[]>(`${this.apiUrl}/action/${action}`).pipe(
       catchError(error => {
-        console.warn(`Backend logs by action endpoint not available yet. Returning empty array for action: ${action}`);
+        console.warn(`Endpoint de logs par action non disponible pour: ${action}`);
         return of([]);
       })
     );

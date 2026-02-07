@@ -2,24 +2,29 @@ const Log = require('../../models/admin/Logs');
 const Utilisateur = require('../../models/Utilisateur');
 
 const logController = {
-  // Get all logs
+  // Récupérer tous les logs
   getAllLogs: async (req, res) => {
     try {
+      const { page, limit } = req.query;
+      const pageNum = parseInt(page) || 1;
+      const limitNum = parseInt(limit) || 10;
+      const skip = (pageNum - 1) * limitNum;
+
+      const total = await Log.countDocuments();
       const logs = await Log.find()
-        .sort({ timestamp: -1 }); // Newest first
+        .sort({ dateHeure: -1 })
+        .skip(skip)
+        .limit(limitNum);
       
-      // Enhance logs with user info
       const enhancedLogs = await Promise.all(logs.map(async (log) => {
-        if (typeof log.userId === 'string' && log.userId !== '0') {
-          // If userId is stored as string and not '0', try to find the user by _id
+        if (typeof log.utilisateurId === 'string' && log.utilisateurId !== '0') {
           try {
-            const user = await Utilisateur.findById(log.userId).select('nom email role');
+            const user = await Utilisateur.findById(log.utilisateurId).select('nom email role');
             return {
               ...log.toObject(),
               utilisateur: user ? { nom: user.nom, email: user.email, role: user.role } : null
             };
           } catch (error) {
-            console.error('Error fetching user for log:', error);
             return {
               ...log.toObject(),
               utilisateur: null
@@ -32,10 +37,13 @@ const logController = {
       
       res.status(200).json({
         success: true,
-        data: enhancedLogs
+        data: enhancedLogs,
+        total,
+        page: pageNum,
+        pages: Math.ceil(total / limitNum)
       });
     } catch (error) {
-      console.error('Error getting logs:', error);
+      console.error('Erreur récupération logs:', error);
       res.status(500).json({
         success: false,
         message: 'Erreur lors de la récupération des logs',
@@ -44,25 +52,30 @@ const logController = {
     }
   },
 
-  // Get logs by entity
+  // Récupérer les logs par entité
   getLogsByEntity: async (req, res) => {
     try {
       const { entity } = req.params;
+      const { page, limit } = req.query;
+      const pageNum = parseInt(page) || 1;
+      const limitNum = parseInt(limit) || 10;
+      const skip = (pageNum - 1) * limitNum;
+
+      const total = await Log.countDocuments({ entite: entity });
+      const logs = await Log.find({ entite: entity })
+        .sort({ dateHeure: -1 })
+        .skip(skip)
+        .limit(limitNum);
       
-      const logs = await Log.find({ entity })
-        .sort({ timestamp: -1 });
-      
-      // Enhance logs with user info
       const enhancedLogs = await Promise.all(logs.map(async (log) => {
-        if (typeof log.userId === 'string' && log.userId !== '0') {
+        if (typeof log.utilisateurId === 'string' && log.utilisateurId !== '0') {
           try {
-            const user = await Utilisateur.findById(log.userId).select('nom email role');
+            const user = await Utilisateur.findById(log.utilisateurId).select('nom email role');
             return {
               ...log.toObject(),
               utilisateur: user ? { nom: user.nom, email: user.email, role: user.role } : null
             };
           } catch (error) {
-            console.error('Error fetching user for log:', error);
             return {
               ...log.toObject(),
               utilisateur: null
@@ -75,10 +88,13 @@ const logController = {
       
       res.status(200).json({
         success: true,
-        data: enhancedLogs
+        data: enhancedLogs,
+        total,
+        page: pageNum,
+        pages: Math.ceil(total / limitNum)
       });
     } catch (error) {
-      console.error('Error getting logs by entity:', error);
+      console.error('Erreur récupération logs par entité:', error);
       res.status(500).json({
         success: false,
         message: 'Erreur lors de la récupération des logs',
@@ -87,25 +103,30 @@ const logController = {
     }
   },
 
-  // Get logs by action
+  // Récupérer les logs par action
   getLogsByAction: async (req, res) => {
     try {
       const { action } = req.params;
-      
+      const { page, limit } = req.query;
+      const pageNum = parseInt(page) || 1;
+      const limitNum = parseInt(limit) || 10;
+      const skip = (pageNum - 1) * limitNum;
+
+      const total = await Log.countDocuments({ action });
       const logs = await Log.find({ action })
-        .sort({ timestamp: -1 });
+        .sort({ dateHeure: -1 })
+        .skip(skip)
+        .limit(limitNum);
       
-      // Enhance logs with user info
       const enhancedLogs = await Promise.all(logs.map(async (log) => {
-        if (typeof log.userId === 'string' && log.userId !== '0') {
+        if (typeof log.utilisateurId === 'string' && log.utilisateurId !== '0') {
           try {
-            const user = await Utilisateur.findById(log.userId).select('nom email role');
+            const user = await Utilisateur.findById(log.utilisateurId).select('nom email role');
             return {
               ...log.toObject(),
               utilisateur: user ? { nom: user.nom, email: user.email, role: user.role } : null
             };
           } catch (error) {
-            console.error('Error fetching user for log:', error);
             return {
               ...log.toObject(),
               utilisateur: null
@@ -118,10 +139,13 @@ const logController = {
       
       res.status(200).json({
         success: true,
-        data: enhancedLogs
+        data: enhancedLogs,
+        total,
+        page: pageNum,
+        pages: Math.ceil(total / limitNum)
       });
     } catch (error) {
-      console.error('Error getting logs by action:', error);
+      console.error('Erreur récupération logs par action:', error);
       res.status(500).json({
         success: false,
         message: 'Erreur lors de la récupération des logs',
@@ -130,21 +154,20 @@ const logController = {
     }
   },
 
-  // Create a new log entry
+  // Créer un nouveau log
   createLog: async (req, res) => {
     try {
-      const { userId, action, entity, entityId, oldValue, newValue } = req.body;
+      const { utilisateurId, action, entite, entiteId, ancienneValeur, nouvelleValeur } = req.body;
       
       // Vérifier s'il existe déjà un log similaire récemment pour éviter les doublons
       const existingLog = await Log.findOne({
-        userId,
+        utilisateurId,
         action,
-        entity,
-        entityId,
-        timestamp: { $gte: new Date(Date.now() - 1000) } // Dans la dernière seconde
+        entite,
+        entiteId,
+        dateHeure: { $gte: new Date(Date.now() - 1000) }
       });
       
-      // Si un log similaire existe récemment, ne pas créer de nouveau log
       if (existingLog) {
         return res.status(200).json({
           success: true,
@@ -154,14 +177,14 @@ const logController = {
       }
       
       const newLog = new Log({
-        userId,
+        utilisateurId,
         action,
-        entity,
-        entityId,
-        oldValue,
-        newValue,
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
+        entite,
+        entiteId,
+        ancienneValeur,
+        nouvelleValeur,
+        adresseIp: req.ip,
+        navigateur: req.get('User-Agent')
       });
       
       const savedLog = await newLog.save();
@@ -171,7 +194,7 @@ const logController = {
         data: savedLog
       });
     } catch (error) {
-      console.error('Error creating log:', error);
+      console.error('Erreur création log:', error);
       res.status(400).json({
         success: false,
         message: 'Erreur lors de la création du log',

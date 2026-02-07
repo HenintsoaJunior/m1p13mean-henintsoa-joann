@@ -25,6 +25,13 @@ export class EtagesCrudComponent implements OnInit {
   isSubmitting = false;
   etageForm: FormGroup;
 
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pageSizeOptions: number[] = [5, 10, 25, 50];
+
   constructor(
     private centresService: CentresService,
     private formBuilder: FormBuilder,
@@ -44,7 +51,7 @@ export class EtagesCrudComponent implements OnInit {
   }
 
   loadData() {
-    this.centresService.getCentres().subscribe(centres => {
+    this.centresService.getAllCentres().subscribe(centres => {
       this.centres = centres;
     });
 
@@ -52,9 +59,26 @@ export class EtagesCrudComponent implements OnInit {
       this.batiments = batiments;
     });
 
-    this.centresService.getEtages().subscribe(etages => {
-      this.etages = etages;
-      this.filteredEtages = etages;
+    this.loadEtages();
+  }
+
+  loadEtages() {
+    this.centresService.getEtagesPaginated(this.currentPage, this.pageSize).subscribe((response: any) => {
+      if (response && response.success && response.data) {
+        const data = response.data;
+        this.etages = data.etages || data.docs || (Array.isArray(data) ? data : []);
+        this.totalItems = data.total || 0;
+        this.totalPages = data.pages || 0;
+        this.currentPage = data.page || this.currentPage;
+      } else if (Array.isArray(response)) {
+        this.etages = response;
+        this.totalItems = response.length;
+        this.totalPages = 1;
+      }
+      this.filteredEtages = this.etages;
+      if (this.searchTerm || this.selectedBatimentId || this.selectedCentreId) {
+        this.filterEtages();
+      }
     });
   }
 
@@ -159,7 +183,7 @@ export class EtagesCrudComponent implements OnInit {
       if (this.editingEtage) {
         this.centresService.updateEtage(this.editingEtage._id!, etageData).subscribe({
           next: () => {
-            this.loadData();
+            this.loadEtages();
             this.closeModal();
             this.isSubmitting = false;
             this.toastService.showSuccess('Étage modifié avec succès!');
@@ -172,7 +196,7 @@ export class EtagesCrudComponent implements OnInit {
       } else {
         this.centresService.createEtage(etageData).subscribe({
           next: () => {
-            this.loadData();
+            this.loadEtages();
             this.closeModal();
             this.isSubmitting = false;
             this.toastService.showSuccess('Étage créé avec succès!');
@@ -190,7 +214,7 @@ export class EtagesCrudComponent implements OnInit {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet étage ?')) {
       this.centresService.deleteEtage(id).subscribe({
         next: () => {
-          this.loadData();
+          this.loadEtages();
           this.toastService.showSuccess('Étage supprimé avec succès!');
         },
         error: () => {
@@ -198,5 +222,32 @@ export class EtagesCrudComponent implements OnInit {
         }
       });
     }
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      this.currentPage = page;
+      this.loadEtages();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.loadEtages();
+  }
+
+  get pages(): number[] {
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(1, this.currentPage - half);
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 }

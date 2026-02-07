@@ -23,7 +23,7 @@ export class CentresListComponent implements OnInit {
   }
 
   loadCounts() {
-    this.centresService.getCentres().subscribe(centres => {
+    this.centresService.getAllCentres().subscribe(centres => {
       this.centresCount = centres.length;
     });
 

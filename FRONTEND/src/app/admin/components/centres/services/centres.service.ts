@@ -79,31 +79,25 @@ export class CentresService {
   }
 
   // Centres CRUD
-  getCentres(): Observable<Centre[]> {
-    return this.http.get<any>(`${this.apiUrl}/centres`, { headers: this.getAuthHeaders() })
+  getCentres(page: number = 1, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/centres?page=${page}&limit=${limit}`, { headers: this.getAuthHeaders() });
+  }
+
+  getAllCentres(): Observable<Centre[]> {
+    return this.http.get<any>(`${this.apiUrl}/centres?limit=1000`, { headers: this.getAuthHeaders() })
       .pipe(
         map(response => {
-          // Si la réponse est un objet avec success et data
           if (response && response.success && response.data) {
-            // Si data contient centres (pagination spécifique)
             if (response.data.centres && Array.isArray(response.data.centres)) {
               return response.data.centres;
             }
-            // Si data contient des docs (pagination)
-            if (response.data.docs && Array.isArray(response.data.docs)) {
-              return response.data.docs;
-            }
-            // Si data est directement un tableau
             if (Array.isArray(response.data)) {
               return response.data;
             }
           }
-          // Si la réponse est déjà un tableau
           if (Array.isArray(response)) {
             return response;
           }
-          // Sinon retourner un tableau vide
-          console.warn('Format de réponse inattendu:', response);
           return [];
         })
       );
@@ -126,6 +120,10 @@ export class CentresService {
   }
 
   // Bâtiments CRUD
+  getBatimentsPaginated(page: number = 1, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/batiments?page=${page}&limit=${limit}`, { headers: this.getAuthHeaders() });
+  }
+
   getBatiments(centreId?: string): Observable<Batiment[]> {
     const baseUrl = `${this.apiUrl}/batiments?limit=1000`;
     const url = centreId ? `${baseUrl}&centre_id=${centreId}` : baseUrl;
@@ -168,6 +166,10 @@ export class CentresService {
   }
 
   // Étages CRUD
+  getEtagesPaginated(page: number = 1, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/etages?page=${page}&limit=${limit}`, { headers: this.getAuthHeaders() });
+  }
+
   getEtages(batimentId?: string): Observable<Etage[]> {
     const baseUrl = `${this.apiUrl}/etages?limit=1000`;
     const url = batimentId ? `${baseUrl}&batiment_id=${batimentId}` : baseUrl;
@@ -210,6 +212,10 @@ export class CentresService {
   }
 
   // Emplacements CRUD
+  getEmplacementsPaginated(page: number = 1, limit: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/emplacements?page=${page}&limit=${limit}`, { headers: this.getAuthHeaders() });
+  }
+
   getEmplacements(etageId?: string): Observable<Emplacement[]> {
     // Passer un limit élevé pour récupérer tous les emplacements
     const baseUrl = `${this.apiUrl}/emplacements?limit=1000`;

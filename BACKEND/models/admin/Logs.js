@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const logSchema = new mongoose.Schema({
-  userId: {
-    type: String, // Utilisation de String pour correspondre à l'ObjectId MongoDB
+  utilisateurId: {
+    type: String,
     required: true
   },
   action: {
@@ -10,31 +10,31 @@ const logSchema = new mongoose.Schema({
     enum: ['CREATE', 'UPDATE', 'DELETE'],
     required: true
   },
-  entity: {
+  entite: {
     type: String,
     required: true
   },
-  entityId: {
-    type: String, // Utilisation de String pour correspondre à l'ObjectId MongoDB
+  entiteId: {
+    type: String,
     default: null
   },
-  oldValue: {
+  ancienneValeur: {
     type: mongoose.Schema.Types.Mixed,
     default: null
   },
-  newValue: {
+  nouvelleValeur: {
     type: mongoose.Schema.Types.Mixed,
     default: null
   },
-  timestamp: {
+  dateHeure: {
     type: Date,
     default: Date.now
   },
-  ipAddress: {
+  adresseIp: {
     type: String,
     default: ''
   },
-  userAgent: {
+  navigateur: {
     type: String,
     default: ''
   }
