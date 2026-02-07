@@ -29,6 +29,13 @@ export class CentreCrudComponent implements OnInit {
   imagePreview: string | null = null;
   selectedFile: File | null = null;
 
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pageSizeOptions: number[] = [5, 10, 25, 50];
+
   constructor(
     private centresService: CentresService,
     private formBuilder: FormBuilder,
@@ -55,9 +62,22 @@ export class CentreCrudComponent implements OnInit {
   }
 
   loadCentres() {
-    this.centresService.getCentres().subscribe((centres) => {
-      this.centres = centres;
-      this.filteredCentres = centres;
+    this.centresService.getCentres(this.currentPage, this.pageSize).subscribe((response: any) => {
+      if (response && response.success && response.data) {
+        const data = response.data;
+        this.centres = data.centres || data.docs || (Array.isArray(data) ? data : []);
+        this.totalItems = data.total || 0;
+        this.totalPages = data.pages || 0;
+        this.currentPage = data.page || this.currentPage;
+      } else if (Array.isArray(response)) {
+        this.centres = response;
+        this.totalItems = response.length;
+        this.totalPages = 1;
+      }
+      this.filteredCentres = this.centres;
+      if (this.searchTerm) {
+        this.filterCentres();
+      }
     });
   }
 
@@ -68,6 +88,32 @@ export class CentreCrudComponent implements OnInit {
         centre.adresse?.ville?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         centre.email_contact?.toLowerCase().includes(this.searchTerm.toLowerCase()),
     );
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.loadCentres();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.loadCentres();
+  }
+
+  get pages(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   openCreateModal() {

@@ -29,6 +29,13 @@ export class ListUtilisateurComponent implements OnInit {
   filtreRole: string = '';
   filtreStatut: string = '';
 
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pageSizeOptions: number[] = [5, 10, 25, 50];
+
   constructor(private utilisateurService: UtilisateurService) { }
 
   ngOnInit(): void {
@@ -36,8 +43,16 @@ export class ListUtilisateurComponent implements OnInit {
   }
 
   loadUtilisateurs(): void {
-    this.utilisateurService.getUtilisateurs().subscribe(data => {
-      this.utilisateurs = data;
+    this.utilisateurService.getUtilisateurs(this.currentPage, this.pageSize).subscribe((response: any) => {
+      if (response && response.utilisateurs) {
+        this.utilisateurs = response.utilisateurs;
+        this.totalItems = response.pagination?.total || 0;
+        this.totalPages = response.pagination?.pages || 0;
+      } else if (Array.isArray(response)) {
+        this.utilisateurs = response;
+        this.totalItems = response.length;
+        this.totalPages = 1;
+      }
       this.applyFilters();
     });
   }
@@ -46,12 +61,10 @@ export class ListUtilisateurComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     const newStatus = input.checked;
     this.utilisateurService.updateUtilisateurStatus(utilisateur._id, newStatus).subscribe(() => {
-      // Optionnel: afficher un toast/notification de succès
-      // Recharger les données ou mettre à jour l'objet localement
       const index = this.utilisateurs.findIndex(u => u._id === utilisateur._id);
       if (index > -1) {
         this.utilisateurs[index].actif = newStatus;
-        this.applyFilters(); // Réappliquer les filtres après changement de statut
+        this.applyFilters();
       }
     });
   }
@@ -85,5 +98,31 @@ export class ListUtilisateurComponent implements OnInit {
     this.filtreRole = '';
     this.filtreStatut = '';
     this.applyFilters();
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.loadUtilisateurs();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.loadUtilisateurs();
+  }
+
+  get pages(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 }

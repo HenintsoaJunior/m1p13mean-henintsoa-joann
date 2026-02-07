@@ -23,6 +23,13 @@ export class BatimentsCrudComponent implements OnInit {
   isSubmitting = false;
   batimentForm: FormGroup;
 
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pageSizeOptions: number[] = [5, 10, 25, 50];
+
   constructor(
     private centresService: CentresService,
     private formBuilder: FormBuilder,
@@ -41,13 +48,30 @@ export class BatimentsCrudComponent implements OnInit {
   }
 
   loadData() {
-    this.centresService.getCentres().subscribe(centres => {
+    this.centresService.getAllCentres().subscribe(centres => {
       this.centres = centres;
     });
 
-    this.centresService.getBatiments().subscribe(batiments => {
-      this.batiments = batiments;
-      this.filteredBatiments = batiments;
+    this.loadBatiments();
+  }
+
+  loadBatiments() {
+    this.centresService.getBatimentsPaginated(this.currentPage, this.pageSize).subscribe((response: any) => {
+      if (response && response.success && response.data) {
+        const data = response.data;
+        this.batiments = data.batiments || data.docs || (Array.isArray(data) ? data : []);
+        this.totalItems = data.total || 0;
+        this.totalPages = data.pages || 0;
+        this.currentPage = data.page || this.currentPage;
+      } else if (Array.isArray(response)) {
+        this.batiments = response;
+        this.totalItems = response.length;
+        this.totalPages = 1;
+      }
+      this.filteredBatiments = this.batiments;
+      if (this.searchTerm || this.selectedCentreId) {
+        this.filterBatiments();
+      }
     });
   }
 
@@ -112,7 +136,7 @@ export class BatimentsCrudComponent implements OnInit {
       if (this.editingBatiment) {
         this.centresService.updateBatiment(this.editingBatiment._id!, batimentData).subscribe({
           next: () => {
-            this.loadData();
+            this.loadBatiments();
             this.closeModal();
             this.isSubmitting = false;
             this.toastService.showSuccess('Bâtiment modifié avec succès!');
@@ -125,7 +149,7 @@ export class BatimentsCrudComponent implements OnInit {
       } else {
         this.centresService.createBatiment(batimentData).subscribe({
           next: () => {
-            this.loadData();
+            this.loadBatiments();
             this.closeModal();
             this.isSubmitting = false;
             this.toastService.showSuccess('Bâtiment créé avec succès!');
@@ -143,7 +167,7 @@ export class BatimentsCrudComponent implements OnInit {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce bâtiment ?')) {
       this.centresService.deleteBatiment(id).subscribe({
         next: () => {
-          this.loadData();
+          this.loadBatiments();
           this.toastService.showSuccess('Bâtiment supprimé avec succès!');
         },
         error: () => {
@@ -151,5 +175,32 @@ export class BatimentsCrudComponent implements OnInit {
         }
       });
     }
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      this.currentPage = page;
+      this.loadBatiments();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.loadBatiments();
+  }
+
+  get pages(): number[] {
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(1, this.currentPage - half);
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 }

@@ -21,32 +21,9 @@ export class UtilisateurService {
     return new HttpHeaders();
   }
 
-  // Récupérer la liste des utilisateurs
-  getUtilisateurs(): Observable<Utilisateur[]> {
-    return this.http.get<any>(`${this.apiUrl}/utilisateurs`, { headers: this.getAuthHeaders() })
-      .pipe(
-        map(response => {
-          if (response && response.utilisateurs && Array.isArray(response.utilisateurs)) {
-            return response.utilisateurs;
-          }
-          if (response && response.success && response.data) {
-            if (response.data.utilisateurs && Array.isArray(response.data.utilisateurs)) {
-              return response.data.utilisateurs;
-            }
-            if (response.data.docs && Array.isArray(response.data.docs)) {
-              return response.data.docs;
-            }
-            if (Array.isArray(response.data)) {
-              return response.data;
-            }
-          }
-          if (Array.isArray(response)) {
-            return response;
-          }
-          console.warn('Format de réponse inattendu pour les utilisateurs:', response);
-          return [];
-        })
-      );
+  // Récupérer la liste des utilisateurs avec pagination
+  getUtilisateurs(page: number = 1, limite: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/utilisateurs?page=${page}&limite=${limite}`, { headers: this.getAuthHeaders() });
   }
 
   // Mettre à jour le statut d'un utilisateur (activer/désactiver)

@@ -70,6 +70,23 @@
       <h3>Aucun bâtiment trouvé</h3>
       <p>Commencez par créer votre premier bâtiment</p>
     </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="totalPages >= 1">
+      <div class="pagination-info">
+        <span>Page {{ currentPage }} sur {{ totalPages }} ({{ totalItems }} résultats)</span>
+        <select class="page-size-select" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+          <option *ngFor="let opt of pageSizeOptions" [value]="opt">{{ opt }} par page</option>
+        </select>
+      </div>
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button class="pagination-btn" (click)="goToPage(1)" [disabled]="currentPage === 1">«</button>
+        <button class="pagination-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">‹</button>
+        <button *ngFor="let p of pages" class="pagination-btn" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+        <button class="pagination-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">›</button>
+        <button class="pagination-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">»</button>
+      </div>
+    </div>
   </div>
 </div>
 
