@@ -64,6 +64,12 @@ export class BatimentsCrudComponent implements OnInit {
     });
   }
 
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedCentreId = '';
+    this.filterBatiments();
+  }
+
   getCentreNom(centreId: string | { _id: string; nom: string }): string {
     // Si c'est un objet populé, on retourne directement le nom
     if (typeof centreId === 'object' && centreId !== null) {

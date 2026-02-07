@@ -86,24 +86,31 @@ export class EmplacementsCrudComponent implements OnInit {
       selectedEtageId: this.selectedEtageId,
       selectedStatut: this.selectedStatut
     });
-    
+
     this.filteredEmplacements = this.emplacements.filter(emplacement => {
       const matchesSearch = emplacement.code.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                           emplacement.nom?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                           emplacement.type.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
+
       // Gérer le cas où etage_id est un objet ou une chaîne
-      const etageId = typeof emplacement.etage_id === 'object' && emplacement.etage_id !== null 
-        ? (emplacement.etage_id as any)._id 
+      const etageId = typeof emplacement.etage_id === 'object' && emplacement.etage_id !== null
+        ? (emplacement.etage_id as any)._id
         : emplacement.etage_id;
       const matchesEtage = !this.selectedEtageId || etageId === this.selectedEtageId;
-      
+
       const matchesStatut = !this.selectedStatut || emplacement.statut === this.selectedStatut;
-      
+
       return matchesSearch && matchesEtage && matchesStatut;
     });
-    
+
     console.log('Emplacements filtrés:', this.filteredEmplacements.length);
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedEtageId = '';
+    this.selectedStatut = '';
+    this.filterEmplacements();
   }
 
   getEtageNom(etageId: string | { _id: string; nom: string }): string {

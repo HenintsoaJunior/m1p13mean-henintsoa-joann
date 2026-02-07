@@ -141,7 +141,7 @@ const logController = {
         action,
         entity,
         entityId,
-        timestamp: { $gte: new Date(Date.now() - 1000) } // Dans la dernière seconde
+        timestamp: { : new Date(Date.now() - 1000) } // Dans la dernière seconde
       });
       
       // Si un log similaire existe récemment, ne pas créer de nouveau log

@@ -71,26 +71,33 @@ export class EtagesCrudComponent implements OnInit {
   filterEtages() {
     this.filteredEtages = this.etages.filter(etage => {
       const matchesSearch = etage.nom.toLowerCase().includes(this.searchTerm.toLowerCase());
-      const matchesBatiment = !this.selectedBatimentId || 
+      const matchesBatiment = !this.selectedBatimentId ||
         (typeof etage.batiment_id === 'object' ? etage.batiment_id._id === this.selectedBatimentId : etage.batiment_id === this.selectedBatimentId);
-      
+
       // Filtre par centre via le bâtiment
       let matchesCentre = true;
       if (this.selectedCentreId) {
-        const batiment = this.batiments.find(b => 
+        const batiment = this.batiments.find(b =>
           typeof etage.batiment_id === 'object' ? b._id === etage.batiment_id._id : b._id === etage.batiment_id
         );
         if (batiment) {
-          matchesCentre = typeof batiment.centre_id === 'object' ? 
-            batiment.centre_id._id === this.selectedCentreId : 
+          matchesCentre = typeof batiment.centre_id === 'object' ?
+            batiment.centre_id._id === this.selectedCentreId :
             batiment.centre_id === this.selectedCentreId;
         } else {
           matchesCentre = false;
         }
       }
-      
+
       return matchesSearch && matchesBatiment && matchesCentre;
     });
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedBatimentId = '';
+    this.selectedCentreId = '';
+    this.filterEtages();
   }
 
   getFilteredBatiments(): Batiment[] {

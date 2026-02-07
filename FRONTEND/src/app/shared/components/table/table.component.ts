@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -13,6 +13,7 @@ export class TableComponent {
   @Input() data: Array<any> = [];
   @Input() hasActions = false;
   @Input() emptyMessage = 'Aucune donnée disponible';
+  @Input() actionTemplate?: TemplateRef<any>;
 
   trackByFn(index: number, item: any): any {
     return item.id || index;

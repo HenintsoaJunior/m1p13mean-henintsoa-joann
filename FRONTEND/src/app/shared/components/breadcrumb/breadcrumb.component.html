@@ -12,7 +12,7 @@
       <!-- Breadcrumb avec URL -->
       <a 
         *ngIf="!breadcrumb.clickHandler && breadcrumb.url && !isLast"
-        [routerLink]="breadcrumb.url"
+        [routerLink]="[breadcrumb.url]"
         class="breadcrumb-link">
         {{ breadcrumb.label }}
       </a>

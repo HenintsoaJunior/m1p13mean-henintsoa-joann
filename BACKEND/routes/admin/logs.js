@@ -1,11 +1,18 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const logsController = require("../../controllers/admin/LogsController");
+const logController = require('../../controllers/admin/LogsController');
+const { authentification, verifierRole } = require('../../middleware/auth');
 
-router.post("/", logsController.createLog);
-router.get("/", logsController.getAllLogs);
-router.get("/:id", logsController.getLogById);
-router.get("/utilisateur/:utilisateurId", logsController.getLogsByUtilisateur);
-router.delete("/:id", logsController.deleteLog);
+// Get all logs
+router.get('/', authentification, verifierRole('admin'), logController.getAllLogs);
+
+// Get logs by entity
+router.get('/entity/:entity', authentification, verifierRole('admin'), logController.getLogsByEntity);
+
+// Get logs by action
+router.get('/action/:action', authentification, verifierRole('admin'), logController.getLogsByAction);
+
+// Create a new log
+router.post('/', authentification, verifierRole('admin'), logController.createLog);
 
 module.exports = router;

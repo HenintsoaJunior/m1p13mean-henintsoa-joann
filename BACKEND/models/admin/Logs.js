@@ -1,21 +1,43 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const logsSchema = new mongoose.Schema({
-  utilisateur_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Utilisateur",
+const logSchema = new mongoose.Schema({
+  userId: {
+    type: String, // Utilisation de String pour correspondre à l'ObjectId MongoDB
     required: true
   },
-  details: {
+  action: {
+    type: String,
+    enum: ['CREATE', 'UPDATE', 'DELETE'],
+    required: true
+  },
+  entity: {
     type: String,
     required: true
   },
-  date_heure: {
+  entityId: {
+    type: String, // Utilisation de String pour correspondre à l'ObjectId MongoDB
+    default: null
+  },
+  oldValue: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  newValue: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  timestamp: {
     type: Date,
     default: Date.now
+  },
+  ipAddress: {
+    type: String,
+    default: ''
+  },
+  userAgent: {
+    type: String,
+    default: ''
   }
 });
 
-logsSchema.index({ utilisateur_id: 1, date_heure: -1 });
-
-module.exports = mongoose.model("Logs", logsSchema);
+module.exports = mongoose.model('Log', logSchema);

@@ -14,6 +14,7 @@
         <div class="search-box">
           <input type="text" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="filterBatiments()">
         </div>
+        <button class="btn btn-danger" (click)="clearFilters()">Effacer</button>
       </div>
     </div>
   </div>

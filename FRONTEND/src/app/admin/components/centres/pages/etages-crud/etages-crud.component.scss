@@ -72,6 +72,13 @@
   select.form-control {
     width: 100%;
   }
+  
+  .btn-danger {
+    font-size: 13px;
+    font-weight: 500;
+    width: fit-content;
+    align-self: end;
+  }
 }
 
 .table-container {

@@ -1,0 +1,65 @@
+<div class="page-container">
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filters-header">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtres</span>
+      </div>
+      <div class="filters-content">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher par nom ou prénom..."
+            [(ngModel)]="filtreNom"
+            (input)="onFilterChange()"
+          />
+        </div>
+
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher par email..."
+            [(ngModel)]="filtreEmail"
+            (input)="onFilterChange()"
+          />
+        </div>
+
+        <select [(ngModel)]="filtreRole" (ngModelChange)="onFilterChange()" class="form-control">
+          <option value="">Tous les rôles</option>
+          <option value="admin">Administrateur</option>
+          <option value="boutique">Boutique</option>
+          <option value="client">Client</option>
+        </select>
+
+        <select [(ngModel)]="filtreStatut" (ngModelChange)="onFilterChange()" class="form-control">
+          <option value="">Tous les statuts</option>
+          <option value="actif">Actif</option>
+          <option value="inactif">Inactif</option>
+        </select>
+
+        <button class="btn btn-danger" (click)="clearFilters()">Effacer</button>
+      </div>
+    </div>
+  </div>
+
+  <app-table
+    [columns]="columns"
+    [data]="filteredUtilisateurs"
+    [hasActions]="true"
+    emptyMessage="Aucun utilisateur trouvé."
+    [actionTemplate]="actions"
+  >
+  </app-table>
+</div>
+
+<ng-template #actions let-utilisateur>
+  <label class="switch">
+    <input
+      type="checkbox"
+      [checked]="utilisateur.actif"
+      (change)="onStatusChange(utilisateur, $event)"
+    />
+    <span class="slider round"></span>
+  </label>
+</ng-template>
