@@ -25,7 +25,14 @@ export class EmplacementsCrudComponent implements OnInit {
   editingEmplacement: Emplacement | null = null;
   isSubmitting = false;
   emplacementForm: FormGroup;
-  coordonnees: string = ''; // Pour stocker les coordonnées en format texte
+  coordonnees: string = '';
+
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalItems: number = 0;
+  totalPages: number = 0;
+  pageSizeOptions: number[] = [5, 10, 25, 50];
 
   constructor(
     private centresService: CentresService,
@@ -52,25 +59,34 @@ export class EmplacementsCrudComponent implements OnInit {
   }
 
   loadData() {
-    this.centresService.getCentres().subscribe(centres => {
+    this.centresService.getAllCentres().subscribe(centres => {
       this.centres = centres;
-      console.log('Centres chargés:', centres.length);
     });
 
     this.centresService.getBatiments().subscribe(batiments => {
       this.batiments = batiments;
-      console.log('Bâtiments chargés:', batiments.length);
     });
 
     this.centresService.getEtages().subscribe(etages => {
       this.etages = etages;
-      console.log('Étages chargés:', etages.length);
     });
 
-    this.centresService.getEmplacements().subscribe(emplacements => {
-      this.emplacements = emplacements;
-      console.log('Emplacements chargés:', emplacements.length);
-      // Important: mettre à jour aussi les emplacements filtrés
+    this.loadEmplacements();
+  }
+
+  loadEmplacements() {
+    this.centresService.getEmplacementsPaginated(this.currentPage, this.pageSize).subscribe((response: any) => {
+      if (response && response.success && response.data) {
+        const data = response.data;
+        this.emplacements = data.emplacements || data.docs || (Array.isArray(data) ? data : []);
+        this.totalItems = data.total || 0;
+        this.totalPages = data.pages || 0;
+        this.currentPage = data.page || this.currentPage;
+      } else if (Array.isArray(response)) {
+        this.emplacements = response;
+        this.totalItems = response.length;
+        this.totalPages = 1;
+      }
       this.filterEmplacements();
     });
   }
@@ -86,24 +102,31 @@ export class EmplacementsCrudComponent implements OnInit {
       selectedEtageId: this.selectedEtageId,
       selectedStatut: this.selectedStatut
     });
-    
+
     this.filteredEmplacements = this.emplacements.filter(emplacement => {
       const matchesSearch = emplacement.code.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                           emplacement.nom?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                           emplacement.type.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
+
       // Gérer le cas où etage_id est un objet ou une chaîne
-      const etageId = typeof emplacement.etage_id === 'object' && emplacement.etage_id !== null 
-        ? (emplacement.etage_id as any)._id 
+      const etageId = typeof emplacement.etage_id === 'object' && emplacement.etage_id !== null
+        ? (emplacement.etage_id as any)._id
         : emplacement.etage_id;
       const matchesEtage = !this.selectedEtageId || etageId === this.selectedEtageId;
-      
+
       const matchesStatut = !this.selectedStatut || emplacement.statut === this.selectedStatut;
-      
+
       return matchesSearch && matchesEtage && matchesStatut;
     });
-    
+
     console.log('Emplacements filtrés:', this.filteredEmplacements.length);
+  }
+
+  clearFilters() {
+    this.searchTerm = '';
+    this.selectedEtageId = '';
+    this.selectedStatut = '';
+    this.filterEmplacements();
   }
 
   getEtageNom(etageId: string | { _id: string; nom: string }): string {
@@ -231,7 +254,7 @@ export class EmplacementsCrudComponent implements OnInit {
         this.centresService.updateEmplacement(this.editingEmplacement._id!, emplacementData).subscribe({
           next: (response) => {
             console.log('Emplacement modifié:', response);
-            this.loadData();
+            this.loadEmplacements();
             this.closeModal();
             this.isSubmitting = false;
             this.toastService.showSuccess('Emplacement modifié avec succès!');
@@ -246,7 +269,7 @@ export class EmplacementsCrudComponent implements OnInit {
         this.centresService.createEmplacement(emplacementData).subscribe({
           next: (response) => {
             console.log('Emplacement créé - Réponse complète:', response);
-            this.loadData();
+            this.loadEmplacements();
             this.closeModal();
             this.isSubmitting = false;
             this.toastService.showSuccess('Emplacement créé avec succès!');
@@ -275,7 +298,7 @@ export class EmplacementsCrudComponent implements OnInit {
     if (confirm('Êtes-vous sûr de vouloir supprimer cet emplacement ?')) {
       this.centresService.deleteEmplacement(id).subscribe({
         next: () => {
-          this.loadData();
+          this.loadEmplacements();
           this.toastService.showSuccess('Emplacement supprimé avec succès!');
         },
         error: () => {
@@ -283,5 +306,32 @@ export class EmplacementsCrudComponent implements OnInit {
         }
       });
     }
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      this.currentPage = page;
+      this.loadEmplacements();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.loadEmplacements();
+  }
+
+  get pages(): number[] {
+    const maxVisible = 5;
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(1, this.currentPage - half);
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 }
