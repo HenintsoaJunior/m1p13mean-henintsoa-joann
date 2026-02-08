@@ -38,13 +38,42 @@ export class LogService {
       ...logData,
       dateHeure: new Date()
     };
-    
-    return this.http.post(this.apiUrl, logEntry).pipe(
-      catchError(error => {
-        console.warn('Endpoint de logging non disponible. Log console:', logEntry);
-        return of({ success: true, data: logEntry });
-      })
-    );
+
+    // Check if user is admin before attempting to send logs to admin endpoint
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const role = payload.role || 'user';
+        
+        // Only send logs to backend if user is admin
+        if (role === 'admin') {
+          return this.http.post(this.apiUrl, logEntry).pipe(
+            catchError(error => {
+              console.warn('Endpoint de logging non disponible. Log console:', logEntry);
+              return of({ success: true, data: logEntry });
+            })
+          );
+        } else {
+          // For non-admin users, just log to console
+          console.debug('Log activity (non-admin):', logEntry);
+          return of({ success: true, data: logEntry });
+        }
+      } catch (e) {
+        console.warn('Impossible de décoder le token pour vérifier le rôle:', e);
+        // If we can't decode the token, still attempt to send the log
+        return this.http.post(this.apiUrl, logEntry).pipe(
+          catchError(error => {
+            console.warn('Endpoint de logging non disponible. Log console:', logEntry);
+            return of({ success: true, data: logEntry });
+          })
+        );
+      }
+    } else {
+      // If no token, just log to console
+      console.debug('Log activity (no token):', logEntry);
+      return of({ success: true, data: logEntry });
+    }
   }
 
   /**
