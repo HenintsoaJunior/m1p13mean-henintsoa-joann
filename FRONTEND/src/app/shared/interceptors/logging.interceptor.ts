@@ -33,22 +33,34 @@ export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
   const logService = inject(LogService);
   const http = inject(HttpClient);
 
-  // Ne pas logger les requêtes GET ni les requêtes de logs
-  if (req.method === 'GET' || req.url.includes('/logs')) {
+  // Ne pas logger les requêtes GET, les requêtes de logs, ni les requêtes d'authentification
+  if (req.method === 'GET' || req.url.includes('/logs') || req.url.includes('/auth/')) {
     return next(req);
   }
 
   // Extraire les infos utilisateur
   const token = authService.getToken();
-  let utilisateurId = '0';
   
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      utilisateurId = payload.userId || payload.user_id || payload.sub || payload.id || '0';
-    } catch (e: any) {
-      console.warn('Impossible de décoder le token:', e);
-    }
+  // Check if token exists and is valid before processing
+  if (!token || isTokenExpired(token)) {
+    return next(req); // Skip logging if no token or token is expired
+  }
+
+  let utilisateurId = '0';
+  let utilisateurRole = 'user'; // Default role
+
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    utilisateurId = payload.userId || payload.user_id || payload.sub || payload.id || '0';
+    utilisateurRole = payload.role || 'user'; // Extract role from token
+  } catch (e: any) {
+    console.warn('Impossible de décoder le token:', e);
+    return next(req); // Skip logging if token can't be decoded
+  }
+
+  // Seuls les administrateurs peuvent envoyer des logs à l'endpoint admin
+  if (utilisateurRole !== 'admin') {
+    return next(req); // Skip logging for non-admin users
   }
 
   // Déterminer le type d'action
@@ -160,19 +172,30 @@ function isMongoId(str: string): boolean {
 function extractEntityIdFromRequest(request: any): string | undefined {
   const urlParts = request.url.split('/');
   const lastPart = urlParts[urlParts.length - 1];
-  
+
   // Vérifier si c'est un ObjectId MongoDB
   if (isMongoId(lastPart)) return lastPart;
-  
+
   // Vérifier si c'est un ID numérique
   if (!isNaN(Number(lastPart)) && lastPart !== '') return lastPart;
-  
+
   // Vérifier l'avant-dernier segment
   if (urlParts.length >= 2) {
     const secondLastPart = urlParts[urlParts.length - 2];
     if (isMongoId(secondLastPart)) return secondLastPart;
     if (!isNaN(Number(secondLastPart)) && secondLastPart !== '') return secondLastPart;
   }
-  
+
   return undefined;
+}
+
+// Fonction pour vérifier si le token JWT est expiré
+function isTokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    return payload.exp < currentTime;
+  } catch {
+    return true; // Considérer comme expiré en cas d'erreur
+  }
 }
