@@ -1,0 +1,118 @@
+<div class="home-container">
+  <!-- Header with logo and search bar -->
+  <header class="header">
+    <div class="logo-container">
+      <img src="logo.png" alt="Logo" class="logo-large" />
+    </div>
+
+    <div class="search-section">
+      <div class="search-bar-container">
+        <input type="text" class="search-bar" placeholder="Que désirez-vous aujourd'hui ?" />
+        <button class="search-button"><i class="fas fa-search"></i></button>
+      </div>
+
+      <div class="header-actions">
+        <div class="action-item action-heart">
+          <i class="fas fa-heart"></i>
+          <span>Mes souhaits</span>
+        </div>
+        <div class="action-item action-user" (click)="onProfileClick()">
+          <i class="fas fa-user"></i>
+          <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
+        </div>
+        <div class="action-item action-cart">
+          <i class="fas fa-shopping-cart"></i>
+          <span>Mon panier</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tabs container -->
+  <div class="tabs-container">
+    <div class="tab-buttons">
+      <button class="tab-btn active">
+        <i class="fas fa-star"></i> Nouveautés
+      </button>
+      <button class="tab-btn">
+        <i class="fas fa-tag"></i> Promotion
+      </button>
+      <button class="tab-btn">
+        <i class="fas fa-envelope"></i> Nous contacter
+      </button>
+      <!-- Conditionally show "Devenir vendeur" button only for clients -->
+      <button class="tab-btn seller-btn" *ngIf="isClient()">
+        <i class="fas fa-store"></i> Devenir vendeur
+      </button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <div class="welcome-section">
+      <h1>Bienvenue sur notre plateforme</h1>
+      <p>
+        Cette plateforme vous permet de découvrir et d'acheter une variété de produits de qualité.
+      </p>
+      <p>
+        Navigatez facilement à travers nos différentes catégories et trouvez exactement ce que vous
+        cherchez.
+      </p>
+    </div>
+  </main>
+  
+  <!-- Fixed footer with action items -->
+  <footer class="fixed-footer">
+    <div class="footer-actions">
+      <div class="footer-action-item">
+        <i class="fas fa-heart"></i>
+        <span>Mes souhaits</span>
+      </div>
+      <div class="footer-action-item" (click)="onProfileClick()">
+        <i class="fas fa-user"></i>
+        <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
+      </div>
+      <div class="footer-action-item">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Mon panier</span>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Profile Popup -->
+  <div class="popup-overlay" *ngIf="showLogoutPopup" (click)="closePopup()"></div>
+  <div class="profile-popup" *ngIf="showLogoutPopup">
+    <div class="popup-content">
+      <div class="user-info" *ngIf="isLoggedIn; else loginForm">
+        <div class="user-header">
+          <div class="user-acronym">{{ getUserInitials() }}</div>
+          <div class="user-details">
+            <h3>{{ userName }}</h3>
+            <p>{{ getUserEmail() }}</p>
+          </div>
+          <button class="logout-icon" (click)="onLogout()">
+            <i class="fas fa-sign-out-alt" style="color: red;"></i>
+          </button>
+        </div>
+        <div class="user-orders">
+          <h4>Mes commandes</h4>
+          <p>Liste de vos commandes récentes...</p>
+        </div>
+      </div>
+      <ng-template #loginForm>
+        <div class="login-container">
+          <h3>Connexion Client</h3>
+          <form class="login-form">
+            <input type="email" placeholder="Email" class="form-input" />
+            <input type="password" placeholder="Mot de passe" class="form-input" />
+            <button type="button" class="login-btn">Se connecter</button>
+          </form>
+          <div class="register-link">
+            <p>Pas encore de compte ?</p>
+            <button class="register-btn">S'inscrire</button>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

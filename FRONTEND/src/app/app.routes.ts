@@ -7,6 +7,8 @@ import { ClientLoginComponent } from './pages/client-login/client-login.componen
 import { BoutiqueLoginComponent } from './pages/boutique-login/boutique-login.component';
 import { ClientRegisterComponent } from './pages/client-register/client-register.component';
 import { LandingComponent } from './pages/landing/landing.component';
+// import { ClientHomeComponent } from './client/client-home/client-home.component'; // Removed since component was deleted
+import { ClientLayoutComponent } from './layouts/client-layout/client-layout.component';
 import { authGuard } from './shared/guards/auth.guard';
 import { guestGuard } from './shared/guards/guest.guard';
 import { adminGuard } from './shared/guards/admin.guard';
@@ -64,12 +66,15 @@ export const routes: Routes = [
   {
     path: 'boutique',
     loadComponent: () => import('./boutique/boutique-dashboard.component').then(m => m.BoutiqueDashboardComponent),
-    canActivate: [authGuard, roleGuard(['boutique'])], // Only boutique can access boutique dashboard
+    canActivate: [authGuard, roleGuard(['admin', 'boutique'])], // Admin and boutique can access boutique dashboard
   },
   {
     path: 'client',
-    loadComponent: () => import('./client/client-dashboard.component').then(m => m.ClientDashboardComponent),
-    canActivate: [authGuard, roleGuard(['client'])], // Only client can access client dashboard
+    component: ClientLayoutComponent,
+    children: [
+      { path: '', redirectTo: 'accueil', pathMatch: 'full' }, // Redirect /client to /client/accueil
+      { path: 'accueil', loadComponent: () => import('./client/components/home/home.component').then(m => m.HomeComponent) }, // Client home page (accessible to all)
+    ],
   },
   { path: '**', redirectTo: '/' }, // Redirect unknown routes to landing page
 ];
