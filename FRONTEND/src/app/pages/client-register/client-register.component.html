@@ -7,7 +7,7 @@
       </div>
       <p class="mt-2 text-center text-sm text-gray-600">
         Ou
-        <a routerLink="/login" class="font-medium text-indigo-600 hover:text-indigo-500">
+        <a routerLink="/client-login" class="font-medium text-indigo-600 hover:text-indigo-500">
           connectez-vous à votre compte existant
         </a>
       </p>
@@ -63,7 +63,7 @@
             class="form-input"
             [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
             formControlName="email"
-            placeholder="admin@exemple.com"
+            placeholder="client@exemple.com"
           />
           <div
             class="form-error"
@@ -163,8 +163,8 @@
       <div class="form-actions">
         <button
           type="submit"
-          class="register-btn btn-primary"
-          [disabled]="registerForm.invalid || isLoading"
+          class="register-btn"
+          [disabled]="isLoading"
         >
           <span
             *ngIf="isLoading"

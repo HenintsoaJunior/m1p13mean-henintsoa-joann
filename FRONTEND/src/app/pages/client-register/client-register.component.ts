@@ -7,13 +7,13 @@ import { ToastService } from '../../services/toast.service';
 import { RegisterRequest } from '../../shared/interfaces/auth.interface';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-client-register',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  templateUrl: './register.component.html',
-  styleUrl: './register.component.scss',
+  templateUrl: './client-register.component.html',
+  styleUrl: './client-register.component.scss',
 })
-export class RegisterComponent {
+export class ClientRegisterComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
@@ -66,14 +66,14 @@ export class RegisterComponent {
         mot_de_passe: formValue.password,
         telephone: formValue.telephone || null,
         confirmPassword: formValue.confirmPassword,
-        role: 'admin',
+        role: 'client',
       };
 
       this.authService.register(registerData).subscribe({
         next: (response) => {
           this.isLoading = false;
           this.toastService.showSuccess('Inscription réussie ! Veuillez vous connecter.');
-          this.router.navigate(['/login']);
+          this.router.navigate(['/client-login']);
         },
         error: (error) => {
           this.isLoading = false;

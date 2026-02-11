@@ -45,8 +45,15 @@ export class AuthService {
     }
   }
 
-  login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/connexion`, credentials).pipe(
+  login(credentials: LoginRequest, roleRestriction?: string): Observable<AuthResponse> {
+    let headers: { [key: string]: string } = {};
+    if (roleRestriction) {
+      headers = { 'X-Role-Restriction': roleRestriction };
+    }
+    
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/connexion`, credentials, { 
+      headers
+    }).pipe(
       tap((response) => {
         if (response.token && response.utilisateur) {
           this.setToken(response.token);
