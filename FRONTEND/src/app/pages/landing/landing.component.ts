@@ -48,8 +48,8 @@ export class LandingComponent {
         this.router.navigate(['/boutique-login']);
         break;
       case 'client':
-        // Client : page de login client
-        this.router.navigate(['/client-login']);
+        // Client : page d'accueil client
+        this.router.navigate(['/client/accueil']);
         break;
       default:
         console.warn('Rôle inconnu sélectionné:', roleId);

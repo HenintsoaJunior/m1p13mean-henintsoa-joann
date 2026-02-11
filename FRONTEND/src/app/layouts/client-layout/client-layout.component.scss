@@ -1,0 +1,60 @@
+.client-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+}
+
+.sidebar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  color: #495057;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.sidebar-item:hover {
+  background-color: #e9ecef;
+  color: #0d6efd;
+}
+
+.sidebar-item.active {
+  background-color: transparent;
+  color: #0d6efd;
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  margin-left: 80px; /* Account for the fixed sidebar width */
+}
