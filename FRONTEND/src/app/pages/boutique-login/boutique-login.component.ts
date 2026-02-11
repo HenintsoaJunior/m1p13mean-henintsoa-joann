@@ -1,19 +1,18 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
-import { LoginRequest } from '../../shared/interfaces/auth.interface';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-boutique-login',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, CommonModule],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss'],
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './boutique-login.component.html',
+  styleUrl: './boutique-login.component.scss',
 })
-export class LoginComponent {
+export class BoutiqueLoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
@@ -29,14 +28,6 @@ export class LoginComponent {
       password: ['', [Validators.required, Validators.minLength(6)]],
       remember: [false],
     });
-
-    this.authService.isAuthenticated$.subscribe((isAuth) => {
-      console.log('🔍 Auth state changed:', isAuth);
-      if (isAuth) {
-        console.log('✅ Already authenticated, redirecting to dashboard');
-        this.router.navigate(['/admin/dashboard']);
-      }
-    });
   }
 
   onLogin() {
@@ -44,23 +35,19 @@ export class LoginComponent {
       this.isLoading = true;
       this.errorMessage = '';
 
-      const loginData: LoginRequest = {
-        email: this.loginForm.value.email,
-        mot_de_passe: this.loginForm.value.password,
-      };
+      const { email, password } = this.loginForm.value;
 
-      this.authService.login(loginData).subscribe({
-        next: (response) => {
+      this.authService.login({ email, mot_de_passe: password }, 'boutique').subscribe({
+        next: (response: any) => {
           this.isLoading = false;
-          if (response.token) {
-            this.router.navigate(['/admin/dashboard']);
-          }
+          console.log('✅ Connexion boutique réussie:', response.utilisateur);
+          this.router.navigate(['/boutique']);
         },
-        error: (error) => {
+        error: (error: any) => {
           this.isLoading = false;
+          console.error('❌ Erreur de connexion boutique:', error);
           this.errorMessage = error.message || "Une erreur s'est produite lors de la connexion";
           this.toastService.showError(this.errorMessage);
-          console.error('Login error:', error);
         },
       });
     } else {

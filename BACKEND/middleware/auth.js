@@ -68,8 +68,44 @@ const verifierProprietaire = (req, res, next) => {
   next();
 };
 
+// Middleware pour empêcher les rôles d'accéder à des zones interdites
+const interdireAccesInterdit = (req, res, next) => {
+  if (!req.utilisateur) {
+    return res.status(401).json({
+      erreur: "Accès refusé. Utilisateur non authentifié.",
+    });
+  }
+
+  // Déterminer la zone d'accès basée sur l'URL
+  const chemin = req.path;
+  
+  // Les admins ne peuvent pas accéder aux zones boutique ou client
+  if (req.utilisateur.role === "admin" && (chemin.includes('/boutique') || chemin.includes('/client'))) {
+    return res.status(403).json({
+      erreur: "Accès refusé. Les administrateurs ne peuvent pas accéder à cette zone.",
+    });
+  }
+  
+  // Les boutiques ne peuvent pas accéder aux zones admin ou client
+  if (req.utilisateur.role === "boutique" && (chemin.includes('/admin') || chemin.includes('/client'))) {
+    return res.status(403).json({
+      erreur: "Accès refusé. Les boutiques ne peuvent pas accéder à cette zone.",
+    });
+  }
+  
+  // Les clients ne peuvent pas accéder aux zones admin ou boutique
+  if (req.utilisateur.role === "client" && (chemin.includes('/admin') || chemin.includes('/boutique'))) {
+    return res.status(403).json({
+      erreur: "Accès refusé. Les clients ne peuvent pas accéder à cette zone.",
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   authentification,
   verifierRole,
   verifierProprietaire,
+  interdireAccesInterdit,
 };

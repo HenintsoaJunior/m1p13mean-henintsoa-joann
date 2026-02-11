@@ -1,14 +1,11 @@
-/* Register page - Design professionnel identique au login */
+/* Register page - Design professionnel pour Client */
 .register-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #3660a9 0%, #fab548 100%);
+  background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-6);
-  background-image:
-    radial-gradient(circle at 25% 25%, rgba(54, 96, 169, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(250, 181, 72, 0.1) 0%, transparent 50%);
 }
 
 .register-container {
@@ -67,6 +64,16 @@
   font-weight: var(--font-medium);
 }
 
+.register-header a {
+  color: #449c3e !important;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.register-header a:hover {
+  text-decoration: underline;
+}
+
 .register-form {
   padding: var(--space-8);
 }
@@ -112,8 +119,8 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #3660a9;
-  box-shadow: 0 0 0 3px rgba(54, 96, 169, 0.1);
+  border-color: #449c3e;
+  box-shadow: 0 0 0 3px rgba(68, 156, 62, 0.1);
 }
 
 .form-input.error {
@@ -144,8 +151,8 @@
   padding: var(--space-4) var(--space-6);
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  border: var(--input-border-width) solid #3660a9;
-  background-color: #3660a9;
+  border: var(--input-border-width) solid #449c3e;
+  background-color: #449c3e;
   color: var(--color-white);
   cursor: pointer;
   text-transform: uppercase;
@@ -161,7 +168,7 @@
 
 .register-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(54, 96, 169, 0.2);
+  box-shadow: 0 0 0 3px rgba(68, 156, 62, 0.2);
 }
 
 .register-btn:disabled {
@@ -250,7 +257,7 @@
 
 /* Focus visible pour accessibilité */
 .register-btn:focus-visible {
-  outline: 2px solid #3660a9;
+  outline: 2px solid #449c3e;
   outline-offset: 2px;
 }
 

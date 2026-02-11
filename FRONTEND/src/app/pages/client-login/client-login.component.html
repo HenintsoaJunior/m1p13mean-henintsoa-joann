@@ -3,14 +3,8 @@
     <div class="login-header">
       <div class="brand-section">
         <img src="logo.png" alt="Logo" class="brand-icon-img" />
-        <h1>AdminSpace</h1>
+        <h1>ClientSpace</h1>
       </div>
-      <p class="mt-2 text-center text-sm text-gray-600">
-        Ou
-        <a routerLink="/register" class="font-medium text-indigo-600 hover:text-indigo-500">
-          créez un nouveau compte
-        </a>
-      </p>
     </div>
 
     <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onLogin()">
@@ -22,7 +16,7 @@
           class="form-input"
           [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
           formControlName="email"
-          placeholder="admin@exemple.com"
+          placeholder="client@exemple.com"
         />
         <div
           class="form-error"
@@ -57,13 +51,6 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <div class="form-checkbox">
-          <input type="checkbox" id="remember" formControlName="remember" />
-          <label for="remember">Se souvenir de moi</label>
-        </div>
-      </div>
-
       <div
         *ngIf="errorMessage"
         class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
@@ -74,8 +61,8 @@
       <div class="form-actions">
         <button
           type="submit"
-          class="login-btn btn-primary"
-          [disabled]="loginForm.invalid || isLoading"
+          class="login-btn"
+          [disabled]="isLoading"
         >
           <span
             *ngIf="isLoading"
@@ -83,7 +70,15 @@
           ></span>
           {{ isLoading ? 'Connexion...' : 'Se connecter' }}
         </button>
-        <button type="button" class="forgot-btn">Mot de passe oublié ?</button>
+      </div>
+      
+      <div class="form-footer">
+        <p class="mt-2 text-center text-sm text-gray-600">
+          Ou
+          <a routerLink="/client-register" class="font-medium text-indigo-600 hover:text-indigo-500">
+            créez un nouveau compte
+          </a>
+        </p>
       </div>
     </form>
   </div>
