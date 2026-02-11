@@ -1,19 +1,16 @@
-/* Login page - Design professionnel avec variables globales */
+/* Login page - Design professionnel pour Admin */
 .login-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #3660a9 0%, #fab548 100%);
+  background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-6);
-  background-image:
-    radial-gradient(circle at 25% 25%, rgba(54, 96, 169, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(250, 181, 72, 0.1) 0%, transparent 50%);
 }
 
 .login-container {
   width: 100%;
-  max-width: var(--modal-width-sm);
+  max-width: 450px;
   background-color: var(--bg-primary);
   border: 1px solid var(--border-primary);
   box-shadow: var(--shadow-xl);
@@ -54,8 +51,8 @@
 
 .login-header h1 {
   margin: 0 0 var(--space-2) 0;
-  font-size: var(--text-5xl);
-  color: var(--text-primary);
+  font-size: var(--text-4xl);
+  color: #3660a9;
   font-weight: var(--font-bold);
   letter-spacing: var(--tracking-tight);
 }
@@ -73,10 +70,6 @@
 
 .form-group {
   margin-bottom: var(--space-6);
-}
-
-.form-group:last-of-type {
-  margin-bottom: var(--space-8);
 }
 
 .form-label {
@@ -128,27 +121,6 @@
   font-weight: var(--font-medium);
 }
 
-.form-checkbox {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.form-checkbox input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: #3660a9;
-}
-
-.form-checkbox label {
-  margin: 0;
-  font-size: var(--text-base);
-  color: var(--text-secondary);
-  font-weight: var(--font-medium);
-  cursor: pointer;
-}
-
 .form-actions {
   margin-top: var(--space-8);
   display: flex;
@@ -186,22 +158,6 @@
   color: var(--text-muted);
   border-color: var(--border-primary);
   cursor: not-allowed;
-}
-
-.forgot-btn {
-  background-color: transparent;
-  color: var(--text-tertiary);
-  border: none;
-  padding: var(--space-3);
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  text-decoration: underline;
-  cursor: pointer;
-  transition: color var(--transition-fast);
-}
-
-.forgot-btn:hover {
-  color: var(--text-secondary);
 }
 
 /* Loading state */
@@ -248,7 +204,7 @@
   }
 
   .login-header h1 {
-    font-size: var(--text-4xl);
+    font-size: var(--text-3xl);
   }
 
   .brand-icon-img {
@@ -259,6 +215,10 @@
 
   .login-form {
     padding: var(--space-6);
+  }
+
+  .form-group {
+    margin-bottom: var(--space-5);
   }
 
   .form-actions {
@@ -272,8 +232,7 @@
 }
 
 /* Focus visible pour accessibilité */
-.login-btn:focus-visible,
-.forgot-btn:focus-visible {
+.login-btn:focus-visible {
   outline: 2px solid #3660a9;
   outline-offset: 2px;
 }

@@ -4,6 +4,7 @@
   background-color: #f8fafc;
   display: flex;
   overflow: hidden;
+  position: relative;
 }
 
 .content-area {
@@ -209,7 +210,7 @@
     padding: 25px;
     padding-top: 95px;
   }
-  
+
   .navbar {
     padding: 0 25px;
   }
@@ -220,26 +221,26 @@
     margin-left: 0;
     width: 100%;
   }
-  
+
   .content-area.sidebar-collapsed {
     margin-left: 0;
     width: 100%;
   }
-  
+
   .navbar {
     left: 0;
   }
-  
+
   .sidebar-collapsed ~ .content-area .navbar,
   .content-area.sidebar-collapsed .navbar {
     left: 0;
   }
-  
+
   .main-content {
     padding: 20px;
     padding-top: 90px;
   }
-  
+
   .navbar {
     padding: 0 20px;
   }
@@ -250,36 +251,40 @@
     margin-left: 0;
     width: 100%;
   }
-  
+
   .navbar {
     padding: 0 15px;
     height: 60px;
     left: 0;
   }
-  
+
   .navbar-content h2 {
     font-size: 18px;
   }
-  
+
   .navbar-left {
     gap: 2px;
   }
-  
+
   .breadcrumb {
     display: none;
   }
-  
+
   .user-name {
     display: none;
   }
-  
+
   .navbar-actions {
     gap: 15px;
   }
-  
+
   .main-content {
     padding: 15px;
     padding-top: 75px;
+  }
+  
+  .toggle-btn {
+    margin-right: 10px;
   }
 }
 
@@ -288,13 +293,32 @@
     padding: 10px;
     padding-top: 70px;
   }
-  
+
   .navbar {
     padding: 0 10px;
+    height: 50px;
   }
-  
+
   .navbar-content h2 {
     font-size: 16px;
+  }
+  
+  .navbar-actions {
+    gap: 10px;
+  }
+  
+  .notification-btn {
+    padding: 5px;
+  }
+  
+  .user-menu {
+    padding: 5px 8px;
+  }
+  
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
   }
 }
 
@@ -334,4 +358,31 @@
 .content-area {
   min-width: 0;
   overflow: hidden;
+}
+
+/* Overlay pour le sidebar mobile */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .overlay {
+    display: block;
+  }
+}
+
+@media (min-width: 1025px) {
+  .overlay {
+    display: none;
+  }
 }
