@@ -78,25 +78,21 @@ const interdireAccesInterdit = (req, res, next) => {
 
   // Déterminer la zone d'accès basée sur l'URL
   const chemin = req.path;
-  
-  // Les admins ne peuvent pas accéder aux zones boutique ou client
-  if (req.utilisateur.role === "admin" && (chemin.includes('/boutique') || chemin.includes('/client'))) {
+
+  // Administrateur : accès à l’espace client et à l’espace boutique
+  // Aucune restriction pour les admins
+
+  // Client : accès uniquement à l’espace client
+  if (req.utilisateur.role === "client" && (!chemin.includes('/client') && !chemin.includes('/auth'))) {
     return res.status(403).json({
-      erreur: "Accès refusé. Les administrateurs ne peuvent pas accéder à cette zone.",
+      erreur: "Accès refusé. Les clients ne peuvent accéder qu'à l'espace client.",
     });
   }
-  
-  // Les boutiques ne peuvent pas accéder aux zones admin ou client
-  if (req.utilisateur.role === "boutique" && (chemin.includes('/admin') || chemin.includes('/client'))) {
+
+  // Boutique : accès à l’espace boutique et dispose également d’un espace client
+  if (req.utilisateur.role === "boutique" && chemin.includes('/admin')) {
     return res.status(403).json({
-      erreur: "Accès refusé. Les boutiques ne peuvent pas accéder à cette zone.",
-    });
-  }
-  
-  // Les clients ne peuvent pas accéder aux zones admin ou boutique
-  if (req.utilisateur.role === "client" && (chemin.includes('/admin') || chemin.includes('/boutique'))) {
-    return res.status(403).json({
-      erreur: "Accès refusé. Les clients ne peuvent pas accéder à cette zone.",
+      erreur: "Accès refusé. Les boutiques ne peuvent pas accéder à l'espace admin.",
     });
   }
 

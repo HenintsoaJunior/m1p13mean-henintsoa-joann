@@ -45,10 +45,22 @@ class AuthController {
       );
       
       // Si une restriction de rôle est présente, vérifier que l'utilisateur correspond
+      // Selon les règles d'accès : admin peut accéder à tout, boutique peut accéder à client et boutique, client seulement client
       if (roleRestreint && resultat.utilisateur.role !== roleRestreint) {
-        return res.status(403).json({
-          erreur: `Accès refusé. Ce compte est de type ${resultat.utilisateur.role}, mais vous essayez d'accéder à l'espace ${roleRestreint}.`
-        });
+        // Autoriser les admins à accéder à tous les espaces
+        if (resultat.utilisateur.role === "admin") {
+          // Admin peut accéder à tous les espaces, donc on continue sans erreur
+        } 
+        // Autoriser les boutiques à accéder aux espaces client et boutique
+        else if (resultat.utilisateur.role === "boutique" && roleRestreint === "client") {
+          // Boutique peut accéder à l'espace client, donc on continue sans erreur
+        }
+        // Tous les autres cas sont refusés
+        else {
+          return res.status(403).json({
+            erreur: `Accès refusé. Ce compte est de type ${resultat.utilisateur.role}, mais vous essayez d'accéder à l'espace ${roleRestreint}.`
+          });
+        }
       }
       
       res.json(resultat);
