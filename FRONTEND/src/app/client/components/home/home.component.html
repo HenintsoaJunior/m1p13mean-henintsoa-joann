@@ -28,6 +28,25 @@
     </div>
   </header>
 
+  <!-- Tabs container -->
+  <div class="tabs-container">
+    <div class="tab-buttons">
+      <button class="tab-btn active">
+        <i class="fas fa-star"></i> Nouveautés
+      </button>
+      <button class="tab-btn">
+        <i class="fas fa-tag"></i> Promotion
+      </button>
+      <button class="tab-btn">
+        <i class="fas fa-envelope"></i> Nous contacter
+      </button>
+      <!-- Conditionally show "Devenir vendeur" button only for clients -->
+      <button class="tab-btn seller-btn" *ngIf="isClient()">
+        <i class="fas fa-store"></i> Devenir vendeur
+      </button>
+    </div>
+  </div>
+
   <!-- Main content -->
   <main class="main-content">
     <div class="welcome-section">

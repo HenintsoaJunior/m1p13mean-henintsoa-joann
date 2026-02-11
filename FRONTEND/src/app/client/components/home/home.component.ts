@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { ToastService } from '../../../services/toast.service';
@@ -7,7 +7,7 @@ import { ToastService } from '../../../services/toast.service';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgIf],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -15,16 +15,22 @@ export class HomeComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private toastService = inject(ToastService);
-  
+
   showLogoutPopup = false;
-  
+
   get isLoggedIn(): boolean {
     return this.authService.isAuthenticated();
   }
-  
+
   get userName(): string {
     const user = this.authService.getCurrentUser();
     return user?.nom || user?.prenom || user?.email || 'Utilisateur';
+  }
+
+  isClient(): boolean {
+    const user = this.authService.getCurrentUser();
+    // Show "Devenir vendeur" button only if user exists and is not an admin or boutique
+    return user ? user.role !== 'admin' && user.role !== 'boutique' : false;
   }
   
   onProfileClick() {

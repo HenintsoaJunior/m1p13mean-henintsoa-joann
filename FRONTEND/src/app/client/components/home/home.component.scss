@@ -7,7 +7,57 @@
   align-items: center;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #dee2e6;
+}
+
+.tabs-container {
+  background-color: #f8f9fa; /* Same as sidebar background */
+  padding: 15px;
+  margin: 20px 0 30px 0;
+  border-radius: 8px;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 10px 15px;
+  border: 1px solid var(--sidebar-border);
+  background-color: var(--sidebar-item-bg);
+  color: var(--sidebar-text);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: fit-content;
+  white-space: nowrap;
+}
+
+.tab-btn i {
+  font-size: 12px;
+  width: 16px;
+  text-align: center;
+}
+
+.tab-btn:hover {
+  background-color: #e9ecef; /* Same hover effect as sidebar items */
+  color: #3660a9; /* Use the actual sidebar primary blue color */
+}
+
+.tab-btn.active {
+  background-color: var(--sidebar-primary);
+  color: white;
+}
+
+.seller-btn {
+  background-color: var(--sidebar-accent);
+  color: white;
+  border: 1px solid var(--sidebar-accent);
 }
 
 .logo-container {
@@ -111,6 +161,8 @@
   text-align: center;
   padding: 40px 0;
   margin-bottom: 80px; /* Add space for the fixed footer */
+  border-radius: 8px;
+  padding: 20px;
 }
 
 .welcome-section h1 {
