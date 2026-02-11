@@ -1,4 +1,4 @@
-<aside class="modern-sidebar" [class.sidebar-collapsed]="isCollapsed">
+<aside class="modern-sidebar" [class.sidebar-collapsed]="isCollapsed" [class.sidebar-open]="isMobileView && isSidebarOpen">
   <!-- Header sans toggle -->
   <div class="sidebar-header">
     <div class="brand-section">
@@ -31,6 +31,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Tableau de bord' : null"
+        (click)="isMobileView && closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-tachometer-alt"></i>
@@ -44,6 +45,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Plan Centre Commercial' : null"
+        (click)="isMobileView && closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-map"></i>
@@ -57,6 +59,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Centres' : null"
+        (click)="isMobileView && closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-store"></i>
@@ -70,6 +73,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Utilisateurs' : null"
+        (click)="isMobileView && closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-users"></i>
@@ -83,6 +87,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Boutiques' : null"
+        (click)="isMobileView && closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-shopping-bag"></i>
@@ -100,6 +105,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Rapports' : null"
+        (click)="isMobileView && closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-chart-bar"></i>
@@ -117,6 +123,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Historique des activités' : null"
+        (click)="isMobileView && closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-history"></i>
@@ -133,7 +140,7 @@
       href="#"
       class="logout-btn"
       [attr.title]="isCollapsed ? 'Déconnexion' : null"
-      (click)="onLogout($event)"
+      (click)="onLogout($event); isMobileView && closeSidebar()"
     >
       <div class="nav-icon">
         <i class="fas fa-sign-out-alt"></i>

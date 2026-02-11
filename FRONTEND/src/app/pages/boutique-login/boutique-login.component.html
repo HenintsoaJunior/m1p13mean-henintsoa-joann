@@ -1,0 +1,69 @@
+<div class="login-wrapper">
+  <div class="login-container">
+    <div class="login-header">
+      <div class="brand-section">
+        <img src="logo.png" alt="Logo" class="brand-icon-img" />
+        <h1>BoutiqueSpace</h1>
+      </div>
+    </div>
+
+    <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onLogin()">
+      <div class="form-group">
+        <label class="form-label required" for="email">Adresse email</label>
+        <input
+          type="email"
+          id="email"
+          class="form-input"
+          [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          formControlName="email"
+          placeholder="boutique@exemple.com"
+        />
+        <div
+          class="form-error"
+          *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+        >
+          Email invalide
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label required" for="password">Mot de passe</label>
+        <input
+          type="password"
+          id="password"
+          class="form-input"
+          [class.error]="
+            loginForm.get('password')?.invalid && loginForm.get('password')?.touched
+          "
+          formControlName="password"
+          placeholder="••••••••"
+        />
+        <div
+          class="form-error"
+          *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+        >
+          <span *ngIf="loginForm.get('password')?.errors?.['required']"
+            >Le mot de passe est requis</span
+          >
+          <span *ngIf="loginForm.get('password')?.errors?.['minlength']"
+            >Minimum 6 caractères</span
+          >
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="login-btn"
+          [disabled]="isLoading"
+        >
+          <span
+            *ngIf="isLoading"
+            class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+          ></span>
+          {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

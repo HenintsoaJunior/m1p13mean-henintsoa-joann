@@ -10,9 +10,9 @@ export const authGuard = () => {
   return authService.isAuthenticated$.pipe(
     map(isAuthenticated => {
       const realAuthState = authService.isAuthenticated();
-      
+
       console.log('🛡️ AuthGuard check - Observable:', isAuthenticated, 'Real state:', realAuthState); // ✅ Debug
-      
+
       if (isAuthenticated && realAuthState) {
         console.log('✅ AuthGuard: Access granted'); // ✅ Debug
         return true;

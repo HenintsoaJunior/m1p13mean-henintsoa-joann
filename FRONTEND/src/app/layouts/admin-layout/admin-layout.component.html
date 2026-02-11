@@ -1,11 +1,14 @@
-<div class="admin-layout">
-  <app-admin-sidebar></app-admin-sidebar>
+<div class="admin-layout" [class.sidebar-open]="isSidebarOpen">
+  <!-- Overlay cliquable pour fermer le sidebar sur mobile -->
+  <div class="overlay" *ngIf="isMobileView && isSidebarOpen" (click)="toggleSidebar()"></div>
+  
+  <app-admin-sidebar [class.sidebar-open]="isSidebarOpen" [isSidebarOpen]="isSidebarOpen" (closeRequested)="toggleSidebar()"></app-admin-sidebar>
   <div class="content-area" [class.sidebar-collapsed]="sidebarCollapsed">
     <nav class="navbar">
       <div class="navbar-content">
         <div class="navbar-left">
           <button class="toggle-btn" (click)="toggleSidebar()" title="Toggle menu">
-            <div class="burger-icon">
+            <div class="burger-icon" [class.active]="isSidebarOpen">
               <span></span>
               <span></span>
               <span></span>

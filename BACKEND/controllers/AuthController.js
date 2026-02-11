@@ -35,10 +35,22 @@ class AuthController {
   async connexion(req, res) {
     try {
       const { email, mot_de_passe } = req.body;
+      
+      // Vérifier si une restriction de rôle est présente dans la requête
+      const roleRestreint = req.headers['x-role-restriction'];
+      
       const resultat = await this.utilisateurService.connecter(
         email,
         mot_de_passe,
       );
+      
+      // Si une restriction de rôle est présente, vérifier que l'utilisateur correspond
+      if (roleRestreint && resultat.utilisateur.role !== roleRestreint) {
+        return res.status(403).json({
+          erreur: `Accès refusé. Ce compte est de type ${resultat.utilisateur.role}, mais vous essayez d'accéder à l'espace ${roleRestreint}.`
+        });
+      }
+      
       res.json(resultat);
     } catch (error) {
       console.error("Erreur lors de la connexion:", error);
