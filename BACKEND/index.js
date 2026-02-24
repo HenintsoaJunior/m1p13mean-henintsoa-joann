@@ -21,6 +21,8 @@ mongoose
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/boutique", require("./routes/boutique"));
+app.use("/api/boutique/categories", require("./routes/boutique/categories"));
+app.use("/api/boutique/produits", require("./routes/boutique/produits"));
 app.use("/api/client", require("./routes/client"));
 
 // Routes publiques pour le plan-centre (temporaire pour les tests)
