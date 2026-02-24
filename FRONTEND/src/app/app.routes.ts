@@ -22,6 +22,8 @@ import { BatimentsCrudComponent } from './admin/components/centres/pages/batimen
 import { EtagesCrudComponent } from './admin/components/centres/pages/etages-crud/etages-crud.component';
 import { EmplacementsCrudComponent } from './admin/components/centres/pages/emplacements-crud/emplacements-crud.component';
 import { ListUtilisateurComponent } from './admin/components/utilisateurs/pages/list-utilisateur/list-utilisateur.component';
+import { BoutiqueLayoutComponent } from './layouts/boutique-layout/boutique-layout.component';
+import { BoutiqueDashboardComponent } from './boutique/pages/dashboard/boutique-dashboard.component';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent }, // Default landing page
@@ -65,8 +67,12 @@ export const routes: Routes = [
   // Add routes for boutique and client dashboards
   {
     path: 'boutique',
-    loadComponent: () => import('./boutique/boutique-dashboard.component').then(m => m.BoutiqueDashboardComponent),
-    canActivate: [authGuard, roleGuard(['admin', 'boutique'])], // Admin and boutique can access boutique dashboard
+    component: BoutiqueLayoutComponent,
+    canActivate: [authGuard, roleGuard(['admin', 'boutique'])],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: BoutiqueDashboardComponent },
+    ],
   },
   {
     path: 'client',

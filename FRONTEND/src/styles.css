@@ -4,6 +4,15 @@
 /* Import des composants réutilisables */
 @import './styles/components.css';
 
+/* Import de la police Century Gothic */
+@font-face {
+  font-family: 'Century Gothic';
+  src: url('/font/CenturyGothicPaneuropeanRegular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Reset et base */
 * {
   margin: 0;
