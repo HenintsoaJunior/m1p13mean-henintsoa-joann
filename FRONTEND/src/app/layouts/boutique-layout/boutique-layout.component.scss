@@ -1,5 +1,5 @@
-/* Layout Admin avec header fixe et sidebar responsive */
-.admin-layout {
+/* Layout Boutique avec header fixe et sidebar responsive */
+.boutique-layout {
   min-height: 100vh;
   background-color: #f8fafc;
   display: flex;
@@ -245,7 +245,7 @@
     padding: 15px;
     padding-top: 75px;
   }
-  
+
   .toggle-btn {
     margin-right: 10px;
   }
@@ -265,11 +265,11 @@
   .navbar-content h2 {
     font-size: 16px;
   }
-  
+
   .navbar-actions {
     gap: 10px;
   }
-  
+
   .notification-btn {
     padding: 5px;
   }
@@ -302,7 +302,7 @@
 }
 
 /* Fix pour le débordement horizontal */
-.admin-layout {
+.boutique-layout {
   overflow-x: hidden;
   width: 100%;
   height: 100vh;

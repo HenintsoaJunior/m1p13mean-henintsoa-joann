@@ -1,0 +1,137 @@
+<aside class="modern-sidebar" [class.sidebar-collapsed]="isCollapsed" [class.sidebar-open]="isMobileView && isSidebarOpen">
+  <!-- Header sans toggle -->
+  <div class="sidebar-header">
+    <div class="brand-section">
+      <img src="logo.png" alt="Logo" class="brand-icon-img" *ngIf="!isCollapsed" />
+      <div class="brand-icon-small" *ngIf="isCollapsed">
+        <img src="logo.png" alt="Logo" style="width: 100%; height: 100%; object-fit: contain" />
+      </div>
+      <h2 class="brand-title" *ngIf="!isCollapsed">BoutiqueSpace</h2>
+    </div>
+  </div>
+
+  <!-- Profile section -->
+  <div class="profile-section" *ngIf="!isCollapsed">
+    <div class="profile-avatar">
+      <div class="avatar-circle">👨‍💼</div>
+    </div>
+    <div class="profile-info">
+      <h4>Boutique</h4>
+      <p>Vendeur</p>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-navigation">
+    <div class="nav-section">
+      <p class="section-title" *ngIf="!isCollapsed">PRINCIPAL</p>
+
+      <a
+        routerLink="/boutique/dashboard"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Tableau de bord' : null"
+        (click)="isMobileView && closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-tachometer-alt"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Tableau de bord</span>
+        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/dashboard'"></div>
+      </a>
+
+      <a
+        routerLink="/boutique/produits"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Produits' : null"
+        (click)="isMobileView && closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-box"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Produits</span>
+        <div class="nav-indicator" *ngIf="currentRoute.startsWith('/boutique/produits')"></div>
+      </a>
+
+      <a
+        routerLink="/boutique/commandes"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Commandes' : null"
+        (click)="isMobileView && closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Commandes</span>
+        <div class="nav-indicator" *ngIf="currentRoute.startsWith('/boutique/commandes')"></div>
+      </a>
+
+      <a
+        routerLink="/boutique/profil"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Mon Profil' : null"
+        (click)="isMobileView && closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-user"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Mon Profil</span>
+        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/profil'"></div>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <p class="section-title" *ngIf="!isCollapsed">ANALYTIQUES</p>
+
+      <a
+        routerLink="/boutique/statistiques"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Statistiques' : null"
+        (click)="isMobileView && closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-chart-bar"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Statistiques</span>
+        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/statistiques'"></div>
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <p class="section-title" *ngIf="!isCollapsed">SYSTÈME</p>
+
+      <a
+        routerLink="/boutique/parametres"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Paramètres' : null"
+        (click)="isMobileView && closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-cog"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Paramètres</span>
+        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/parametres'"></div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <a
+      href="#"
+      class="logout-btn"
+      [attr.title]="isCollapsed ? 'Déconnexion' : null"
+      (click)="onLogout($event); isMobileView && closeSidebar()"
+    >
+      <div class="nav-icon">
+        <i class="fas fa-sign-out-alt"></i>
+      </div>
+      <span *ngIf="!isCollapsed">Déconnexion</span>
+    </a>
+  </div>
+</aside>
