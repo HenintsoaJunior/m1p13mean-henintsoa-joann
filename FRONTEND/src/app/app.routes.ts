@@ -25,6 +25,13 @@ import { ListUtilisateurComponent } from './admin/components/utilisateurs/pages/
 import { BoutiqueLayoutComponent } from './layouts/boutique-layout/boutique-layout.component';
 import { BoutiqueDashboardComponent } from './boutique/pages/dashboard/boutique-dashboard.component';
 
+// Boutique components - Produits
+import { ProduitListComponent } from './boutique/components/produits/pages/produit-list/produit-list.component';
+
+// Boutique components - Categories
+import { CategorieListComponent } from './boutique/components/categories/pages/categorie-list/categorie-list.component';
+import { CategorieFormComponent } from './boutique/components/categories/components/categorie-form/categorie-form.component';
+
 export const routes: Routes = [
   { path: '', component: LandingComponent }, // Default landing page
   {
@@ -72,6 +79,10 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: BoutiqueDashboardComponent },
+      { path: 'produits', component: ProduitListComponent },
+      { path: 'categories', component: CategorieListComponent },
+      { path: 'categories/nouvelle', component: CategorieFormComponent },
+      { path: 'categories/modification/:id', component: CategorieFormComponent },
     ],
   },
   {

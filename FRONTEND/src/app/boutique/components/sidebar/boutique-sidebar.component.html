@@ -1,4 +1,4 @@
-<aside class="modern-sidebar" [class.sidebar-collapsed]="isCollapsed" [class.sidebar-open]="isMobileView && isSidebarOpen">
+<aside class="modern-sidebar" [class.sidebar-collapsed]="isCollapsed" [class.sidebar-open]="isSidebarOpen">
   <!-- Header sans toggle -->
   <div class="sidebar-header">
     <div class="brand-section">
@@ -31,7 +31,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Tableau de bord' : null"
-        (click)="isMobileView && closeSidebar()"
+        (click)="closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-tachometer-alt"></i>
@@ -45,7 +45,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Produits' : null"
-        (click)="isMobileView && closeSidebar()"
+        (click)="closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-box"></i>
@@ -59,7 +59,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Commandes' : null"
-        (click)="isMobileView && closeSidebar()"
+        (click)="closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-shopping-cart"></i>
@@ -73,7 +73,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Mon Profil' : null"
-        (click)="isMobileView && closeSidebar()"
+        (click)="closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-user"></i>
@@ -91,7 +91,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Statistiques' : null"
-        (click)="isMobileView && closeSidebar()"
+        (click)="closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-chart-bar"></i>
@@ -109,7 +109,7 @@
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Paramètres' : null"
-        (click)="isMobileView && closeSidebar()"
+        (click)="closeSidebar()"
       >
         <div class="nav-icon">
           <i class="fas fa-cog"></i>
@@ -126,7 +126,7 @@
       href="#"
       class="logout-btn"
       [attr.title]="isCollapsed ? 'Déconnexion' : null"
-      (click)="onLogout($event); isMobileView && closeSidebar()"
+      (click)="onLogout($event); closeSidebar()"
     >
       <div class="nav-icon">
         <i class="fas fa-sign-out-alt"></i>
