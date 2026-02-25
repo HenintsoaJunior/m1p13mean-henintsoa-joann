@@ -1,0 +1,287 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <i class="fas fa-box title-icon"></i>
+        {{ isEditMode ? 'Modifier le produit' : 'Nouveau produit' }}
+      </h1>
+      <p class="page-subtitle">Remplissez les informations ci-dessous pour créer ou modifier un produit</p>
+    </div>
+    <button (click)="onCancel()" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i>
+      Retour
+    </button>
+  </div>
+
+  @if (loading) {
+    <div class="loading-container">
+      <svg class="animate-spin h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span>Chargement des données...</span>
+    </div>
+  } @else {
+    <form (ngSubmit)="onSubmit()" class="form-container">
+      <!-- Informations de base -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Informations de base</h3>
+        </div>
+        <div class="card-content">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nom">Nom du produit <span class="required">*</span></label>
+              <input
+                type="text"
+                id="nom"
+                [(ngModel)]="form.nom"
+                (blur)="generateSlug()"
+                name="nom"
+                required
+                class="form-control"
+                placeholder="Ex: Basket Nike Air"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="slug">Slug (URL) <span class="required">*</span></label>
+              <input
+                type="text"
+                id="slug"
+                [(ngModel)]="form.slug"
+                name="slug"
+                required
+                class="form-control"
+                placeholder="basket-nike-air"
+              />
+              <small class="form-hint">Généré automatiquement à partir du nom</small>
+            </div>
+
+            <div class="form-group">
+              <label for="idCategorie">Catégorie <span class="required">*</span></label>
+              <select
+                id="idCategorie"
+                [(ngModel)]="form.idCategorie"
+                name="idCategorie"
+                required
+                class="form-control"
+              >
+                <option value="">Sélectionner une catégorie</option>
+                @for (cat of categories; track cat._id) {
+                  <option [value]="cat._id">{{ cat.nom }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="description">Description</label>
+              <textarea
+                id="description"
+                [(ngModel)]="form.description"
+                name="description"
+                rows="4"
+                class="form-control"
+                placeholder="Description du produit..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prix et stock -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Prix et stock</h3>
+        </div>
+        <div class="card-content">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="devise">Devise <span class="required">*</span></label>
+              <select
+                id="devise"
+                [(ngModel)]="form.prix.devise"
+                name="devise"
+                required
+                class="form-control"
+              >
+                <option value="EUR">EUR (€)</option>
+                <option value="USD">USD ($)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="MGA">MGA (Ar)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="montant">Montant <span class="required">*</span></label>
+              <input
+                type="number"
+                id="montant"
+                [(ngModel)]="form.prix.montant"
+                name="montant"
+                required
+                step="0.01"
+                min="0"
+                class="form-control"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="quantite">Quantité en stock <span class="required">*</span></label>
+              <input
+                type="number"
+                id="quantite"
+                [(ngModel)]="form.stock.quantite"
+                name="quantite"
+                required
+                min="0"
+                class="form-control"
+                placeholder="0"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="statut">Statut</label>
+              <select
+                id="statut"
+                [(ngModel)]="form.statut"
+                name="statut"
+                class="form-control"
+              >
+                <option value="actif">Actif</option>
+                <option value="rupture_stock">Rupture de stock</option>
+                <option value="archive">Archivé</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attributs -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Attributs</h3>
+        </div>
+        <div class="card-content">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="couleur">Couleur</label>
+              <input
+                type="text"
+                id="couleur"
+                [(ngModel)]="form.attributs!.couleur"
+                name="couleur"
+                class="form-control"
+                placeholder="Ex: noir"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="marque">Marque</label>
+              <input
+                type="text"
+                id="marque"
+                [(ngModel)]="form.attributs!.marque"
+                name="marque"
+                class="form-control"
+                placeholder="Ex: Nike"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Tailles disponibles</label>
+            <div class="tailles-list">
+              @for (taille of form.attributs?.taille; track taille; let i = $index) {
+                <div class="taille-item">
+                  <input
+                    type="text"
+                    [value]="taille"
+                    (input)="onTailleChange(i, $any($event.target).value)"
+                    class="form-control"
+                    placeholder="Ex: 40"
+                  />
+                  <button
+                    type="button"
+                    (click)="removeTaille(i)"
+                    class="btn-icon btn-delete"
+                    title="Supprimer"
+                  >
+                    <i class="fas fa-trash" style="color: white;"></i>
+                  </button>
+                </div>
+              }
+              <button
+                type="button"
+                (click)="addTaille()"
+                class="btn btn-success"
+              >
+                <i class="fas fa-plus"></i>
+                Ajouter une taille
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Images -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Images</h3>
+        </div>
+        <div class="card-content">
+          <div class="form-group">
+            <label>URL des images</label>
+            <div class="images-list">
+              @for (image of form.images; track image; let i = $index) {
+                <div class="image-item">
+                  <input
+                    type="url"
+                    [value]="image"
+                    (input)="onImageUrlChange(i, $any($event.target).value)"
+                    class="form-control"
+                    placeholder="https://exemple.com/image.jpg"
+                  />
+                  <button
+                    type="button"
+                    (click)="removeImageUrl(i)"
+                    class="btn-icon btn-delete"
+                    title="Supprimer"
+                  >
+                    <i class="fas fa-trash" style="color: white;"></i>
+                  </button>
+                </div>
+              }
+              <button
+                type="button"
+                (click)="addImageUrl()"
+                class="btn btn-success"
+              >
+                <i class="fas fa-plus"></i>
+                Ajouter une image
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" (click)="onCancel()" class="btn btn-secondary">
+          Annuler
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="submitting || !form.nom || !form.slug || !form.idCategorie"
+        >
+          @if (submitting) {
+            <i class="fas fa-spinner fa-spin"></i>
+          }
+          {{ submitting ? 'Enregistrement...' : (isEditMode ? 'Mettre à jour' : 'Créer') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

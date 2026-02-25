@@ -1,0 +1,118 @@
+<div class="page-container">
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filters-header">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtres</span>
+      </div>
+      <div class="filters-content">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher une catégorie..."
+            [(ngModel)]="searchTerm"
+            (input)="filterCategories()"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table des catégories -->
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Liste des Catégories</h3>
+      <a [routerLink]="['/boutique/categories/nouvelle']" class="btn btn-primary">
+        <i class="fas fa-plus" style="color: white; margin-right: 8px;"></i>
+        Nouvelle Catégorie
+      </a>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Slug</th>
+          <th>Description</th>
+          <th>Catégorie Parent</th>
+          <th>Sous-catégories</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading) {
+          <tr>
+            <td colspan="6" class="text-center">
+              <div class="flex justify-center items-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Chargement...
+              </div>
+            </td>
+          </tr>
+        } @else if (categories.length === 0) {
+          <tr>
+            <td colspan="6" class="empty-state">
+              <i class="fas fa-tags" style="font-size: 64px; color: #ccc;"></i>
+              <h3>Aucune catégorie trouvée</h3>
+              <p>Commencez par créer votre première catégorie</p>
+            </td>
+          </tr>
+        } @else {
+          @for (categorie of categories; track categorie._id) {
+            <tr class="table-row">
+              <td>
+                <div class="categorie-info">
+                  @if (categorie.urlImage) {
+                    <img [src]="categorie.urlImage" [alt]="categorie.nom" class="categorie-image" />
+                  }
+                  <div>
+                    <div class="categorie-name">{{ categorie.nom }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="categorie-slug">{{ categorie.slug }}</span>
+              </td>
+              <td>
+                <span class="text-secondary line-clamp-2">
+                  {{ categorie.description || '-' }}
+                </span>
+              </td>
+              <td>
+                <span class="text-secondary">{{ getParentName(categorie.idCategorieParent) }}</span>
+              </td>
+              <td>
+                @if (hasChildren(categorie._id!)) {
+                  <span class="badge badge-info">Oui</span>
+                } @else {
+                  <span class="text-muted">-</span>
+                }
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <a [routerLink]="['/boutique/categories/modification', categorie._id]" class="btn-icon btn-edit" title="Modifier">
+                    <i class="fas fa-edit" style="color: white;"></i>
+                  </a>
+                  <button
+                    (click)="deleteCategorie(categorie._id!)"
+                    class="btn-icon btn-delete"
+                    title="Supprimer"
+                    [style.opacity]="hasChildren(categorie._id!) ? '0.5' : '1'"
+                    [style.cursor]="hasChildren(categorie._id!) ? 'not-allowed' : 'pointer'"
+                    [disabled]="hasChildren(categorie._id!)"
+                  >
+                    <i class="fas fa-trash" style="color: white;"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
