@@ -1,5 +1,11 @@
-.landing-container {
+.page-wrapper {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.landing-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -11,14 +17,14 @@
 .hero-section {
   text-align: center;
   margin-bottom: var(--space-10);
-  
+
   .title {
     font-size: var(--text-4xl);
     font-weight: var(--font-bold);
     color: var(--text-primary);
     margin-bottom: var(--space-3);
   }
-  
+
   .subtitle {
     font-size: var(--text-lg);
     color: var(--text-secondary);
@@ -38,7 +44,7 @@
 .role-card-wrapper {
   cursor: pointer;
   transition: transform 0.3s ease;
-  
+
   &:hover {
     transform: translateY(-5px);
   }
@@ -50,7 +56,7 @@ app-card {
   background-color: var(--card-bg-color, var(--bg-primary));
   transition: all var(--transition-base);
   cursor: pointer;
-  
+
   &:hover {
     box-shadow: var(--shadow-lg);
     border-color: var(--card-border-color);
@@ -63,26 +69,26 @@ app-card {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  
+
   .role-icon {
     font-size: var(--text-5xl);
     margin-bottom: var(--space-4);
   }
-  
+
   .role-title {
     font-size: var(--text-xl);
     font-weight: var(--font-semibold);
     color: var(--text-primary);
     margin-bottom: var(--space-2);
   }
-  
+
   .role-description {
     font-size: var(--text-base);
     color: var(--text-secondary);
     margin-bottom: var(--space-4);
     flex-grow: 1;
   }
-  
+
   .select-button {
     display: flex;
     align-items: center;
@@ -93,10 +99,32 @@ app-card {
     border: 1px solid var(--card-border-color);
     border-radius: 4px;
     transition: all var(--transition-fast);
-    
+
     &:hover {
       background-color: var(--card-border-color);
       color: white;
+    }
+  }
+}
+
+.footer {
+  width: 100%;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-primary);
+  padding: var(--space-4) var(--space-6);
+
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .footer-bottom {
+      text-align: center;
+
+      p {
+        font-size: var(--text-sm);
+        color: var(--text-secondary);
+        margin: 0;
+      }
     }
   }
 }
@@ -105,11 +133,11 @@ app-card {
   .landing-container {
     padding: var(--space-4);
   }
-  
+
   .roles-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .hero-section {
     .title {
       font-size: var(--text-3xl);
