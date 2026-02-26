@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://m1p13mean-henintsoa-joann.vercel.app/',
+  apiUrl: 'https://m1p13mean-henintsoa-joann.vercel.app',
 };
