@@ -2,7 +2,7 @@
   <!-- Overlay cliquable pour fermer le sidebar sur mobile -->
   <div class="overlay" *ngIf="isMobileView && isSidebarOpen" (click)="toggleSidebar()"></div>
 
-  <app-boutique-sidebar [class.sidebar-open]="isSidebarOpen" (closeRequested)="toggleSidebar()"></app-boutique-sidebar>
+  <app-boutique-sidebar [class.sidebar-open]="isSidebarOpen" [isSidebarOpen]="isSidebarOpen" (closeRequested)="toggleSidebar()"></app-boutique-sidebar>
   <div class="content-area" [class.sidebar-collapsed]="sidebarCollapsed">
     <nav class="navbar">
       <div class="navbar-content">

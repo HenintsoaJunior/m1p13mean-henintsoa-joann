@@ -1,26 +1,37 @@
-<div class="landing-container">
-  <div class="hero-section">
-    <h1 class="title">Bienvenue sur notre plateforme</h1>
-    <p class="subtitle">Choisissez votre rôle pour continuer</p>
+<div class="page-wrapper">
+  <div class="landing-container">
+    <div class="hero-section">
+      <h1 class="title">Bienvenue sur notre plateforme</h1>
+      <p class="subtitle">Choisissez votre rôle pour continuer</p>
+    </div>
+
+    <div class="roles-grid">
+      @for (role of roles; track role.id) {
+        <div class="role-card-wrapper">
+          <app-card
+            class="role-card"
+            [style.--card-bg-color]="role.color + '20'"
+            [style.--card-border-color]="role.color"
+            (click)="onSelectRole(role.id)"
+          >
+            <div class="role-icon">{{ role.icon }}</div>
+            <h3 class="role-title">{{ role.title }}</h3>
+            <p class="role-description">{{ role.description }}</p>
+            <div class="select-button">
+              <span>Sélectionner</span>
+              <span class="arrow">→</span>
+            </div>
+          </app-card>
+        </div>
+      }
+    </div>
   </div>
 
-  <div class="roles-grid">
-    @for (role of roles; track role.id) {
-      <div class="role-card-wrapper">
-        <app-card 
-          class="role-card"
-          [style.--card-bg-color]="role.color + '20'"
-          [style.--card-border-color]="role.color"
-          (click)="onSelectRole(role.id)">
-          <div class="role-icon">{{ role.icon }}</div>
-          <h3 class="role-title">{{ role.title }}</h3>
-          <p class="role-description">{{ role.description }}</p>
-          <div class="select-button">
-            <span>Sélectionner</span>
-            <span class="arrow">→</span>
-          </div>
-        </app-card>
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-bottom">
+        <p>&copy; RANDRIANIRINA Larry Joann & RAKOTOARIMANANA Henintsoa MiantsaFitia</p>
       </div>
-    }
-  </div>
+    </div>
+  </footer>
 </div>

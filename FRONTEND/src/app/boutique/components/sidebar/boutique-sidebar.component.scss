@@ -5,7 +5,7 @@
   color: var(--color-white);
   position: fixed;
   left: 0; top: 0;
-  z-index: var(--z-modal);
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   transition: all var(--transition-slow);
@@ -458,20 +458,17 @@
   .modern-sidebar {
     transform: translateX(-100%);
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    z-index: var(--z-modal);
+    z-index: 1000;
   }
 
   .modern-sidebar.sidebar-open {
     transform: translateX(0);
   }
+}
 
-  .sidebar-collapsed .modern-sidebar {
-    width: 100%;
-    transform: translateX(-100%);
-  }
-
-  .sidebar-collapsed .modern-sidebar.sidebar-open {
-    transform: translateX(0);
+@media (min-width: 1025px) {
+  .modern-sidebar {
+    transform: translateX(0) !important;
   }
 }
 

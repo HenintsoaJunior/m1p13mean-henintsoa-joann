@@ -1,0 +1,330 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
+import { ProduitService, Produit } from '../../services/produit.service';
+import { CategorieService, Categorie, CategorieTree } from '../../../categories/services/categorie.service';
+import { ToastService } from '../../../../../services/toast.service';
+
+@Component({
+  selector: 'app-produit-list',
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, ReactiveFormsModule],
+  templateUrl: './produit-list.component.html',
+  styleUrls: ['./produit-list.component.scss'],
+})
+export class ProduitListComponent implements OnInit {
+  produits: Produit[] = [];
+  filteredProduits: Produit[] = [];
+  searchTerm = '';
+  filterStatut = '';
+  showModal = false;
+  editingProduit: Produit | null = null;
+  isSubmitting = false;
+  produitForm: FormGroup;
+  categories: Categorie[] = [];
+  categoriesTree: CategorieTree[] = [];
+
+  constructor(
+    private produitService: ProduitService,
+    private categorieService: CategorieService,
+    private formBuilder: FormBuilder,
+    private toastService: ToastService,
+  ) {
+    this.produitForm = this.formBuilder.group({
+      idCategorie: ['', [Validators.required]],
+      nom: ['', [Validators.required]],
+      slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
+      description: [''],
+      prix: this.formBuilder.group({
+        devise: ['EUR', [Validators.required]],
+        montant: [0, [Validators.required, Validators.min(0)]],
+      }),
+      stock: this.formBuilder.group({
+        quantite: [0, [Validators.required, Validators.min(0)]],
+      }),
+      images: [[]],
+      attributs: this.formBuilder.group({
+        couleur: [''],
+        taille: [[]],
+        marque: [''],
+      }),
+      statut: ['actif'],
+    });
+  }
+
+  ngOnInit() {
+    this.loadProduits();
+    this.loadCategories();
+    this.loadCategoriesTree();
+  }
+
+  loadCategoriesTree() {
+    this.categorieService.getCategoriesTree().subscribe({
+      next: (data: any) => {
+        if (data && Array.isArray(data.arbre)) {
+          this.categoriesTree = data.arbre;
+        } else if (Array.isArray(data)) {
+          this.categoriesTree = data;
+        } else {
+          this.categoriesTree = [];
+        }
+      },
+      error: () => {
+        this.categoriesTree = [];
+      },
+    });
+  }
+
+  // Méthode utilitaire pour aplatir l'arbre des catégories
+  flattenCategories(tree: CategorieTree[], level: number = 0): { cat: CategorieTree, level: number, indent: string }[] {
+    let result: { cat: CategorieTree, level: number, indent: string }[] = [];
+    for (const cat of tree) {
+      result.push({
+        cat,
+        level,
+        indent: '  '.repeat(level)
+      });
+      if (cat.children && cat.children.length > 0) {
+        result = result.concat(this.flattenCategories(cat.children, level + 1));
+      }
+    }
+    return result;
+  }
+
+  getFlattenedCategories(): { cat: CategorieTree, level: number, indent: string }[] {
+    return this.flattenCategories(this.categoriesTree);
+  }
+
+  loadProduits() {
+    this.produitService.getProduitsByBoutique().subscribe({
+      next: (data: any) => {
+        // CORRECTION : le backend peut retourner un objet paginé { data: [], total: ... }
+        // ou directement un tableau — on normalise dans les deux cas
+        if (Array.isArray(data)) {
+          this.produits = data;
+        } else if (data && Array.isArray(data.data)) {
+          this.produits = data.data;
+        } else if (data && Array.isArray(data.produits)) {
+          this.produits = data.produits;
+        } else if (data && Array.isArray(data.items)) {
+          this.produits = data.items;
+        } else {
+          this.produits = [];
+        }
+        this.applyFilters();
+      },
+      error: () => {
+        this.produits = [];
+        this.filteredProduits = [];
+      },
+    });
+  }
+
+  loadCategories() {
+    this.categorieService.getCategoriesByBoutique().subscribe({
+      next: (data: any) => {
+        if (Array.isArray(data)) {
+          this.categories = data;
+        } else if (data && Array.isArray(data.data)) {
+          this.categories = data.data;
+        } else {
+          this.categories = [];
+        }
+      },
+      error: () => {
+        this.categories = [];
+      },
+    });
+  }
+
+  applyFilters() {
+    if (!Array.isArray(this.produits)) {
+      this.filteredProduits = [];
+      return;
+    }
+    this.filteredProduits = this.produits.filter((produit) => {
+      const matchSearch =
+        !this.searchTerm ||
+        produit.nom.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        (produit.description &&
+          produit.description.toLowerCase().includes(this.searchTerm.toLowerCase()));
+
+      const matchStatut = !this.filterStatut || produit.statut === this.filterStatut;
+
+      return matchSearch && matchStatut;
+    });
+  }
+
+  filterProduits() {
+    this.applyFilters();
+  }
+
+  filterByStatut() {
+    this.applyFilters();
+  }
+
+  resetFilters() {
+    this.searchTerm = '';
+    this.filterStatut = '';
+    this.applyFilters();
+  }
+
+  openCreateModal() {
+    this.editingProduit = null;
+    this.produitForm.reset();
+    this.produitForm.patchValue({
+      prix: { devise: 'EUR', montant: 0 },
+      stock: { quantite: 0 },
+      statut: 'actif',
+      images: [],
+      attributs: { couleur: '', taille: [], marque: '' },
+    });
+    this.showModal = true;
+  }
+
+  generateSlug() {
+    const nom = this.produitForm.get('nom')?.value;
+    if (nom) {
+      const slug = nom
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      this.produitForm.patchValue({ slug });
+    }
+  }
+
+  editProduit(produit: Produit) {
+    this.editingProduit = produit;
+    this.produitForm.patchValue({
+      idCategorie:
+        typeof produit.idCategorie === 'string' ? produit.idCategorie : produit.idCategorie._id,
+      nom: produit.nom,
+      slug: produit.slug,
+      description: produit.description || '',
+      prix: produit.prix,
+      stock: produit.stock,
+      images: produit.images || [],
+      attributs: {
+        couleur: produit.attributs?.couleur || '',
+        taille: produit.attributs?.taille || [],
+        marque: produit.attributs?.marque || '',
+      },
+      statut: produit.statut,
+    });
+    this.showModal = true;
+  }
+
+  closeModal() {
+    this.showModal = false;
+    this.editingProduit = null;
+    this.produitForm.reset();
+  }
+
+  addTaille() {
+    const tailles = [...(this.produitForm.get('attributs.taille')?.value || [])];
+    tailles.push('');
+    this.produitForm.get('attributs.taille')?.setValue(tailles);
+  }
+
+  removeTaille(index: number) {
+    const tailles = [...(this.produitForm.get('attributs.taille')?.value || [])];
+    tailles.splice(index, 1);
+    this.produitForm.get('attributs.taille')?.setValue(tailles);
+  }
+
+  addImageUrl() {
+    const images = [...(this.produitForm.get('images')?.value || [])];
+    images.push('');
+    this.produitForm.get('images')?.setValue(images);
+  }
+
+  removeImageUrl(index: number) {
+    const images = [...(this.produitForm.get('images')?.value || [])];
+    images.splice(index, 1);
+    this.produitForm.get('images')?.setValue(images);
+  }
+
+  onSubmit() {
+    if (this.produitForm.valid) {
+      this.isSubmitting = true;
+      const produitData = this.produitForm.value;
+
+      if (this.editingProduit) {
+        this.produitService.updateProduit(this.editingProduit._id!, produitData).subscribe({
+          next: () => {
+            this.loadProduits();
+            this.closeModal();
+            this.isSubmitting = false;
+            this.toastService.showSuccess('Produit modifié avec succès!');
+          },
+          error: () => {
+            this.isSubmitting = false;
+            this.toastService.showError('Erreur lors de la modification du produit');
+          },
+        });
+      } else {
+        this.produitService.createProduit(produitData).subscribe({
+          next: () => {
+            this.loadProduits();
+            this.closeModal();
+            this.isSubmitting = false;
+            this.toastService.showSuccess('Produit créé avec succès!');
+          },
+          error: () => {
+            this.isSubmitting = false;
+            this.toastService.showError('Erreur lors de la création du produit');
+          },
+        });
+      }
+    }
+  }
+
+  deleteProduit(id: string) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+      this.produitService.deleteProduit(id).subscribe({
+        next: () => {
+          this.loadProduits();
+          this.toastService.showSuccess('Produit supprimé avec succès!');
+        },
+        error: () => {
+          this.toastService.showError('Erreur lors de la suppression du produit');
+        },
+      });
+    }
+  }
+
+  getStatutBadgeClass(statut: string): string {
+    switch (statut) {
+      case 'actif':
+        return 'statut-actif';
+      case 'rupture_stock':
+        return 'statut-rupture_stock';
+      case 'archive':
+        return 'statut-archive';
+      default:
+        return '';
+    }
+  }
+
+  getStatutLabel(statut: string): string {
+    switch (statut) {
+      case 'actif':
+        return 'Actif';
+      case 'rupture_stock':
+        return 'Rupture de stock';
+      case 'archive':
+        return 'Archivé';
+      default:
+        return statut;
+    }
+  }
+}

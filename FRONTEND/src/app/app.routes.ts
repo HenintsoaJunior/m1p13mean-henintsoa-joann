@@ -25,6 +25,12 @@ import { ListUtilisateurComponent } from './admin/components/utilisateurs/pages/
 import { BoutiqueLayoutComponent } from './layouts/boutique-layout/boutique-layout.component';
 import { BoutiqueDashboardComponent } from './boutique/pages/dashboard/boutique-dashboard.component';
 
+// Boutique components - Produits
+import { ProduitListComponent } from './boutique/components/produits/pages/produit-list/produit-list.component';
+
+// Boutique components - Categories
+import { CategorieListComponent } from './boutique/components/categories/pages/categorie-list/categorie-list.component';
+
 export const routes: Routes = [
   { path: '', component: LandingComponent }, // Default landing page
   {
@@ -72,6 +78,8 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: BoutiqueDashboardComponent },
+      { path: 'produits', component: ProduitListComponent },
+      { path: 'categories', component: CategorieListComponent },
     ],
   },
   {
@@ -79,7 +87,11 @@ export const routes: Routes = [
     component: ClientLayoutComponent,
     children: [
       { path: '', redirectTo: 'accueil', pathMatch: 'full' }, // Redirect /client to /client/accueil
-      { path: 'accueil', loadComponent: () => import('./client/components/home/home.component').then(m => m.HomeComponent) }, // Client home page (accessible to all)
+      {
+        path: 'accueil',
+        loadComponent: () =>
+          import('./client/components/home/home.component').then((m) => m.HomeComponent),
+      }, // Client home page (accessible to all)
     ],
   },
   { path: '**', redirectTo: '/' }, // Redirect unknown routes to landing page
