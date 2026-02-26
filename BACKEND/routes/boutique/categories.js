@@ -28,6 +28,8 @@ router.use((req, res, next) => {
 router.post("/", categorieController.creerCategorie.bind(categorieController));
 router.get("/", categorieController.obtenirListeCategories.bind(categorieController));
 router.get("/boutique", categorieController.obtenirCategoriesParBoutique.bind(categorieController));
+router.get("/arbre", categorieController.obtenirArbreCategories.bind(categorieController));
+router.get("/hierarchie", categorieController.obtenirCategoriesAvecHierarchie.bind(categorieController));
 router.get("/slug/:slug", categorieController.obtenirCategorieParSlug.bind(categorieController));
 router.get("/:id", categorieController.obtenirCategorieParId.bind(categorieController));
 router.get("/parent/:idParent/enfants", categorieController.obtenirCategoriesEnfants.bind(categorieController));

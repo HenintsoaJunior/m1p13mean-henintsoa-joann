@@ -9,7 +9,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ProduitService, Produit } from '../../services/produit.service';
-import { CategorieService, Categorie } from '../../../categories/services/categorie.service';
+import { CategorieService, Categorie, CategorieTree } from '../../../categories/services/categorie.service';
 import { ToastService } from '../../../../../services/toast.service';
 
 @Component({
@@ -29,6 +29,7 @@ export class ProduitListComponent implements OnInit {
   isSubmitting = false;
   produitForm: FormGroup;
   categories: Categorie[] = [];
+  categoriesTree: CategorieTree[] = [];
 
   constructor(
     private produitService: ProduitService,
@@ -61,6 +62,44 @@ export class ProduitListComponent implements OnInit {
   ngOnInit() {
     this.loadProduits();
     this.loadCategories();
+    this.loadCategoriesTree();
+  }
+
+  loadCategoriesTree() {
+    this.categorieService.getCategoriesTree().subscribe({
+      next: (data: any) => {
+        if (data && Array.isArray(data.arbre)) {
+          this.categoriesTree = data.arbre;
+        } else if (Array.isArray(data)) {
+          this.categoriesTree = data;
+        } else {
+          this.categoriesTree = [];
+        }
+      },
+      error: () => {
+        this.categoriesTree = [];
+      },
+    });
+  }
+
+  // Méthode utilitaire pour aplatir l'arbre des catégories
+  flattenCategories(tree: CategorieTree[], level: number = 0): { cat: CategorieTree, level: number, indent: string }[] {
+    let result: { cat: CategorieTree, level: number, indent: string }[] = [];
+    for (const cat of tree) {
+      result.push({
+        cat,
+        level,
+        indent: '  '.repeat(level)
+      });
+      if (cat.children && cat.children.length > 0) {
+        result = result.concat(this.flattenCategories(cat.children, level + 1));
+      }
+    }
+    return result;
+  }
+
+  getFlattenedCategories(): { cat: CategorieTree, level: number, indent: string }[] {
+    return this.flattenCategories(this.categoriesTree);
   }
 
   loadProduits() {

@@ -25,6 +25,12 @@ export interface CategorieFormData {
   urlImage?: string;
 }
 
+export interface CategorieTree extends Categorie {
+  children: CategorieTree[];
+  level?: number;
+  path?: string[];
+}
+
 export interface PaginationResult<T> {
   categories?: T[];
   pagination: {
@@ -66,6 +72,22 @@ export class CategorieService {
 
   getCategoriesEnfants(idParent: string): Observable<Categorie[]> {
     return this.http.get<Categorie[]>(`${this.apiUrl}/parent/${idParent}/enfants`, {
+      headers: this.getAuthHeaders(),
+    }).pipe(
+      catchError(this.handleError.bind(this)),
+    );
+  }
+
+  getCategoriesTree(): Observable<CategorieTree[]> {
+    return this.http.get<CategorieTree[]>(`${this.apiUrl}/arbre`, {
+      headers: this.getAuthHeaders(),
+    }).pipe(
+      catchError(this.handleError.bind(this)),
+    );
+  }
+
+  getCategoriesWithHierarchy(): Observable<Categorie[]> {
+    return this.http.get<Categorie[]>(`${this.apiUrl}/hierarchie`, {
       headers: this.getAuthHeaders(),
     }).pipe(
       catchError(this.handleError.bind(this)),

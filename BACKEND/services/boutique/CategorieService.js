@@ -146,6 +146,26 @@ class CategorieService {
   }
 
   /**
+   * Obtenir l'arbre complet des catégories d'une boutique
+   * @param {string} idBoutique - ID de la boutique
+   * @returns {Promise<Array>} Arbre des catégories
+   */
+  async obtenirArbreCategories(idBoutique) {
+    const Categorie = require("../../models/boutique/Categorie");
+    return await Categorie.buildCategoryTree(idBoutique);
+  }
+
+  /**
+   * Obtenir les catégories avec leur hiérarchie (niveau et chemin)
+   * @param {string} idBoutique - ID de la boutique
+   * @returns {Promise<Array>} Catégories avec hiérarchie
+   */
+  async obtenirCategoriesAvecHierarchie(idBoutique) {
+    const Categorie = require("../../models/boutique/Categorie");
+    return await Categorie.getCategoriesWithHierarchy(idBoutique);
+  }
+
+  /**
    * Obtenir une liste paginée de catégories
    * @param {Object} filtres - Filtres de recherche
    * @param {Object} pagination - Options de pagination
