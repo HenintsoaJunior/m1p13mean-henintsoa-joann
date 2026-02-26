@@ -11,11 +11,20 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-// Connexion à MongoDB
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connecté"))
-  .catch((err) => console.error("Erreur MongoDB :", err));
+// Vérifier les variables d'environnement
+if (!process.env.MONGO_URI) {
+  console.error("ERREUR: MONGO_URI n'est pas défini dans les variables d'environnement");
+}
+
+// Connexion à MongoDB (seulement si MONGO_URI est défini)
+if (process.env.MONGO_URI) {
+  mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ MongoDB connecté"))
+    .catch((err) => console.error("❌ Erreur MongoDB :", err.message));
+} else {
+  console.warn("⚠️  MongoDB non connecté - MONGO_URI manquant");
+}
 
 // Routes
 app.use("/auth", require("./routes/authRoutes"));
