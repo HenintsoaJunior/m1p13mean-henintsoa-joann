@@ -34,7 +34,7 @@ export class ProduitListComponent implements OnInit {
     private produitService: ProduitService,
     private categorieService: CategorieService,
     private formBuilder: FormBuilder,
-    private toastService: ToastService
+    private toastService: ToastService,
   ) {
     this.produitForm = this.formBuilder.group({
       idCategorie: ['', [Validators.required]],
@@ -65,44 +65,76 @@ export class ProduitListComponent implements OnInit {
 
   loadProduits() {
     this.produitService.getProduitsByBoutique().subscribe({
-      next: (data) => {
-        this.produits = data;
-        this.filteredProduits = this.produits;
-        if (this.searchTerm) {
-          this.filterProduits();
+      next: (data: any) => {
+        // CORRECTION : le backend peut retourner un objet paginé { data: [], total: ... }
+        // ou directement un tableau — on normalise dans les deux cas
+        if (Array.isArray(data)) {
+          this.produits = data;
+        } else if (data && Array.isArray(data.data)) {
+          this.produits = data.data;
+        } else if (data && Array.isArray(data.produits)) {
+          this.produits = data.produits;
+        } else if (data && Array.isArray(data.items)) {
+          this.produits = data.items;
+        } else {
+          this.produits = [];
         }
+        this.applyFilters();
+      },
+      error: () => {
+        this.produits = [];
+        this.filteredProduits = [];
       },
     });
   }
 
   loadCategories() {
     this.categorieService.getCategoriesByBoutique().subscribe({
-      next: (data) => {
-        this.categories = data;
+      next: (data: any) => {
+        if (Array.isArray(data)) {
+          this.categories = data;
+        } else if (data && Array.isArray(data.data)) {
+          this.categories = data.data;
+        } else {
+          this.categories = [];
+        }
+      },
+      error: () => {
+        this.categories = [];
       },
     });
   }
 
-  filterProduits() {
-    this.filteredProduits = this.produits.filter(
-      (produit) =>
+  applyFilters() {
+    if (!Array.isArray(this.produits)) {
+      this.filteredProduits = [];
+      return;
+    }
+    this.filteredProduits = this.produits.filter((produit) => {
+      const matchSearch =
+        !this.searchTerm ||
         produit.nom.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        (produit.description && produit.description.toLowerCase().includes(this.searchTerm.toLowerCase()))
-    );
+        (produit.description &&
+          produit.description.toLowerCase().includes(this.searchTerm.toLowerCase()));
+
+      const matchStatut = !this.filterStatut || produit.statut === this.filterStatut;
+
+      return matchSearch && matchStatut;
+    });
+  }
+
+  filterProduits() {
+    this.applyFilters();
   }
 
   filterByStatut() {
-    if (this.filterStatut) {
-      this.filteredProduits = this.produits.filter(p => p.statut === this.filterStatut);
-    } else {
-      this.filteredProduits = this.produits;
-    }
+    this.applyFilters();
   }
 
   resetFilters() {
     this.searchTerm = '';
     this.filterStatut = '';
-    this.filteredProduits = this.produits;
+    this.applyFilters();
   }
 
   openCreateModal() {
@@ -112,7 +144,8 @@ export class ProduitListComponent implements OnInit {
       prix: { devise: 'EUR', montant: 0 },
       stock: { quantite: 0 },
       statut: 'actif',
-      attributs: { couleur: '', taille: [], marque: '' }
+      images: [],
+      attributs: { couleur: '', taille: [], marque: '' },
     });
     this.showModal = true;
   }
@@ -133,7 +166,8 @@ export class ProduitListComponent implements OnInit {
   editProduit(produit: Produit) {
     this.editingProduit = produit;
     this.produitForm.patchValue({
-      idCategorie: typeof produit.idCategorie === 'string' ? produit.idCategorie : produit.idCategorie._id,
+      idCategorie:
+        typeof produit.idCategorie === 'string' ? produit.idCategorie : produit.idCategorie._id,
       nom: produit.nom,
       slug: produit.slug,
       description: produit.description || '',
@@ -157,27 +191,27 @@ export class ProduitListComponent implements OnInit {
   }
 
   addTaille() {
-    const tailles = this.produitForm.get('attributs.taille')?.value || [];
+    const tailles = [...(this.produitForm.get('attributs.taille')?.value || [])];
     tailles.push('');
-    this.produitForm.get('attributs')?.patchValue({ taille: tailles });
+    this.produitForm.get('attributs.taille')?.setValue(tailles);
   }
 
   removeTaille(index: number) {
-    const tailles = this.produitForm.get('attributs.taille')?.value || [];
+    const tailles = [...(this.produitForm.get('attributs.taille')?.value || [])];
     tailles.splice(index, 1);
-    this.produitForm.get('attributs')?.patchValue({ taille: tailles });
+    this.produitForm.get('attributs.taille')?.setValue(tailles);
   }
 
   addImageUrl() {
-    const images = this.produitForm.get('images')?.value || [];
+    const images = [...(this.produitForm.get('images')?.value || [])];
     images.push('');
-    this.produitForm.get('images')?.patchValue({ images });
+    this.produitForm.get('images')?.setValue(images);
   }
 
   removeImageUrl(index: number) {
-    const images = this.produitForm.get('images')?.value || [];
+    const images = [...(this.produitForm.get('images')?.value || [])];
     images.splice(index, 1);
-    this.produitForm.get('images')?.patchValue({ images });
+    this.produitForm.get('images')?.setValue(images);
   }
 
   onSubmit() {
@@ -224,7 +258,7 @@ export class ProduitListComponent implements OnInit {
         },
         error: () => {
           this.toastService.showError('Erreur lors de la suppression du produit');
-        }
+        },
       });
     }
   }
