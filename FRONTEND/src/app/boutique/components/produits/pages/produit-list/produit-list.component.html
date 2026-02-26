@@ -167,10 +167,13 @@
             <label for="idCategorie">Catégorie <span class="required">*</span></label>
             <select id="idCategorie" formControlName="idCategorie" class="form-control">
               <option value="">Sélectionner une catégorie</option>
-              @for (cat of categories; track cat._id) {
-                <option [value]="cat._id">{{ cat.nom }}</option>
+              @for (item of getFlattenedCategories(); track item.cat._id) {
+                <option [value]="item.cat._id" [style.paddingLeft]="item.level * 16 + 'px'">
+                  {{ item.indent }}{{ item.cat.nom }}
+                </option>
               }
             </select>
+            <small class="form-hint">Sélectionnez une catégorie ou une sous-catégorie</small>
           </div>
 
           <!-- CORRECTION : formGroupName="prix" + formControlName simples à l'intérieur -->

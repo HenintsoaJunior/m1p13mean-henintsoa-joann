@@ -137,6 +137,42 @@ class CategorieController {
   }
 
   /**
+   * Obtenir l'arbre complet des catégories d'une boutique
+   * @param {Object} req - Requête Express
+   * @param {Object} res - Réponse Express
+   */
+  async obtenirArbreCategories(req, res) {
+    try {
+      const idBoutique = req.utilisateur._id;
+      const arbre = await this.categorieService.obtenirArbreCategories(idBoutique);
+      res.json({ arbre });
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'arbre des catégories:", error);
+      res.status(500).json({
+        erreur: error.message || "Erreur serveur lors de la récupération de l'arbre des catégories",
+      });
+    }
+  }
+
+  /**
+   * Obtenir les catégories avec leur hiérarchie (niveau et chemin)
+   * @param {Object} req - Requête Express
+   * @param {Object} res - Réponse Express
+   */
+  async obtenirCategoriesAvecHierarchie(req, res) {
+    try {
+      const idBoutique = req.utilisateur._id;
+      const categories = await this.categorieService.obtenirCategoriesAvecHierarchie(idBoutique);
+      res.json({ categories });
+    } catch (error) {
+      console.error("Erreur lors de la récupération des catégories avec hiérarchie:", error);
+      res.status(500).json({
+        erreur: error.message || "Erreur serveur lors de la récupération des catégories avec hiérarchie",
+      });
+    }
+  }
+
+  /**
    * Obtenir une liste paginée de catégories
    * @param {Object} req - Requête Express
    * @param {Object} res - Réponse Express
