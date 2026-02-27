@@ -77,14 +77,6 @@ const produitSchema = new mongoose.Schema(
       },
       default: "actif",
     },
-    dateCreation: {
-      type: Date,
-      default: Date.now,
-    },
-    dateMiseAJour: {
-      type: Date,
-      default: Date.now,
-    },
   },
   {
     timestamps: { createdAt: "dateCreation", updatedAt: "dateMiseAJour" },
@@ -95,22 +87,6 @@ const produitSchema = new mongoose.Schema(
 produitSchema.index({ idBoutique: 1, slug: 1 });
 produitSchema.index({ idCategorie: 1 });
 produitSchema.index({ statut: 1 });
-
-// Middleware pour mettre à jour dateMiseAJour
-produitSchema.pre("save", function (next) {
-  this.dateMiseAJour = Date.now();
-  next();
-});
-
-// Middleware pour mettre à jour le statut en fonction du stock
-produitSchema.pre("save", function (next) {
-  if (this.stock.quantite === 0 && this.statut !== "archive") {
-    this.statut = "rupture_stock";
-  } else if (this.stock.quantite > 0 && this.statut === "rupture_stock") {
-    this.statut = "actif";
-  }
-  next();
-});
 
 // Méthode pour obtenir les informations publiques
 produitSchema.methods.toJSON = function () {
