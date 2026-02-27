@@ -126,7 +126,6 @@ export class ProduitService {
     return this.http.post<Produit>(`${this.apiUrl}`, produit, {
       headers: this.getAuthHeaders(),
     }).pipe(
-      tap(() => this.toastService.showSuccess('Produit créé avec succès')),
       catchError(this.handleError.bind(this)),
     );
   }
