@@ -31,17 +31,20 @@
   <!-- Tabs container -->
   <div class="tabs-container">
     <div class="tab-buttons">
-      <button class="tab-btn active">
+      <button class="tab-btn" [class.active]="activeTab === 'nouveautes'" (click)="selectTab('nouveautes')">
         <i class="fas fa-star"></i> Nouveautés
       </button>
-      <button class="tab-btn">
+      <button class="tab-btn" [class.active]="activeTab === 'promotion'" (click)="selectTab('promotion')">
         <i class="fas fa-tag"></i> Promotion
       </button>
-      <button class="tab-btn">
+      <button class="tab-btn" [class.active]="activeTab === 'contact'" (click)="selectTab('contact')">
         <i class="fas fa-envelope"></i> Nous contacter
       </button>
+      <button class="tab-btn" [class.active]="activeTab === 'appels'" (click)="selectTab('appels')">
+        <i class="fas fa-bullhorn"></i> Appels d'offres
+      </button>
       <!-- Conditionally show "Devenir vendeur" button only for clients -->
-      <button class="tab-btn seller-btn" *ngIf="isClient()">
+      <button class="tab-btn seller-btn" *ngIf="isClient()" (click)="selectTab('vendeur')">
         <i class="fas fa-store"></i> Devenir vendeur
       </button>
     </div>
@@ -49,7 +52,7 @@
 
   <!-- Main content -->
   <main class="main-content">
-    <div class="welcome-section">
+    <div *ngIf="activeTab === 'nouveautes'" class="welcome-section">
       <h1>Bienvenue sur notre plateforme</h1>
       <p>
         Cette plateforme vous permet de découvrir et d'acheter une variété de produits de qualité.
@@ -59,6 +62,10 @@
         cherchez.
       </p>
     </div>
+
+    <app-appels-offre-client *ngIf="activeTab === 'appels'"></app-appels-offre-client>
+
+    <!-- additional tabs content could go here -->
   </main>
   
   <!-- Fixed footer with action items -->

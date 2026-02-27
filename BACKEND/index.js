@@ -41,6 +41,93 @@ const centreController = require("./controllers/admin/CentreController");
 app.get("/api/public/centres", centreController.getAllCentres);
 app.get("/api/public/centres/:id/plan", centreController.getCentreWithPlan);
 
+// Routes publiques pour les appels d'offre (clients peuvent voir les appels ouverts)
+const AppelOffre = require("./models/admin/AppelOffre");
+const Emplacement = require("./models/admin/Emplacement");
+
+app.get("/api/public/appels-offre", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Filter: only open appels d'offre
+    const filters = { statut: "ouvert" };
+
+    // Build query and populate emplacement details
+    const appelsOffre = await AppelOffre.find(filters)
+      .populate({
+        path: "emplacement_id",
+        model: "Emplacement",
+        select: "_id nom code surface_m2 loyer_mensuel type",
+      })
+      .sort({ date_appel: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Reformat appels to use 'emplacement' instead of 'emplacement_id'
+    const formattedAppels = appelsOffre.map((appel) => ({
+      ...appel,
+      emplacement: appel.emplacement_id,
+      emplacement_id: undefined,
+    }));
+
+    const total = await AppelOffre.countDocuments(filters);
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        appelsOffre: formattedAppels,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: totalPages,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Erreur appels publics:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get("/api/public/appels-offre/:id", async (req, res) => {
+  try {
+    const appel = await AppelOffre.findOne({
+      _id: req.params.id,
+      statut: "ouvert", // Only allow viewing open appels
+    })
+      .populate({
+        path: "emplacement_id",
+        model: "Emplacement",
+        select: "_id nom code surface_m2 loyer_mensuel type",
+      })
+      .lean();
+
+    if (!appel) {
+      return res.status(404).json({
+        success: false,
+        message: "Appel d'offre non trouvé ou fermé",
+      });
+    }
+
+    // Reformat appel to use 'emplacement' instead of 'emplacement_id'
+    const formattedAppel = {
+      ...appel,
+      emplacement: appel.emplacement_id,
+      emplacement_id: undefined,
+    };
+
+    res.status(200).json({ success: true, data: formattedAppel });
+  } catch (error) {
+    console.error("Erreur appel public:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ✅ IMPORTANT : Ne démarre le serveur qu'en local
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));

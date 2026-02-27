@@ -14,8 +14,13 @@ const reponseSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Utilisateur",
   },
-  montant_propose: Number,
-  message: String,
+  montant_propose: { type: Number, required: true },
+  email_proposeur: {
+    type: String,
+    required: true,
+    match: [/^\S+@\S+\.\S+$/, 'Email invalide'],
+  },
+  message: { type: String, trim: true, maxlength: 1000 },
   statut: {
     type: String,
     enum: ["propose", "accepte", "refuse"],
