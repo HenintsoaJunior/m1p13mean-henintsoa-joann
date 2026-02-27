@@ -124,10 +124,13 @@ export class ProduitCreateComponent implements OnInit {
   ];
 
   selectedColors: ColorSelection[] = []; // Multi-sélection de couleurs
+  singleSelectedColor: ColorSelection | null = null; // Sélection unique pour variantes
 
   // ── Tailles ──────────────────────────────────
   sizePresets: string[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   selectedSizes: string[] = [];
+  singleSelectedSize: string = ''; // Sélection unique pour variantes
+  singleSelectedStock: number = 0; // Stock pour la nouvelle variante
   customSizeInput = '';
 
   // ── Variantes (combinaisons couleur + taille + stock) ──────────────────────────────────
@@ -418,16 +421,29 @@ export class ProduitCreateComponent implements OnInit {
   }
 
   toggleColor(hex: string, name: string) {
-    const index = this.selectedColors.findIndex(c => c.hex === hex);
-    if (index > -1) {
-      this.selectedColors.splice(index, 1);
+    if (this.useVariantesMode) {
+      // Mode variantes : sélection unique seulement
+      if (this.singleSelectedColor?.hex === hex) {
+        this.singleSelectedColor = null;
+      } else {
+        this.singleSelectedColor = { name, hex };
+      }
+      this.produitForm.get('attributs.couleur')?.setValue(
+        this.singleSelectedColor ? this.singleSelectedColor.name : ''
+      );
     } else {
-      this.selectedColors.push({ name, hex });
+      // Mode normal : multi-sélection
+      const index = this.selectedColors.findIndex(c => c.hex === hex);
+      if (index > -1) {
+        this.selectedColors.splice(index, 1);
+      } else {
+        this.selectedColors.push({ name, hex });
+      }
+      this.produitForm.get('attributs.couleur')?.setValue(
+        this.selectedColors.map(c => c.name).join(', ')
+      );
+      this.generateVariantes();
     }
-    this.produitForm.get('attributs.couleur')?.setValue(
-      this.selectedColors.map(c => c.name).join(', ')
-    );
-    this.generateVariantes();
   }
 
   selectColor(hex: string, name: string) {
@@ -476,6 +492,16 @@ export class ProduitCreateComponent implements OnInit {
       this.generateVariantes();
     }
   }
+  
+  // Méthodes pour la sélection unique (mode variantes)
+  isSingleColorSelected(hex: string): boolean {
+    return this.singleSelectedColor?.hex === hex;
+  }
+  
+  clearSingleColor() {
+    this.singleSelectedColor = null;
+    this.produitForm.get('attributs.couleur')?.setValue('');
+  }
 
   // ── Tailles ──────────────────────────────────
   isSizeSelected(size: string): boolean {
@@ -483,13 +509,26 @@ export class ProduitCreateComponent implements OnInit {
   }
 
   toggleSize(size: string) {
-    const index = this.selectedSizes.indexOf(size);
-    if (index > -1) {
-      this.selectedSizes.splice(index, 1);
+    if (this.useVariantesMode) {
+      // Mode variantes : sélection unique seulement
+      if (this.singleSelectedSize === size) {
+        this.singleSelectedSize = '';
+      } else {
+        this.singleSelectedSize = size;
+      }
+      this.produitForm.get('attributs.taille')?.setValue(
+        this.singleSelectedSize ? [this.singleSelectedSize] : []
+      );
     } else {
-      this.selectedSizes.push(size);
+      // Mode normal : multi-sélection
+      const index = this.selectedSizes.indexOf(size);
+      if (index > -1) {
+        this.selectedSizes.splice(index, 1);
+      } else {
+        this.selectedSizes.push(size);
+      }
+      this.updateTaillesForm();
     }
-    this.updateTaillesForm();
   }
 
   addCustomSize() {
@@ -516,14 +555,92 @@ export class ProduitCreateComponent implements OnInit {
     this.produitForm.get('attributs.taille')?.setValue(this.selectedSizes);
     this.generateVariantes();
   }
+  
+  // Méthodes pour la sélection unique (mode variantes)
+  isSingleSizeSelected(size: string): boolean {
+    return this.singleSelectedSize === size;
+  }
+  
+  clearSingleSize() {
+    this.singleSelectedSize = '';
+    this.produitForm.get('attributs.taille')?.setValue([]);
+  }
+  
+  updateSingleStock(delta: number) {
+    this.singleSelectedStock = Math.max(0, this.singleSelectedStock + delta);
+  }
+  
+  onStockInputChange(value: number) {
+    this.singleSelectedStock = Math.max(0, value || 0);
+  }
 
   // ── Variantes (combinaisons couleur + taille + stock) ──────────────────────────────────
-  
+
   toggleVariantesMode() {
     this.useVariantesMode = !this.useVariantesMode;
     if (this.useVariantesMode) {
       this.generateVariantes();
     }
+  }
+
+  // ── Ajouter une variante manuellement ──────────────────────────────────
+
+  addVarianteManually() {
+    if (!this.singleSelectedColor || !this.singleSelectedColor.hex) {
+      this.toastService.showError('Veuillez sélectionner une couleur');
+      return;
+    }
+    if (!this.singleSelectedSize.trim()) {
+      this.toastService.showError('Veuillez sélectionner une taille');
+      return;
+    }
+
+    // Vérifier si le stock des variantes dépasse le stock global
+    if (this.stockExceeded) {
+      this.toastService.showError(
+        `Le total des variantes dépasse le stock global. Stock disponible : ${this.getAvailableStockForVariantes()} unités`
+      );
+      return;
+    }
+
+    // Vérifier si la combinaison existe déjà
+    const existingIndex = this.variantes.findIndex(
+      v => v.couleur === this.singleSelectedColor!.name && v.taille === this.singleSelectedSize.trim()
+    );
+
+    if (existingIndex > -1) {
+      this.toastService.showError('Cette combinaison couleur/taille existe déjà');
+      return;
+    }
+
+    // Vérifier si le stock de cette variante dépasse le stock restant
+    const availableStock = this.getAvailableStockForVariantes();
+    if (this.singleSelectedStock > availableStock) {
+      this.toastService.showError(
+        `Stock insuffisant. Maximum ${availableStock} unités disponibles.`
+      );
+      return;
+    }
+
+    // Ajouter la nouvelle variante
+    this.variantes.push({
+      couleur: this.singleSelectedColor.name,
+      couleurHex: this.singleSelectedColor.hex,
+      taille: this.singleSelectedSize.trim(),
+      quantite: this.singleSelectedStock,
+    });
+
+    this.updateVariantesFormArray();
+    this.checkStockExceeded();
+
+    // Réinitialiser les sélections
+    this.singleSelectedColor = null;
+    this.singleSelectedSize = '';
+    this.singleSelectedStock = 0;
+    this.produitForm.get('attributs.couleur')?.setValue('');
+    this.produitForm.get('attributs.taille')?.setValue([]);
+
+    this.toastService.showSuccess('Variante ajoutée avec succès');
   }
 
   generateVariantes() {

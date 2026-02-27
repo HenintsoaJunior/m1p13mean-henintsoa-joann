@@ -2,12 +2,10 @@
      CONTAINER PRINCIPAL
      ================================================ -->
 <div class="create-produit-container">
-
   <!-- ================================================
        FORM BODY (scrollable)
        ================================================ -->
   <div class="form-body-wrapper">
-    
     <!-- STEPPER -->
     <div class="stepper-header">
       <div class="stepper-inner">
@@ -37,7 +35,6 @@
     </div>
 
     <form [formGroup]="produitForm" (ngSubmit)="onSubmit()">
-      
       <!-- ========== STEP 1 : IDENTITÉ & CATÉGORIES ========== -->
       <div class="step-panel" [class.active]="currentStep === 1">
         <div class="step-1-grid">
@@ -97,7 +94,9 @@
                     (input)="onDescriptionInput($event)"
                   ></textarea>
                   <span class="form-hint" style="justify-content: flex-end">
-                    <span style="color: var(--color-gray-400)">{{ descriptionLength }} / 1000 car.</span>
+                    <span style="color: var(--color-gray-400)"
+                      >{{ descriptionLength }} / 1000 car.</span
+                    >
                   </span>
                 </div>
 
@@ -125,7 +124,13 @@
                       @for (preview of imagePreviews; track preview; let i = $index) {
                         <div class="image-preview-item-small">
                           <img [src]="preview" alt="preview {{ i + 1 }}" />
-                          <button type="button" class="image-preview-remove-small" (click)="removePreview(i)">×</button>
+                          <button
+                            type="button"
+                            class="image-preview-remove-small"
+                            (click)="removePreview(i)"
+                          >
+                            ×
+                          </button>
                         </div>
                       }
                     </div>
@@ -141,7 +146,11 @@
                           placeholder="https://exemple.com/image.jpg"
                           (input)="updateImageUrl(i, $any($event.target).value)"
                         />
-                        <button type="button" class="btn btn-danger btn-icon-small" (click)="removeImageUrl(i)">
+                        <button
+                          type="button"
+                          class="btn btn-danger btn-icon-small"
+                          (click)="removeImageUrl(i)"
+                        >
                           ×
                         </button>
                       </div>
@@ -208,8 +217,12 @@
                         (click)="toggleCategorySelection(activeRoot._id!)"
                       >
                         <span class="cat-icon">📁</span>
-                        <span style="flex: 1; font-style: italic">Toute la catégorie "{{ activeRoot.nom }}"</span>
-                        <span class="cat-check">{{ isCategorySelected(activeRoot._id!) ? '✓' : '' }}</span>
+                        <span style="flex: 1; font-style: italic"
+                          >Toute la catégorie "{{ activeRoot.nom }}"</span
+                        >
+                        <span class="cat-check">{{
+                          isCategorySelected(activeRoot._id!) ? '✓' : ''
+                        }}</span>
                       </div>
                       <div class="cat-separator"></div>
 
@@ -221,7 +234,9 @@
                         >
                           <span class="cat-icon">📂</span>
                           <span style="flex: 1">{{ child.nom }}</span>
-                          <span class="cat-check">{{ isCategorySelected(child._id!) ? '✓' : '' }}</span>
+                          <span class="cat-check">{{
+                            isCategorySelected(child._id!) ? '✓' : ''
+                          }}</span>
                         </div>
                       }
                     }
@@ -244,14 +259,22 @@
                 </div>
 
                 <div class="category-footer">
-                  <button type="button" class="btn btn-primary btn-sm" (click)="openCategorieModal()">
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    (click)="openCategorieModal()"
+                  >
                     + Nouvelle catégorie
                   </button>
                 </div>
               </div>
 
-              @if (produitForm.get('idCategorie')?.invalid && produitForm.get('idCategorie')?.touched) {
-                <span class="error-msg" style="margin-top: 8px; display: block">Au moins une catégorie est requise</span>
+              @if (
+                produitForm.get('idCategorie')?.invalid && produitForm.get('idCategorie')?.touched
+              ) {
+                <span class="error-msg" style="margin-top: 8px; display: block"
+                  >Au moins une catégorie est requise</span
+                >
               }
             </div>
           </div>
@@ -343,13 +366,20 @@
           <div class="panel-content">
             <!-- COULEURS -->
             <div class="attribute-section">
-              <h4 class="attribute-title">Couleurs disponibles</h4>
+              <h4 class="attribute-title">
+                Couleurs disponibles
+                @if (useVariantesMode) {
+                  <span class="attribute-hint">(sélection unique)</span>
+                }
+              </h4>
               <div class="color-picker-block" formGroupName="attributs">
                 <div class="color-presets">
                   @for (c of colorPresets; track c.hex) {
                     <div
                       class="color-swatch"
-                      [class.selected]="isColorSelected(c.hex)"
+                      [class.selected]="
+                        useVariantesMode ? isSingleColorSelected(c.hex) : isColorSelected(c.hex)
+                      "
                       [style.background]="c.display"
                       [title]="c.name + ' - Cliquer pour sélectionner'"
                       (click)="toggleColor(c.hex, c.name)"
@@ -373,7 +403,15 @@
                   />
                 </div>
 
-                @if (selectedColors.length > 0) {
+                @if (useVariantesMode && singleSelectedColor) {
+                  <div class="selected-colors-chips">
+                    <span class="color-chip">
+                      <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
+                      {{ singleSelectedColor.name }}
+                      <span class="color-chip-remove" (click)="clearSingleColor()">×</span>
+                    </span>
+                  </div>
+                } @else if (!useVariantesMode && selectedColors.length > 0) {
                   <div class="selected-colors-chips">
                     @for (c of selectedColors; track c.hex) {
                       <span class="color-chip">
@@ -385,7 +423,11 @@
                   </div>
                 } @else {
                   <small class="form-hint">
-                    Sélectionnez une ou plusieurs couleurs pour générer les variantes
+                    @if (useVariantesMode) {
+                      Sélectionnez une couleur pour ajouter une variante
+                    } @else {
+                      Sélectionnez une ou plusieurs couleurs
+                    }
                   </small>
                 }
               </div>
@@ -393,10 +435,21 @@
 
             <!-- TAILLES -->
             <div class="attribute-section">
-              <h4 class="attribute-title">Tailles disponibles</h4>
+              <h4 class="attribute-title">
+                Tailles disponibles
+                @if (useVariantesMode) {
+                  <span class="attribute-hint">(sélection unique)</span>
+                }
+              </h4>
               <div class="size-presets">
                 @for (s of sizePresets; track s) {
-                  <div class="size-tag" [class.selected]="isSizeSelected(s)" (click)="toggleSize(s)">
+                  <div
+                    class="size-tag"
+                    [class.selected]="
+                      useVariantesMode ? isSingleSizeSelected(s) : isSizeSelected(s)
+                    "
+                    (click)="toggleSize(s)"
+                  >
                     {{ s }}
                   </div>
                 }
@@ -416,7 +469,14 @@
                 </button>
               </div>
 
-              @if (getCustomSizes().length > 0) {
+              @if (useVariantesMode && singleSelectedSize) {
+                <div class="size-chips">
+                  <span class="size-chip">
+                    {{ singleSelectedSize }}
+                    <span class="size-chip-remove" (click)="clearSingleSize()">×</span>
+                  </span>
+                </div>
+              } @else if (!useVariantesMode && getCustomSizes().length > 0) {
                 <div class="size-chips">
                   @for (s of getCustomSizes(); track s) {
                     <span class="size-chip">
@@ -459,28 +519,27 @@
 
               @if (useVariantesMode) {
                 <div class="variantes-info">
-                  <p class="variantes-hint">
-                    ℹ️ Définissez les quantités pour chaque combinaison couleur/taille.
-                    Les combinaisons sont générées automatiquement selon vos sélections.
-                  </p>
                   @if (stockExceeded) {
                     <p class="variantes-error">
-                      ⚠️ Attention : Le total des variantes ({{ getTotalStock() }}) dépasse le stock global ({{ produitForm.get('stock.quantite')?.value }}).
-                      <br/>
-                      <strong>Stock restant disponible : {{ getAvailableStockForVariantes() }} unités</strong>
+                      ⚠️ Attention : Le total des variantes ({{ getTotalStock() }}) dépasse le stock
+                      global ({{ produitForm.get('stock.quantite')?.value }}).
+                      <br />
+                      <strong
+                        >Stock restant disponible :
+                        {{ getAvailableStockForVariantes() }} unités</strong
+                      >
                     </p>
-                  } @else {
+                  } @else if (variantes.length > 0 || (singleSelectedColor && singleSelectedSize)) {
                     <p class="variantes-stock-available">
-                      ✓ Stock disponible : <strong>{{ getAvailableStockForVariantes() }} unités</strong> sur {{ produitForm.get('stock.quantite')?.value }}
+                      ✓ Stock disponible :
+                      <strong>{{ getAvailableStockForVariantes() }} unités</strong> sur
+                      {{ produitForm.get('stock.quantite')?.value }}
                     </p>
                   }
                 </div>
 
-                @if (variantes.length === 0) {
-                  <div class="variantes-empty">
-                    <p>Sélectionnez d'abord des couleurs et des tailles pour générer les variantes.</p>
-                  </div>
-                } @else {
+                <!-- Tableau des variantes (affiché si des variantes existent OU si couleur+taille sélectionnées) -->
+                @if (variantes.length > 0 || (singleSelectedColor && singleSelectedSize)) {
                   <div class="variantes-table-wrapper">
                     <table class="variantes-table">
                       <thead>
@@ -492,26 +551,110 @@
                         </tr>
                       </thead>
                       <tbody>
+                        <!-- Ligne d'ajout de nouvelle variante -->
+                        <tr class="variantes-add-row">
+                          <td class="variante-couleur">
+                            @if (singleSelectedColor) {
+                              <span
+                                class="color-dot"
+                                [style.background]="singleSelectedColor.hex"
+                              ></span>
+                              {{ singleSelectedColor.name }}
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                          <td class="variante-taille">
+                            @if (singleSelectedSize) {
+                              <span class="size-badge">{{ singleSelectedSize }}</span>
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                          <td class="variante-stock">
+                            @if (singleSelectedColor && singleSelectedSize) {
+                              <div class="stock-stepper-mini">
+                                <button
+                                  type="button"
+                                  class="stock-btn-mini"
+                                  (click)="updateSingleStock(-1)"
+                                >
+                                  −
+                                </button>
+                                <input
+                                  type="number"
+                                  class="stock-input-mini"
+                                  [value]="singleSelectedStock"
+                                  (input)="onStockInputChange(+($any($event.target).value || 0))"
+                                  min="0"
+                                />
+                                <button
+                                  type="button"
+                                  class="stock-btn-mini"
+                                  (click)="updateSingleStock(1)"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            } @else {
+                              <span class="text-muted">Sélectionnez couleur et taille</span>
+                            }
+                          </td>
+                          <td class="variante-actions">
+                            <button
+                              type="button"
+                              class="btn btn-success btn-icon btn-sm"
+                              (click)="addVarianteManually()"
+                              [disabled]="
+                                !singleSelectedColor || !singleSelectedSize || stockExceeded
+                              "
+                              title="Ajouter cette variante"
+                            >
+                              <i class="fas fa-plus"></i>
+                            </button>
+                          </td>
+                        </tr>
+
+                        <!-- Variantes existantes -->
                         @for (variante of variantes; track variante; let i = $index) {
                           <tr class="variantes-row">
                             <td class="variante-couleur">
-                              <span class="color-dot" [style.background]="variante.couleurHex || '#ccc'"></span>
+                              <span
+                                class="color-dot"
+                                [style.background]="variante.couleurHex || '#ccc'"
+                              ></span>
                               {{ variante.couleur || '—' }}
                             </td>
                             <td class="variante-taille">
-                              <span class="size-badge">{{ variante.taille || 'Taille unique' }}</span>
+                              <span class="size-badge">{{
+                                variante.taille || 'Taille unique'
+                              }}</span>
                             </td>
                             <td class="variante-stock">
                               <div class="stock-stepper-mini">
-                                <button type="button" class="stock-btn-mini" (click)="decrementVarianteStock(i)">−</button>
+                                <button
+                                  type="button"
+                                  class="stock-btn-mini"
+                                  (click)="decrementVarianteStock(i)"
+                                >
+                                  −
+                                </button>
                                 <input
                                   type="number"
                                   class="stock-input-mini"
                                   [value]="variante.quantite"
-                                  (input)="updateVarianteQuantite(i, +($any($event.target).value || 0))"
+                                  (input)="
+                                    updateVarianteQuantite(i, +($any($event.target).value || 0))
+                                  "
                                   min="0"
                                 />
-                                <button type="button" class="stock-btn-mini" (click)="updateVarianteQuantite(i, variante.quantite + 1)">+</button>
+                                <button
+                                  type="button"
+                                  class="stock-btn-mini"
+                                  (click)="updateVarianteQuantite(i, variante.quantite + 1)"
+                                >
+                                  +
+                                </button>
                               </div>
                             </td>
                             <td class="variante-actions">
@@ -530,9 +673,11 @@
                     </table>
                   </div>
 
-                  <div class="variantes-total">
-                    <strong>Stock total : </strong> {{ getTotalStock() }} unités
-                  </div>
+                  @if (variantes.length > 0) {
+                    <div class="variantes-total">
+                      <strong>Stock total : </strong> {{ getTotalStock() }} unités
+                    </div>
+                  }
                 }
               }
             </div>
@@ -556,9 +701,7 @@
           <div class="panel-content">
             <div class="summary-grid">
               <div class="summary-block">
-                <div class="summary-block-title">
-                  <i class="fas fa-pen-to-square"></i> Identité
-                </div>
+                <div class="summary-block-title"><i class="fas fa-pen-to-square"></i> Identité</div>
                 <div class="summary-row">
                   <span>Nom</span>
                   <span class="summary-val">{{ produitForm.get('nom')?.value || '—' }}</span>
@@ -570,9 +713,7 @@
               </div>
 
               <div class="summary-block accent-amber">
-                <div class="summary-block-title">
-                  <i class="fas fa-tags"></i> Prix & Stock
-                </div>
+                <div class="summary-block-title"><i class="fas fa-tags"></i> Prix & Stock</div>
                 <div class="summary-row">
                   <span>Montant</span>
                   <span class="summary-val">
@@ -593,9 +734,7 @@
               </div>
 
               <div class="summary-block accent-green">
-                <div class="summary-block-title">
-                  <i class="fas fa-layer-group"></i> Catégories
-                </div>
+                <div class="summary-block-title"><i class="fas fa-layer-group"></i> Catégories</div>
                 <div class="summary-row">
                   <span class="summary-val">
                     {{
@@ -608,25 +747,37 @@
               </div>
 
               <div class="summary-block accent-gray">
-                <div class="summary-block-title">
-                  <i class="fas fa-palette"></i> Attributs
-                </div>
+                <div class="summary-block-title"><i class="fas fa-palette"></i> Attributs</div>
                 <div class="summary-row">
                   <span>Couleur</span>
-                  <span class="summary-val">{{ produitForm.get('attributs.couleur')?.value || '—' }}</span>
+                  <span class="summary-val">{{
+                    produitForm.get('attributs.couleur')?.value || '—'
+                  }}</span>
                 </div>
                 <div class="summary-row">
                   <span>Tailles</span>
-                  <span class="summary-val">{{ selectedSizes.length > 0 ? selectedSizes.join(', ') : '—' }}</span>
+                  <span class="summary-val">{{
+                    selectedSizes.length > 0 ? selectedSizes.join(', ') : '—'
+                  }}</span>
                 </div>
                 @if (useVariantesMode && variantes.length > 0) {
-                  <div class="summary-row" style="display: block; margin-top: 12px;">
-                    <span style="font-size: 13px; color: var(--color-gray-400); margin-bottom: 8px; display: block;">
+                  <div class="summary-row" style="display: block; margin-top: 12px">
+                    <span
+                      style="
+                        font-size: 13px;
+                        color: var(--color-gray-400);
+                        margin-bottom: 8px;
+                        display: block;
+                      "
+                    >
                       Variantes configurées :
                     </span>
                     @for (v of variantes; track v; let i = $index) {
                       <div class="variante-summary-chip">
-                        <span class="color-dot-mini" [style.background]="v.couleurHex || '#ccc'"></span>
+                        <span
+                          class="color-dot-mini"
+                          [style.background]="v.couleurHex || '#ccc'"
+                        ></span>
                         <span>{{ v.couleur || '—' }}</span>
                         <span class="size-badge-mini">{{ v.taille || 'Taille unique' }}</span>
                         <span class="stock-badge-mini">{{ v.quantite }} un.</span>
@@ -638,12 +789,12 @@
             </div>
 
             <div class="summary-notice">
-              ℹ️ En cliquant sur <strong>« Créer le produit »</strong>, celui-ci sera immédiatement publié selon le statut défini.
+              ℹ️ En cliquant sur <strong>« Créer le produit »</strong>, celui-ci sera immédiatement
+              publié selon le statut défini.
             </div>
           </div>
         </div>
       </div>
-
     </form>
 
     <!-- ================================================
@@ -675,9 +826,7 @@
         }
       </div>
     </div>
-
   </div>
-
 </div>
 
 <!-- ================================================
