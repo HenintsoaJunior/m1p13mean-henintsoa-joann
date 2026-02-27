@@ -43,6 +43,18 @@ export interface FlatCategory {
   indent: string;
 }
 
+export interface ProduitVariante {
+  couleur: string;
+  couleurHex: string;
+  taille: string;
+  quantite: number;
+}
+
+export interface ColorSelection {
+  name: string;
+  hex: string;
+}
+
 // ------------------------------------------------
 // COMPOSANT
 // ------------------------------------------------
@@ -111,12 +123,17 @@ export class ProduitCreateComponent implements OnInit {
     { name: 'Jaune', hex: '#FAB548', display: '#FAB548' },
   ];
 
-  selectedColorHex: string | null = null;
+  selectedColors: ColorSelection[] = []; // Multi-sélection de couleurs
 
   // ── Tailles ──────────────────────────────────
   sizePresets: string[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   selectedSizes: string[] = [];
   customSizeInput = '';
+
+  // ── Variantes (combinaisons couleur + taille + stock) ──────────────────────────────────
+  variantes: ProduitVariante[] = [];
+  useVariantesMode = false; // true = mode variantes activé
+  stockExceeded = false; // true si le total des variantes dépasse le stock global
 
   // ── Images ───────────────────────────────────
   imagePreviews: string[] = [];
@@ -140,6 +157,7 @@ export class ProduitCreateComponent implements OnInit {
       stock: this.formBuilder.group({
         quantite: [0, [Validators.required, Validators.min(0)]],
       }),
+      variantes: this.formBuilder.array([]),
       images: [[]],
       attributs: this.formBuilder.group({
         couleur: [''],
@@ -384,6 +402,9 @@ export class ProduitCreateComponent implements OnInit {
     const current = this.produitForm.get('stock.quantite')?.value || 0;
     const newValue = Math.max(0, current + delta);
     this.produitForm.get('stock.quantite')?.setValue(newValue);
+    if (this.useVariantesMode) {
+      this.checkStockExceeded();
+    }
   }
 
   selectStatus(status: string) {
@@ -392,20 +413,68 @@ export class ProduitCreateComponent implements OnInit {
   }
 
   // ── Couleurs ─────────────────────────────────
+  isColorSelected(hex: string): boolean {
+    return this.selectedColors.some(c => c.hex === hex);
+  }
+
+  toggleColor(hex: string, name: string) {
+    const index = this.selectedColors.findIndex(c => c.hex === hex);
+    if (index > -1) {
+      this.selectedColors.splice(index, 1);
+    } else {
+      this.selectedColors.push({ name, hex });
+    }
+    this.produitForm.get('attributs.couleur')?.setValue(
+      this.selectedColors.map(c => c.name).join(', ')
+    );
+    this.generateVariantes();
+  }
+
   selectColor(hex: string, name: string) {
-    this.selectedColorHex = hex;
-    this.produitForm.get('attributs.couleur')?.setValue(name);
+    if (!this.isColorSelected(hex)) {
+      this.selectedColors.push({ name, hex });
+      this.produitForm.get('attributs.couleur')?.setValue(
+        this.selectedColors.map(c => c.name).join(', ')
+      );
+      this.generateVariantes();
+    }
+  }
+
+  removeColor(hex: string) {
+    const index = this.selectedColors.findIndex(c => c.hex === hex);
+    if (index > -1) {
+      this.selectedColors.splice(index, 1);
+      this.produitForm.get('attributs.couleur')?.setValue(
+        this.selectedColors.map(c => c.name).join(', ')
+      );
+      this.generateVariantes();
+    }
   }
 
   updateColorFromText(value: string) {
+    // Pour la saisie manuelle, on garde une couleur personnalisée
     if (value.startsWith('#')) {
-      this.selectedColorHex = value;
+      const customColor = { name: 'Personnalisée', hex: value };
+      if (!this.selectedColors.some(c => c.hex === value)) {
+        this.selectedColors.push(customColor);
+        this.produitForm.get('attributs.couleur')?.setValue(
+          this.selectedColors.map(c => c.name).join(', ')
+        );
+        this.generateVariantes();
+      }
     }
   }
 
   updateColorFromPicker(value: string) {
-    this.selectedColorHex = value;
-    this.produitForm.get('attributs.couleur')?.setValue(value);
+    // Pour le picker, on ajoute la couleur si elle n'existe pas
+    const colorName = this.colorPresets.find(c => c.hex === value)?.name || 'Personnalisée';
+    if (!this.selectedColors.some(c => c.hex === value)) {
+      this.selectedColors.push({ name: colorName, hex: value });
+      this.produitForm.get('attributs.couleur')?.setValue(
+        this.selectedColors.map(c => c.name).join(', ')
+      );
+      this.generateVariantes();
+    }
   }
 
   // ── Tailles ──────────────────────────────────
@@ -445,6 +514,118 @@ export class ProduitCreateComponent implements OnInit {
 
   updateTaillesForm() {
     this.produitForm.get('attributs.taille')?.setValue(this.selectedSizes);
+    this.generateVariantes();
+  }
+
+  // ── Variantes (combinaisons couleur + taille + stock) ──────────────────────────────────
+  
+  toggleVariantesMode() {
+    this.useVariantesMode = !this.useVariantesMode;
+    if (this.useVariantesMode) {
+      this.generateVariantes();
+    }
+  }
+
+  generateVariantes() {
+    if (!this.useVariantesMode) return;
+
+    // Si pas de couleurs/tailles sélectionnées, on vide les variantes
+    if (this.selectedColors.length === 0 && this.selectedSizes.length === 0) {
+      this.variantes = [];
+      this.updateVariantesFormArray();
+      this.checkStockExceeded();
+      return;
+    }
+
+    const newVariantes: ProduitVariante[] = [];
+
+    // Générer toutes les combinaisons couleurs x tailles
+    const couleurs = this.selectedColors.length > 0 ? this.selectedColors : [{ name: '', hex: '' }];
+    const tailles = this.selectedSizes.length > 0 ? this.selectedSizes : [''];
+
+    for (const couleur of couleurs) {
+      for (const taille of tailles) {
+        // Chercher si la variante existe déjà
+        const existingVariante = this.variantes.find(
+          v => v.couleur === couleur.name && v.taille === taille
+        );
+        
+        newVariantes.push({
+          couleur: couleur.name,
+          couleurHex: couleur.hex,
+          taille: taille,
+          quantite: existingVariante ? existingVariante.quantite : 0,
+        });
+      }
+    }
+
+    this.variantes = newVariantes;
+    this.updateVariantesFormArray();
+    this.checkStockExceeded();
+  }
+
+  updateVariantesFormArray() {
+    const formArray = this.produitForm.get('variantes') as any;
+    formArray.clear();
+    
+    for (const variante of this.variantes) {
+      formArray.push(
+        this.formBuilder.group({
+          couleur: [variante.couleur],
+          couleurHex: [variante.couleurHex],
+          taille: [variante.taille],
+          quantite: [variante.quantite, [Validators.min(0)]],
+        })
+      );
+    }
+  }
+
+  updateVarianteQuantite(index: number, quantite: number) {
+    if (index >= 0 && index < this.variantes.length) {
+      const newQuantite = Math.max(0, quantite);
+      this.variantes[index].quantite = newQuantite;
+      const formArray = this.produitForm.get('variantes') as any;
+      formArray.at(index)?.get('quantite')?.setValue(newQuantite);
+      this.checkStockExceeded();
+    }
+  }
+
+  decrementVarianteStock(index: number) {
+    if (index >= 0 && index < this.variantes.length) {
+      const newQuantite = Math.max(0, this.variantes[index].quantite - 1);
+      this.updateVarianteQuantite(index, newQuantite);
+    }
+  }
+
+  checkStockExceeded() {
+    if (!this.useVariantesMode || this.variantes.length === 0) {
+      this.stockExceeded = false;
+      return;
+    }
+    const globalStock = this.produitForm.get('stock.quantite')?.value || 0;
+    const totalVariantes = this.getTotalStock();
+    this.stockExceeded = totalVariantes > globalStock;
+  }
+
+  getAvailableStockForVariantes(): number {
+    const globalStock = this.produitForm.get('stock.quantite')?.value || 0;
+    const currentTotal = this.getTotalStock();
+    return globalStock - currentTotal;
+  }
+
+  removeVariante(index: number) {
+    if (index >= 0 && index < this.variantes.length) {
+      this.variantes.splice(index, 1);
+      this.updateVariantesFormArray();
+      this.checkStockExceeded();
+    }
+  }
+
+  getTotalStock(): number {
+    if (this.useVariantesMode && this.variantes.length > 0) {
+      return this.variantes.reduce((total, v) => total + v.quantite, 0);
+    }
+    return this.produitForm.get('stock.quantite')?.value || 0;
   }
 
   // ── Images ───────────────────────────────────
@@ -513,8 +694,22 @@ export class ProduitCreateComponent implements OnInit {
 
   onSubmit() {
     if (this.produitForm.valid) {
+      // Vérifier si le stock des variantes dépasse le stock global
+      if (this.useVariantesMode && this.stockExceeded) {
+        this.toastService.showError(
+          `Le total des variantes (${this.getTotalStock()}) dépasse le stock global (${this.produitForm.get('stock.quantite')?.value}). Veuillez corriger.`
+        );
+        return;
+      }
+
       this.isSubmitting = true;
       const produitData = this.produitForm.value;
+
+      // Si le mode variantes est activé, mettre à jour le stock global avec le total
+      if (this.useVariantesMode && this.variantes.length > 0) {
+        produitData.stock.quantite = this.getTotalStock();
+        produitData.variantes = this.variantes;
+      }
 
       this.produitService.createProduit(produitData).subscribe({
         next: () => {
