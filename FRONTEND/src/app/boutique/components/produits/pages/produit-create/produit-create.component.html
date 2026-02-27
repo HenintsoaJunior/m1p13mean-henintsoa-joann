@@ -1,0 +1,421 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a [routerLink]="['/boutique/produits']" class="breadcrumb-link">
+        <i class="fas fa-arrow-left"></i>
+        Retour à la liste
+      </a>
+    </div>
+    <h1 class="page-title">Nouveau Produit</h1>
+  </div>
+
+  <div class="form-card">
+    <form [formGroup]="produitForm" (ngSubmit)="onSubmit()" class="form">
+      <!-- Section: Informations de base -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <i class="fas fa-info-circle"></i>
+          Informations de base
+        </h2>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="nom">Nom du produit <span class="required">*</span></label>
+            <input
+              type="text"
+              id="nom"
+              formControlName="nom"
+              (blur)="generateSlug()"
+              class="form-control"
+              placeholder="Ex: Basket Nike Air"
+            />
+            <div
+              *ngIf="produitForm.get('nom')?.errors && produitForm.get('nom')?.touched"
+              class="error-message"
+            >
+              Le nom est requis
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="slug">Slug (URL) <span class="required">*</span></label>
+            <input
+              type="text"
+              id="slug"
+              formControlName="slug"
+              class="form-control"
+              placeholder="basket-nike-air"
+            />
+            <small class="form-hint">Généré automatiquement à partir du nom</small>
+            <div
+              *ngIf="produitForm.get('slug')?.errors && produitForm.get('slug')?.touched"
+              class="error-message"
+            >
+              Format invalide (minuscules et tirets uniquement)
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="description">Description</label>
+            <textarea
+              id="description"
+              formControlName="description"
+              rows="4"
+              class="form-control"
+              placeholder="Description détaillée du produit..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Catégorie -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <i class="fas fa-folder"></i>
+          Catégories
+        </h2>
+        
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label for="idCategorie">Catégories <span class="required">*</span></label>
+            <div class="categorie-multi-select-container">
+              <div 
+                class="categorie-select-display" 
+                (click)="toggleCategoryDropdown()"
+                [class.open]="showCategoryDropdown"
+              >
+                <span class="selected-text" [class.placeholder]="getSelectedCount() === 0">
+                  {{ getSelectedCategoriesNames() }}
+                </span>
+                <span class="count-badge" *ngIf="getSelectedCount() > 0">
+                  {{ getSelectedCount() }}
+                </span>
+                <i class="fas" [class.fa-chevron-down]="!showCategoryDropdown" [class.fa-chevron-up]="showCategoryDropdown"></i>
+              </div>
+              <button
+                type="button"
+                (click)="openCategorieModal()"
+                class="btn btn-sm btn-primary categorie-add-btn"
+                title="Ajouter une nouvelle catégorie"
+              >
+                <i class="fas fa-plus"></i>
+              </button>
+            </div>
+            
+            <!-- Dropdown avec checkboxes -->
+            <div class="categorie-dropdown" *ngIf="showCategoryDropdown">
+              <div class="categorie-dropdown-content">
+                @for (item of getFlattenedCategories(); track item.cat._id) {
+                  <div 
+                    class="categorie-item" 
+                    [style.paddingLeft]="(item.level * 20 + 12) + 'px'"
+                    (click)="toggleCategorySelection(item.cat._id!)"
+                  >
+                    <label class="checkbox-label">
+                      <input 
+                        type="checkbox" 
+                        [checked]="isCategorySelected(item.cat._id!)"
+                        (click)="$event.stopPropagation()"
+                      />
+                      <span class="checkbox-custom"></span>
+                      <span class="categorie-icon">
+                        @if (item.level === 0) {
+                          📁
+                        } @else {
+                          📂
+                        }
+                      </span>
+                      <span class="categorie-name">{{ item.cat.nom }}</span>
+                    </label>
+                  </div>
+                }
+              </div>
+            </div>
+            
+            <small class="form-hint">Sélectionnez une ou plusieurs catégories (racine ou sous-catégories)</small>
+            <div
+              *ngIf="produitForm.get('idCategorie')?.invalid && produitForm.get('idCategorie')?.touched"
+              class="error-message"
+            >
+              Au moins une catégorie est requise
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Prix et Stock -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <i class="fas fa-tag"></i>
+          Prix et Stock
+        </h2>
+        
+        <div class="form-grid">
+          <div class="form-group" formGroupName="prix">
+            <label for="devise">Devise <span class="required">*</span></label>
+            <select id="devise" formControlName="devise" class="form-control">
+              <option value="EUR">EUR (€)</option>
+              <option value="USD">USD ($)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="MGA">MGA (Ar)</option>
+            </select>
+          </div>
+
+          <div class="form-group" formGroupName="prix">
+            <label for="montant">Montant <span class="required">*</span></label>
+            <input
+              type="number"
+              id="montant"
+              formControlName="montant"
+              step="0.01"
+              min="0"
+              class="form-control"
+              placeholder="0.00"
+            />
+          </div>
+
+          <div class="form-group" formGroupName="stock">
+            <label for="quantite">Quantité en stock <span class="required">*</span></label>
+            <input
+              type="number"
+              id="quantite"
+              formControlName="quantite"
+              min="0"
+              class="form-control"
+              placeholder="0"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Attributs -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <i class="fas fa-sliders-h"></i>
+          Attributs
+        </h2>
+        
+        <div class="form-grid" formGroupName="attributs">
+          <div class="form-group">
+            <label for="couleur">Couleur</label>
+            <input
+              type="text"
+              id="couleur"
+              formControlName="couleur"
+              class="form-control"
+              placeholder="Ex: noir"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="marque">Marque</label>
+            <input
+              type="text"
+              id="marque"
+              formControlName="marque"
+              class="form-control"
+              placeholder="Ex: Nike"
+            />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Tailles disponibles</label>
+            <div class="tailles-list">
+              @for (
+                taille of produitForm.get('attributs.taille')?.value;
+                track taille;
+                let i = $index
+              ) {
+                <div class="taille-item">
+                  <input
+                    type="text"
+                    [value]="taille"
+                    (input)="
+                      produitForm.get('attributs.taille')?.value[i] = $any($event.target).value
+                    "
+                    class="form-control"
+                    placeholder="Ex: 40"
+                  />
+                  <button type="button" (click)="removeTaille(i)" class="btn-icon btn-delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              }
+              <button
+                type="button"
+                (click)="addTaille()"
+                class="btn btn-success btn-sm"
+              >
+                <i class="fas fa-plus"></i>
+                Ajouter une taille
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Images -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <i class="fas fa-images"></i>
+          Images
+        </h2>
+        
+        <div class="form-group">
+          <label>URL des images</label>
+          <div class="images-list">
+            @for (image of produitForm.get('images')?.value; track image; let i = $index) {
+              <div class="image-item">
+                <input
+                  type="url"
+                  [value]="image"
+                  (input)="produitForm.get('images')?.value[i] = $any($event.target).value"
+                  class="form-control"
+                  placeholder="https://exemple.com/image.jpg"
+                />
+                <button type="button" (click)="removeImageUrl(i)" class="btn-icon btn-delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            }
+            <button
+              type="button"
+              (click)="addImageUrl()"
+              class="btn btn-success btn-sm"
+            >
+              <i class="fas fa-plus"></i>
+              Ajouter une image
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Statut -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <i class="fas fa-toggle-on"></i>
+          Statut
+        </h2>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="statut">Statut du produit</label>
+            <select id="statut" formControlName="statut" class="form-control">
+              <option value="actif">Actif</option>
+              <option value="rupture_stock">Rupture de stock</option>
+              <option value="archive">Archivé</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">
+          <i class="fas fa-times"></i>
+          Annuler
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="produitForm.invalid || isSubmitting"
+        >
+          <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin"></i>
+          {{ isSubmitting ? 'Création en cours...' : 'Créer le produit' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal pour créer une nouvelle catégorie -->
+<div *ngIf="showCategorieModal" class="modal-overlay" (click)="closeCategorieModal()">
+  <div class="modal-content modal-content-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Nouvelle Catégorie</h2>
+      <button class="btn-close" (click)="closeCategorieModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="categorieForm" (ngSubmit)="onCreateCategorieSubmit()" class="form">
+        <div class="form-group">
+          <label for="categorie-nom">Nom <span class="required">*</span></label>
+          <input
+            type="text"
+            id="categorie-nom"
+            formControlName="nom"
+            (blur)="generateCategorieSlug()"
+            class="form-control"
+            placeholder="Ex: Chaussures"
+          />
+          <div
+            *ngIf="categorieForm.get('nom')?.errors && categorieForm.get('nom')?.touched"
+            class="error-message"
+          >
+            Le nom est requis
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="categorie-slug">Slug (URL) <span class="required">*</span></label>
+          <input
+            type="text"
+            id="categorie-slug"
+            formControlName="slug"
+            class="form-control"
+            placeholder="chaussures"
+          />
+          <small class="form-hint">Généré automatiquement à partir du nom</small>
+          <div
+            *ngIf="categorieForm.get('slug')?.errors && categorieForm.get('slug')?.touched"
+            class="error-message"
+          >
+            Format invalide (minuscules et tirets uniquement)
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="categorie-parent">Catégorie parent (optionnel)</label>
+          <select id="categorie-parent" formControlName="idCategorieParent" class="form-control">
+            <option value="">Aucune (catégorie racine)</option>
+            @for (item of getFlattenedCategories(); track item.cat._id) {
+              <option [value]="item.cat._id">
+                {{ item.indent }}
+                @if (item.level === 0) {
+                  📁
+                } @else {
+                  📂
+                }
+                {{ item.cat.nom }}
+              </option>
+            }
+          </select>
+          <small class="form-hint">Laissez vide pour une catégorie racine</small>
+        </div>
+
+        <div class="form-group">
+          <label for="categorie-description">Description</label>
+          <textarea
+            id="categorie-description"
+            formControlName="description"
+            rows="3"
+            class="form-control"
+            placeholder="Description de la catégorie..."
+          ></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeCategorieModal()">Annuler</button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="categorieForm.invalid || isCreatingCategorie"
+          >
+            <i *ngIf="isCreatingCategorie" class="fas fa-spinner fa-spin"></i>
+            {{ isCreatingCategorie ? 'En cours...' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

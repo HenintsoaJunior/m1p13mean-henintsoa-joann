@@ -171,3 +171,61 @@
     margin-bottom: 20px;
   }
 }
+
+/* ─── Catégorie Select avec hiérarchie ─── */
+.categorie-select {
+  option {
+    padding-left: 8px;
+  }
+  
+  // Indentation visuelle pour les catégories enfants
+  option[value] {
+    &:nth-child(odd) {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+  }
+}
+
+.categorie-select-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+
+  .categorie-select {
+    flex: 1;
+  }
+
+  .categorie-add-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+    white-space: nowrap;
+    align-self: stretch;
+    
+    i {
+      font-size: 14px;
+    }
+  }
+}
+
+// Style pour afficher la hiérarchie des catégories dans le modal
+.form-group {
+  .categorie-hierarchy {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    
+    .category-icon {
+      font-size: 14px;
+    }
+    
+    .category-name {
+      flex: 1;
+    }
+  }
+}
+
+// Modal de catégorie plus petit
+.modal-content-sm {
+  max-width: 500px;
+}

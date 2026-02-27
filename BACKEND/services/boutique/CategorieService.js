@@ -1,4 +1,5 @@
 const CategorieRepository = require("../../repositories/boutique/CategorieRepository");
+const Categorie = require("../../models/boutique/Categorie");
 
 class CategorieService {
   constructor() {
@@ -6,21 +7,12 @@ class CategorieService {
   }
 
   /**
-   * Service pour la logique métier des catégories
-   * Pure logique métier, indépendant de la base de données
-   */
-
-  /**
-   * Créer une nouvelle catégorie
-   * @param {Object} donneesCategorie - Données de la catégorie
-   * @returns {Promise<Object>} Résultat de la création
+   * Créer une nouvelle catégorie (globale)
    */
   async creerCategorie(donneesCategorie) {
-    const { idBoutique, nom, slug, description, idCategorieParent, urlImage } = donneesCategorie;
+    const { nom, slug, description, idCategorieParent, urlImage } = donneesCategorie;
 
-    // Nettoyage et validation des données
     const donneesNettoyees = this.nettoyerDonneesCategorie({
-      idBoutique,
       nom,
       slug,
       description,
@@ -28,10 +20,9 @@ class CategorieService {
       urlImage,
     });
 
-    // Vérification de l'unicité du slug
-    await this.verifierSlugUnique(donneesNettoyees.slug, donneesNettoyees.idBoutique);
+    // Vérification de l'unicité du slug (global)
+    await this.verifierSlugUniqueGlobal(donneesNettoyees.slug);
 
-    // Création de la catégorie
     const nouvelleCategorie = await this.categorieRepository.creer(donneesNettoyees);
 
     return {
@@ -42,31 +33,22 @@ class CategorieService {
 
   /**
    * Mettre à jour une catégorie
-   * @param {string} categorieId - ID de la catégorie
-   * @param {Object} nouvellesDonnees - Nouvelles données
-   * @returns {Promise<Object>} Catégorie mise à jour
    */
   async mettreAJourCategorie(categorieId, nouvellesDonnees) {
-    // Récupération de la catégorie
     const categorie = await this.categorieRepository.trouverParId(categorieId);
     if (!categorie) {
       throw new Error("Catégorie non trouvée");
     }
 
-    // Nettoyage et validation des données
     const donneesNettoyees = this.nettoyerDonneesCategorie(nouvellesDonnees);
 
-    // Vérification du slug si modifié
     if (donneesNettoyees.slug && donneesNettoyees.slug !== categorie.slug) {
-      if (await this.categorieRepository.slugExiste(donneesNettoyees.slug, categorie.idBoutique, categorie._id)) {
-        throw new Error("Une catégorie avec ce slug existe déjà dans cette boutique");
+      if (await this.categorieRepository.slugExisteGlobal(donneesNettoyees.slug, categorie._id)) {
+        throw new Error("Une catégorie avec ce slug existe déjà");
       }
     }
 
-    // Application des modifications
     this.appliquerModificationsCategorie(categorie, donneesNettoyees);
-
-    // Sauvegarde
     const categorieMiseAJour = await this.categorieRepository.mettreAJour(categorie);
 
     return {
@@ -77,8 +59,6 @@ class CategorieService {
 
   /**
    * Supprimer une catégorie
-   * @param {string} categorieId - ID de la catégorie
-   * @returns {Promise<Object>} Résultat de la suppression
    */
   async supprimerCategorie(categorieId) {
     const categorie = await this.categorieRepository.trouverParId(categorieId);
@@ -86,7 +66,6 @@ class CategorieService {
       throw new Error("Catégorie non trouvée");
     }
 
-    // Vérifier qu'il n'y a pas de catégories enfants
     const enfants = await this.categorieRepository.trouverEnfants(categorieId);
     if (enfants.length > 0) {
       throw new Error("Impossible de supprimer une catégorie qui a des sous-catégories");
@@ -101,8 +80,6 @@ class CategorieService {
 
   /**
    * Obtenir une catégorie par ID
-   * @param {string} categorieId - ID de la catégorie
-   * @returns {Promise<Object>} Catégorie trouvée
    */
   async obtenirCategorieParId(categorieId) {
     const categorie = await this.categorieRepository.trouverParId(categorieId);
@@ -114,8 +91,6 @@ class CategorieService {
 
   /**
    * Obtenir une catégorie par slug
-   * @param {string} slug - Slug de la catégorie
-   * @returns {Promise<Object>} Catégorie trouvée
    */
   async obtenirCategorieParSlug(slug) {
     const categorie = await this.categorieRepository.trouverParSlug(slug);
@@ -126,19 +101,15 @@ class CategorieService {
   }
 
   /**
-   * Obtenir toutes les catégories d'une boutique
-   * @param {string} idBoutique - ID de la boutique
-   * @returns {Promise<Array>} Liste des catégories
+   * Obtenir toutes les catégories (référentiel global)
    */
-  async obtenirCategoriesParBoutique(idBoutique) {
-    const categories = await this.categorieRepository.trouverParBoutique(idBoutique);
+  async obtenirToutesCategories() {
+    const categories = await this.categorieRepository.trouverToutes();
     return categories.map(c => c.toJSON());
   }
 
   /**
    * Obtenir les catégories enfants d'une catégorie parent
-   * @param {string} idCategorieParent - ID de la catégorie parent
-   * @returns {Promise<Array>} Liste des catégories enfants
    */
   async obtenirCategoriesEnfants(idCategorieParent) {
     const categories = await this.categorieRepository.trouverEnfants(idCategorieParent);
@@ -146,64 +117,40 @@ class CategorieService {
   }
 
   /**
-   * Obtenir l'arbre complet des catégories d'une boutique
-   * @param {string} idBoutique - ID de la boutique
-   * @returns {Promise<Array>} Arbre des catégories
+   * Obtenir l'arbre complet des catégories (global)
    */
-  async obtenirArbreCategories(idBoutique) {
-    const Categorie = require("../../models/boutique/Categorie");
-    return await Categorie.buildCategoryTree(idBoutique);
+  async obtenirArbreCategoriesGlobal() {
+    return await Categorie.buildCategoryTreeGlobal();
   }
 
   /**
-   * Obtenir les catégories avec leur hiérarchie (niveau et chemin)
-   * @param {string} idBoutique - ID de la boutique
-   * @returns {Promise<Array>} Catégories avec hiérarchie
+   * Obtenir les catégories avec leur hiérarchie (global)
    */
-  async obtenirCategoriesAvecHierarchie(idBoutique) {
-    const Categorie = require("../../models/boutique/Categorie");
-    return await Categorie.getCategoriesWithHierarchy(idBoutique);
+  async obtenirCategoriesAvecHierarchieGlobal() {
+    return await Categorie.getCategoriesWithHierarchyGlobal();
   }
 
   /**
    * Obtenir une liste paginée de catégories
-   * @param {Object} filtres - Filtres de recherche
-   * @param {Object} pagination - Options de pagination
-   * @returns {Promise<Object>} Liste paginée des catégories
    */
-  async obtenirListeCategories(filtres, pagination) {
+  async obtenirListeCategories(filtres = {}, pagination = {}) {
     const filtresValides = this.validerFiltresListe(filtres);
     const paginationValide = this.validerPagination(pagination);
 
     return await this.categorieRepository.obtenirListeAvecPagination(filtresValides, paginationValide);
   }
 
-  // ========== MÉTHODES PRIVÉES DE VALIDATION ==========
+  // ========== MÉTHODES PRIVÉES ==========
 
-  /**
-   * Vérifier l'unicité du slug
-   * @param {string} slug - Slug à vérifier
-   * @param {string} idBoutique - ID de la boutique
-   * @private
-   */
-  async verifierSlugUnique(slug, idBoutique) {
-    if (await this.categorieRepository.slugExiste(slug, idBoutique)) {
-      throw new Error("Une catégorie avec ce slug existe déjà dans cette boutique");
+  async verifierSlugUniqueGlobal(slug) {
+    if (await this.categorieRepository.slugExisteGlobal(slug)) {
+      throw new Error("Une catégorie avec ce slug existe déjà");
     }
   }
 
-  /**
-   * Nettoyer les données de catégorie
-   * @param {Object} donnees - Données brutes
-   * @returns {Object} Données nettoyées
-   * @private
-   */
   nettoyerDonneesCategorie(donnees) {
     const nettoyees = {};
 
-    if (donnees.idBoutique) {
-      nettoyees.idBoutique = donnees.idBoutique;
-    }
     if (donnees.nom) {
       nettoyees.nom = donnees.nom.trim();
     }
@@ -223,12 +170,6 @@ class CategorieService {
     return nettoyees;
   }
 
-  /**
-   * Appliquer les modifications à une catégorie
-   * @param {Object} categorie - Instance catégorie
-   * @param {Object} donnees - Nouvelles données
-   * @private
-   */
   appliquerModificationsCategorie(categorie, donnees) {
     Object.keys(donnees).forEach((cle) => {
       if (donnees[cle] !== undefined) {
@@ -237,31 +178,14 @@ class CategorieService {
     });
   }
 
-  /**
-   * Valider les filtres de liste
-   * @param {Object} filtres - Filtres à valider
-   * @returns {Object} Filtres validés
-   * @private
-   */
   validerFiltresListe(filtres = {}) {
     const filtresValides = {};
-
-    if (filtres.idBoutique) {
-      filtresValides.idBoutique = filtres.idBoutique;
-    }
     if (filtres.idCategorieParent !== undefined) {
       filtresValides.idCategorieParent = filtres.idCategorieParent;
     }
-
     return filtresValides;
   }
 
-  /**
-   * Valider la pagination
-   * @param {Object} pagination - Pagination à valider
-   * @returns {Object} Pagination validée
-   * @private
-   */
   validerPagination(pagination = {}) {
     return {
       page: Math.max(1, parseInt(pagination.page) || 1),
