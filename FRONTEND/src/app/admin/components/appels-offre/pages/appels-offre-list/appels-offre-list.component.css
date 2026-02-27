@@ -1,0 +1,29 @@
+.appels-page { padding: 1rem; }
+.appels-page h2 { margin-bottom: 1rem; }
+.btn-primary, .btn-success, .btn-danger { padding: 0.5rem 1rem; margin: 0.5rem 0.5rem 0.5rem 0; border: none; border-radius: 4px; cursor: pointer; }
+.btn-primary { background: #007bff; color: white; }
+.btn-success { background: #28a745; color: white; }
+.btn-danger { background: #dc3545; color: white; font-size: 0.85rem; padding: 0.25rem 0.5rem; }
+.btn-reset { background: #999; color: white; padding: 0.5rem 0.75rem; font-size: 0.9rem; border: none; border-radius: 4px; cursor: pointer; }
+.btn-reset:hover { background: #777; }
+.form-section { border: 1px solid #ddd; padding: 1rem; margin-bottom: 1.5rem; background: #f9f9f9; border-radius: 4px; }
+.form-group { margin-bottom: 0.75rem; }
+.form-group label { display: block; font-weight: bold; margin-bottom: 0.25rem; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+.list-section { margin-top: 1.5rem; }
+.list-section h3 { margin-bottom: 1rem; }
+.filter-section { background: #f0f8ff; border: 1px solid #b0d4ff; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px; }
+.filter-group { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+.filter-input { flex: 1; min-width: 250px; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+.filter-select { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; min-width: 150px; }
+table { width: 100%; border-collapse: collapse; }
+table th, table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
+table th { background: #f0f0f0; font-weight: bold; }
+table tr:hover { background: #f9f9f9; }
+.desc { max-width: 300px; word-break: break-word; }
+.statut-ouvert { background: #e7f3ff; color: #0066cc; padding: 2px 6px; border-radius: 3px; }
+.statut-ferme { background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 3px; }
+.statut-attribue { background: #d4edda; color: #155724; padding: 2px 6px; border-radius: 3px; }
+.link { color: #007bff; text-decoration: none; cursor: pointer; }
+.link:hover { text-decoration: underline; }
+.notice { padding: 1rem; background: #f0f0f0; border-radius: 4px; text-align: center; }
