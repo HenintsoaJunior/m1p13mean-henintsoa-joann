@@ -33,6 +33,8 @@ app.use("/api/boutique", require("./routes/boutique"));
 app.use("/api/boutique/categories", require("./routes/boutique/categories"));
 app.use("/api/boutique/produits", require("./routes/boutique/produits"));
 app.use("/api/client", require("./routes/client"));
+// Routes pour les réponses aux appels d'offre (création par boutiques, actions admin)
+app.use("/api/reponses-appel-offre", require("./routes/reponsesAppelOffre"));
 
 // Routes publiques pour le plan-centre
 const centreController = require("./controllers/admin/CentreController");
