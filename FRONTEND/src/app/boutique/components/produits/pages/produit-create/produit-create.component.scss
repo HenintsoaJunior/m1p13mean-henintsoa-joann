@@ -827,10 +827,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-content: flex-start;
 }
 
 .color-text-input {
-  flex: 1;
+  width: 150px;
+  flex-shrink: 0;
 }
 
 .color-preview-circle {
@@ -842,12 +844,13 @@
 }
 
 .color-native {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1.5px solid var(--border-primary);
   cursor: pointer;
   background: none;
+  flex-shrink: 0;
 }
 
 .color-selected-label {
