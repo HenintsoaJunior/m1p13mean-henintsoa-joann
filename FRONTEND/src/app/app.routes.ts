@@ -32,6 +32,10 @@ import { ProduitCreateComponent } from './boutique/components/produits/pages/pro
 // Boutique components - Categories
 import { CategorieListComponent } from './boutique/components/categories/pages/categorie-list/categorie-list.component';
 
+// Admin components - Appels d'offre
+import { AppelsOffreListComponent } from './admin/components/appels-offre/pages/appels-offre-list/appels-offre-list.component';
+import { ReponsesComponent } from './admin/components/appels-offre/pages/reponses/reponses.component';
+
 export const routes: Routes = [
   { path: '', component: LandingComponent }, // Default landing page
   {
@@ -69,6 +73,8 @@ export const routes: Routes = [
       { path: 'centres', component: CentresListComponent },
       { path: 'utilisateurs', component: ListUtilisateurComponent },
       { path: 'activity-history', component: ActivityHistoryComponent },
+      { path: 'appels', component: AppelsOffreListComponent },
+      { path: 'appels/:id/reponses', component: ReponsesComponent },
     ],
   },
   // Add routes for boutique and client dashboards

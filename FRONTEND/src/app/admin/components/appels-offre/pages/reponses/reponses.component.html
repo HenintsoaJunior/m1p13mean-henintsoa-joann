@@ -1,0 +1,35 @@
+<div class="reponses-page">
+  <h2>Réponses - Appel d'offre</h2>
+
+  <div *ngIf="!appelId" class="notice">Aucun appel d'offre spécifié dans la route.</div>
+
+  <div *ngIf="appelId">
+    <section class="create">
+      <h3>Soumettre une réponse</h3>
+      <label>Montant proposé</label>
+      <input type="number" [(ngModel)]="montant" />
+      <label>Message</label>
+      <textarea [(ngModel)]="message" rows="4"></textarea>
+      <button (click)="submit()">Envoyer la réponse</button>
+    </section>
+
+    <section class="list">
+      <h3>Liste des réponses</h3>
+      <div *ngIf="loading">Chargement...</div>
+      <ul>
+        <li *ngFor="let r of reponses">
+          <div class="meta">
+            <strong>{{ r.montant_propose ? (r.montant_propose | number:'1.0-0') + ' €' : '—' }}</strong>
+            <span class="statut">{{ r.statut }}</span>
+            <small>{{ r.cree_le | date:'short' }}</small>
+          </div>
+          <p class="msg">{{ r.message }}</p>
+          <div class="actions">
+            <button *ngIf="r.statut === 'propose'" (click)="accept(r._id)">Accepter</button>
+            <button *ngIf="r.statut === 'propose'" (click)="refuse(r._id)">Refuser</button>
+          </div>
+        </li>
+      </ul>
+    </section>
+  </div>
+</div>
