@@ -343,46 +343,51 @@
           <div class="panel-content">
             <!-- COULEURS -->
             <div class="attribute-section">
-              <h4 class="attribute-title">Couleur principale</h4>
+              <h4 class="attribute-title">Couleurs disponibles</h4>
               <div class="color-picker-block" formGroupName="attributs">
                 <div class="color-presets">
                   @for (c of colorPresets; track c.hex) {
                     <div
                       class="color-swatch"
-                      [class.selected]="selectedColorHex === c.hex"
+                      [class.selected]="isColorSelected(c.hex)"
                       [style.background]="c.display"
-                      [title]="c.name"
-                      (click)="selectColor(c.hex, c.name)"
+                      [title]="c.name + ' - Cliquer pour sélectionner'"
+                      (click)="toggleColor(c.hex, c.name)"
                     ></div>
                   }
                 </div>
 
                 <div class="color-custom-row">
-                  <div class="color-preview-circle" [style.background]="selectedColorHex || '#e5e7eb'"></div>
                   <input
                     type="text"
                     class="form-input color-text-input"
-                    formControlName="couleur"
                     placeholder="#000000 ou 'noir'"
-                    (input)="updateColorFromText($any($event.target).value)"
+                    (blur)="updateColorFromText($any($event.target).value)"
                   />
                   <input
                     type="color"
                     class="color-native"
-                    [value]="selectedColorHex || '#000000'"
+                    value="#000000"
                     (change)="updateColorFromPicker($any($event.target).value)"
-                    title="Couleur personnalisée"
+                    title="Ajouter une couleur personnalisée"
                   />
                 </div>
 
-                <small class="form-hint">
-                  @if (selectedColorHex) {
-                    <span class="color-dot" [style.background]="selectedColorHex"></span>
-                    {{ produitForm.get('attributs.couleur')?.value }}
-                  } @else {
-                    Aucune couleur sélectionnée
-                  }
-                </small>
+                @if (selectedColors.length > 0) {
+                  <div class="selected-colors-chips">
+                    @for (c of selectedColors; track c.hex) {
+                      <span class="color-chip">
+                        <span class="color-dot" [style.background]="c.hex"></span>
+                        {{ c.name }}
+                        <span class="color-chip-remove" (click)="removeColor(c.hex)">×</span>
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <small class="form-hint">
+                    Sélectionnez une ou plusieurs couleurs pour générer les variantes
+                  </small>
+                }
               </div>
             </div>
 
@@ -435,6 +440,102 @@
                 />
               </div>
             </div>
+
+            <!-- VARIANTES PAR COULEUR/TAILLE -->
+            <div class="attribute-section">
+              <div class="variantes-header">
+                <h4 class="attribute-title">
+                  <i class="fas fa-boxes"></i> Gestion des stocks par variante
+                </h4>
+                <label class="toggle-switch">
+                  <input
+                    type="checkbox"
+                    [checked]="useVariantesMode"
+                    (change)="toggleVariantesMode()"
+                  />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              @if (useVariantesMode) {
+                <div class="variantes-info">
+                  <p class="variantes-hint">
+                    ℹ️ Définissez les quantités pour chaque combinaison couleur/taille.
+                    Les combinaisons sont générées automatiquement selon vos sélections.
+                  </p>
+                  @if (stockExceeded) {
+                    <p class="variantes-error">
+                      ⚠️ Attention : Le total des variantes ({{ getTotalStock() }}) dépasse le stock global ({{ produitForm.get('stock.quantite')?.value }}).
+                      <br/>
+                      <strong>Stock restant disponible : {{ getAvailableStockForVariantes() }} unités</strong>
+                    </p>
+                  } @else {
+                    <p class="variantes-stock-available">
+                      ✓ Stock disponible : <strong>{{ getAvailableStockForVariantes() }} unités</strong> sur {{ produitForm.get('stock.quantite')?.value }}
+                    </p>
+                  }
+                </div>
+
+                @if (variantes.length === 0) {
+                  <div class="variantes-empty">
+                    <p>Sélectionnez d'abord des couleurs et des tailles pour générer les variantes.</p>
+                  </div>
+                } @else {
+                  <div class="variantes-table-wrapper">
+                    <table class="variantes-table">
+                      <thead>
+                        <tr>
+                          <th>Couleur</th>
+                          <th>Taille</th>
+                          <th>Stock</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (variante of variantes; track variante; let i = $index) {
+                          <tr class="variantes-row">
+                            <td class="variante-couleur">
+                              <span class="color-dot" [style.background]="variante.couleurHex || '#ccc'"></span>
+                              {{ variante.couleur || '—' }}
+                            </td>
+                            <td class="variante-taille">
+                              <span class="size-badge">{{ variante.taille || 'Taille unique' }}</span>
+                            </td>
+                            <td class="variante-stock">
+                              <div class="stock-stepper-mini">
+                                <button type="button" class="stock-btn-mini" (click)="decrementVarianteStock(i)">−</button>
+                                <input
+                                  type="number"
+                                  class="stock-input-mini"
+                                  [value]="variante.quantite"
+                                  (input)="updateVarianteQuantite(i, +($any($event.target).value || 0))"
+                                  min="0"
+                                />
+                                <button type="button" class="stock-btn-mini" (click)="updateVarianteQuantite(i, variante.quantite + 1)">+</button>
+                              </div>
+                            </td>
+                            <td class="variante-actions">
+                              <button
+                                type="button"
+                                class="btn btn-icon btn-sm"
+                                (click)="removeVariante(i)"
+                                title="Supprimer cette variante"
+                              >
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="variantes-total">
+                    <strong>Stock total : </strong> {{ getTotalStock() }} unités
+                  </div>
+                }
+              }
+            </div>
           </div>
         </div>
       </div>
@@ -470,7 +571,7 @@
 
               <div class="summary-block accent-amber">
                 <div class="summary-block-title">
-                  <i class="fas fa-tags"></i> Prix
+                  <i class="fas fa-tags"></i> Prix & Stock
                 </div>
                 <div class="summary-row">
                   <span>Montant</span>
@@ -481,7 +582,13 @@
                 </div>
                 <div class="summary-row">
                   <span>Stock</span>
-                  <span class="summary-val">{{ produitForm.get('stock.quantite')?.value }}</span>
+                  @if (useVariantesMode && variantes.length > 0) {
+                    <span class="summary-val">
+                      {{ getTotalStock() }} unités ({{ variantes.length }} variantes)
+                    </span>
+                  } @else {
+                    <span class="summary-val">{{ produitForm.get('stock.quantite')?.value }}</span>
+                  }
                 </div>
               </div>
 
@@ -512,6 +619,21 @@
                   <span>Tailles</span>
                   <span class="summary-val">{{ selectedSizes.length > 0 ? selectedSizes.join(', ') : '—' }}</span>
                 </div>
+                @if (useVariantesMode && variantes.length > 0) {
+                  <div class="summary-row" style="display: block; margin-top: 12px;">
+                    <span style="font-size: 13px; color: var(--color-gray-400); margin-bottom: 8px; display: block;">
+                      Variantes configurées :
+                    </span>
+                    @for (v of variantes; track v; let i = $index) {
+                      <div class="variante-summary-chip">
+                        <span class="color-dot-mini" [style.background]="v.couleurHex || '#ccc'"></span>
+                        <span>{{ v.couleur || '—' }}</span>
+                        <span class="size-badge-mini">{{ v.taille || 'Taille unique' }}</span>
+                        <span class="stock-badge-mini">{{ v.quantite }} un.</span>
+                      </div>
+                    }
+                  </div>
+                }
               </div>
             </div>
 
