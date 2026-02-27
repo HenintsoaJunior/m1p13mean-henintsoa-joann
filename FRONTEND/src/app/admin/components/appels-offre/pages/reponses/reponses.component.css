@@ -1,0 +1,11 @@
+.reponses-page { padding: 1rem; }
+.reponses-page h2 { margin-bottom: 0.5rem; }
+.create { border: 1px solid #eee; padding: 0.75rem; margin-bottom: 1rem; }
+.create label { display:block; margin-top:0.5rem; }
+.create input, .create textarea { width:100%; padding:0.5rem; margin-top:0.25rem }
+.create button { margin-top:0.5rem }
+.list ul { list-style:none; padding:0 }
+.list li { border-bottom:1px solid #f0f0f0; padding:0.5rem 0 }
+.meta { display:flex; gap:1rem; align-items:center }
+.meta .statut { background:#eef; color:#036; padding:2px 6px; border-radius:4px }
+.actions button { margin-right:0.5rem }
