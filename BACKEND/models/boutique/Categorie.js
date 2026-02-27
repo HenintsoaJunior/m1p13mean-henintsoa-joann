@@ -5,7 +5,7 @@ const categorieSchema = new mongoose.Schema(
     idBoutique: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Boutique",
-      required: [true, "L'ID de la boutique est requis"],
+      default: null, // Optionnel - catégories globales
     },
     nom: {
       type: String,
@@ -18,6 +18,7 @@ const categorieSchema = new mongoose.Schema(
       required: [true, "Le slug est requis"],
       lowercase: true,
       trim: true,
+      unique: true, // Unique globalement
     },
     description: {
       type: String,
@@ -47,11 +48,9 @@ const categorieSchema = new mongoose.Schema(
   }
 );
 
-// Index composés pour optimiser les recherches
-categorieSchema.index({ idBoutique: 1, slug: 1 });
+// Index pour optimiser les recherches
+categorieSchema.index({ slug: 1 });
 categorieSchema.index({ idCategorieParent: 1 });
-
-// Note: dateMiseAJour est géré automatiquement par l'option timestamps du schema
 
 // Méthode pour obtenir les informations publiques
 categorieSchema.methods.toJSON = function () {
@@ -59,15 +58,14 @@ categorieSchema.methods.toJSON = function () {
   return categorie;
 };
 
-// Méthode statique pour construire l'arbre des catégories récursivement
+// Méthode statique pour construire l'arbre des catégories récursivement (par boutique - pour compatibilité)
 categorieSchema.statics.buildCategoryTree = async function (idBoutique) {
-  const categories = await this.find({ idBoutique }).lean();
+  const query = idBoutique ? { idBoutique } : {};
+  const categories = await this.find(query).lean();
   
-  // Map pour stocker toutes les catégories par ID
   const categoryMap = new Map();
   const rootCategories = [];
   
-  // Initialiser chaque catégorie avec un tableau children
   categories.forEach(cat => {
     categoryMap.set(cat._id.toString(), {
       ...cat,
@@ -77,7 +75,6 @@ categorieSchema.statics.buildCategoryTree = async function (idBoutique) {
     });
   });
   
-  // Construire l'arbre
   categories.forEach(cat => {
     const categoryId = cat._id.toString();
     const category = categoryMap.get(categoryId);
@@ -95,10 +92,10 @@ categorieSchema.statics.buildCategoryTree = async function (idBoutique) {
 
 // Méthode statique pour obtenir toutes les catégories avec leur chemin hiérarchique
 categorieSchema.statics.getCategoriesWithHierarchy = async function (idBoutique) {
-  const categories = await this.find({ idBoutique }).lean();
+  const query = idBoutique ? { idBoutique } : {};
+  const categories = await this.find(query).lean();
   const categoryMap = new Map();
   
-  // Créer une map pour un accès rapide
   categories.forEach(cat => {
     categoryMap.set(cat._id.toString(), {
       ...cat,
@@ -109,9 +106,83 @@ categorieSchema.statics.getCategoriesWithHierarchy = async function (idBoutique)
     });
   });
   
-  // Calculer le niveau et le chemin pour chaque catégorie
   const calculateHierarchy = (categoryId, visited = new Set()) => {
-    if (visited.has(categoryId)) return 0; // Éviter les cycles
+    if (visited.has(categoryId)) return 0;
+    visited.add(categoryId);
+    
+    const category = categoryMap.get(categoryId);
+    if (!category) return 0;
+    
+    if (category.idCategorieParent && categoryMap.has(category.idCategorieParent)) {
+      const parentLevel = calculateHierarchy(category.idCategorieParent, visited);
+      category.level = parentLevel + 1;
+      const parent = categoryMap.get(category.idCategorieParent);
+      category.path = [...parent.path, parent.nom];
+    } else {
+      category.level = 0;
+      category.path = [];
+    }
+    
+    return category.level;
+  };
+  
+  categoryMap.forEach((_, id) => calculateHierarchy(id));
+  
+  return Array.from(categoryMap.values());
+};
+
+// ============================================
+// MÉTHODES GLOBALES (toutes catégories, toutes boutiques)
+// ============================================
+
+// Méthode statique pour construire l'arbre des catégories GLOBAL
+categorieSchema.statics.buildCategoryTreeGlobal = async function () {
+  const categories = await this.find({}).lean();
+  
+  const categoryMap = new Map();
+  const rootCategories = [];
+  
+  categories.forEach(cat => {
+    categoryMap.set(cat._id.toString(), {
+      ...cat,
+      _id: cat._id.toString(),
+      idCategorieParent: cat.idCategorieParent ? cat.idCategorieParent.toString() : null,
+      children: []
+    });
+  });
+  
+  categories.forEach(cat => {
+    const categoryId = cat._id.toString();
+    const category = categoryMap.get(categoryId);
+    const parentId = cat.idCategorieParent ? cat.idCategorieParent.toString() : null;
+    
+    if (parentId && categoryMap.has(parentId)) {
+      categoryMap.get(parentId).children.push(category);
+    } else {
+      rootCategories.push(category);
+    }
+  });
+  
+  return rootCategories;
+};
+
+// Méthode statique pour obtenir toutes les catégories avec leur chemin hiérarchique (GLOBAL)
+categorieSchema.statics.getCategoriesWithHierarchyGlobal = async function () {
+  const categories = await this.find({}).lean();
+  const categoryMap = new Map();
+  
+  categories.forEach(cat => {
+    categoryMap.set(cat._id.toString(), {
+      ...cat,
+      _id: cat._id.toString(),
+      idCategorieParent: cat.idCategorieParent ? cat.idCategorieParent.toString() : null,
+      level: 0,
+      path: []
+    });
+  });
+  
+  const calculateHierarchy = (categoryId, visited = new Set()) => {
+    if (visited.has(categoryId)) return 0;
     visited.add(categoryId);
     
     const category = categoryMap.get(categoryId);

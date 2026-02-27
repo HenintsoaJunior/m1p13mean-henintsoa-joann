@@ -1,15 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProduitService, Produit } from '../../services/produit.service';
-import { CategorieService, Categorie, CategorieTree } from '../../../categories/services/categorie.service';
+import { CategorieService, Categorie, CategorieTree, CategorieFormData } from '../../../categories/services/categorie.service';
 import { ToastService } from '../../../../../services/toast.service';
 
 @Component({
@@ -24,12 +18,12 @@ export class ProduitListComponent implements OnInit {
   filteredProduits: Produit[] = [];
   searchTerm = '';
   filterStatut = '';
-  showModal = false;
-  editingProduit: Produit | null = null;
-  isSubmitting = false;
-  produitForm: FormGroup;
+  showCategorieModal = false;
+  isCreatingCategorie = false;
+  categorieForm: FormGroup;
   categories: Categorie[] = [];
   categoriesTree: CategorieTree[] = [];
+  flattenedCategories: { cat: CategorieTree, level: number, indent: string }[] = [];
 
   constructor(
     private produitService: ProduitService,
@@ -37,25 +31,12 @@ export class ProduitListComponent implements OnInit {
     private formBuilder: FormBuilder,
     private toastService: ToastService,
   ) {
-    this.produitForm = this.formBuilder.group({
-      idCategorie: ['', [Validators.required]],
+    this.categorieForm = this.formBuilder.group({
       nom: ['', [Validators.required]],
       slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
       description: [''],
-      prix: this.formBuilder.group({
-        devise: ['EUR', [Validators.required]],
-        montant: [0, [Validators.required, Validators.min(0)]],
-      }),
-      stock: this.formBuilder.group({
-        quantite: [0, [Validators.required, Validators.min(0)]],
-      }),
-      images: [[]],
-      attributs: this.formBuilder.group({
-        couleur: [''],
-        taille: [[]],
-        marque: [''],
-      }),
-      statut: ['actif'],
+      idCategorieParent: [null],
+      urlImage: [''],
     });
   }
 
@@ -68,18 +49,34 @@ export class ProduitListComponent implements OnInit {
   loadCategoriesTree() {
     this.categorieService.getCategoriesTree().subscribe({
       next: (data: any) => {
+        console.log('🌳 Categories Tree API Response:', data);
         if (data && Array.isArray(data.arbre)) {
           this.categoriesTree = data.arbre;
+          console.log('✅ Categories tree loaded (from arbre):', this.categoriesTree);
         } else if (Array.isArray(data)) {
           this.categoriesTree = data;
+          console.log('✅ Categories tree loaded (direct array):', this.categoriesTree);
+        } else if (data && typeof data === 'object') {
+          // Le backend peut retourner un objet avec d'autres propriétés
+          this.categoriesTree = data.arbre || data.data || data.categories || [];
+          console.log('✅ Categories tree loaded (from object):', this.categoriesTree);
         } else {
           this.categoriesTree = [];
+          console.warn('⚠️ No categories tree data found');
         }
+        // Rafraîchir les catégories aplaties après chargement
+        this.refreshFlattenedCategories();
       },
-      error: () => {
+      error: (error) => {
+        console.error('❌ Error loading categories tree:', error);
         this.categoriesTree = [];
+        this.refreshFlattenedCategories();
       },
     });
+  }
+
+  refreshFlattenedCategories() {
+    this.flattenedCategories = this.flattenCategories(this.categoriesTree);
   }
 
   // Méthode utilitaire pour aplatir l'arbre des catégories
@@ -99,7 +96,7 @@ export class ProduitListComponent implements OnInit {
   }
 
   getFlattenedCategories(): { cat: CategorieTree, level: number, indent: string }[] {
-    return this.flattenCategories(this.categoriesTree);
+    return this.flattenedCategories;
   }
 
   loadProduits() {
@@ -176,21 +173,41 @@ export class ProduitListComponent implements OnInit {
     this.applyFilters();
   }
 
-  openCreateModal() {
-    this.editingProduit = null;
-    this.produitForm.reset();
-    this.produitForm.patchValue({
-      prix: { devise: 'EUR', montant: 0 },
-      stock: { quantite: 0 },
-      statut: 'actif',
-      images: [],
-      attributs: { couleur: '', taille: [], marque: '' },
-    });
-    this.showModal = true;
+  onCreateCategorieSubmit() {
+    if (this.categorieForm.valid) {
+      this.isCreatingCategorie = true;
+      const categorieData: CategorieFormData = this.categorieForm.value;
+
+      this.categorieService.createCategorie(categorieData).subscribe({
+        next: () => {
+          this.loadCategoriesTree();
+          this.closeCategorieModal();
+          this.isCreatingCategorie = false;
+          this.toastService.showSuccess('Catégorie créée avec succès!');
+        },
+        error: () => {
+          this.isCreatingCategorie = false;
+          this.toastService.showError('Erreur lors de la création de la catégorie');
+        },
+      });
+    }
   }
 
-  generateSlug() {
-    const nom = this.produitForm.get('nom')?.value;
+  openCategorieModal() {
+    this.categorieForm.reset();
+    this.categorieForm.patchValue({
+      idCategorieParent: null,
+    });
+    this.showCategorieModal = true;
+  }
+
+  closeCategorieModal() {
+    this.showCategorieModal = false;
+    this.categorieForm.reset();
+  }
+
+  generateCategorieSlug() {
+    const nom = this.categorieForm.get('nom')?.value;
     if (nom) {
       const slug = nom
         .toLowerCase()
@@ -198,94 +215,14 @@ export class ProduitListComponent implements OnInit {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
-      this.produitForm.patchValue({ slug });
+      this.categorieForm.patchValue({ slug });
     }
   }
 
   editProduit(produit: Produit) {
-    this.editingProduit = produit;
-    this.produitForm.patchValue({
-      idCategorie:
-        typeof produit.idCategorie === 'string' ? produit.idCategorie : produit.idCategorie._id,
-      nom: produit.nom,
-      slug: produit.slug,
-      description: produit.description || '',
-      prix: produit.prix,
-      stock: produit.stock,
-      images: produit.images || [],
-      attributs: {
-        couleur: produit.attributs?.couleur || '',
-        taille: produit.attributs?.taille || [],
-        marque: produit.attributs?.marque || '',
-      },
-      statut: produit.statut,
-    });
-    this.showModal = true;
-  }
-
-  closeModal() {
-    this.showModal = false;
-    this.editingProduit = null;
-    this.produitForm.reset();
-  }
-
-  addTaille() {
-    const tailles = [...(this.produitForm.get('attributs.taille')?.value || [])];
-    tailles.push('');
-    this.produitForm.get('attributs.taille')?.setValue(tailles);
-  }
-
-  removeTaille(index: number) {
-    const tailles = [...(this.produitForm.get('attributs.taille')?.value || [])];
-    tailles.splice(index, 1);
-    this.produitForm.get('attributs.taille')?.setValue(tailles);
-  }
-
-  addImageUrl() {
-    const images = [...(this.produitForm.get('images')?.value || [])];
-    images.push('');
-    this.produitForm.get('images')?.setValue(images);
-  }
-
-  removeImageUrl(index: number) {
-    const images = [...(this.produitForm.get('images')?.value || [])];
-    images.splice(index, 1);
-    this.produitForm.get('images')?.setValue(images);
-  }
-
-  onSubmit() {
-    if (this.produitForm.valid) {
-      this.isSubmitting = true;
-      const produitData = this.produitForm.value;
-
-      if (this.editingProduit) {
-        this.produitService.updateProduit(this.editingProduit._id!, produitData).subscribe({
-          next: () => {
-            this.loadProduits();
-            this.closeModal();
-            this.isSubmitting = false;
-            this.toastService.showSuccess('Produit modifié avec succès!');
-          },
-          error: () => {
-            this.isSubmitting = false;
-            this.toastService.showError('Erreur lors de la modification du produit');
-          },
-        });
-      } else {
-        this.produitService.createProduit(produitData).subscribe({
-          next: () => {
-            this.loadProduits();
-            this.closeModal();
-            this.isSubmitting = false;
-            this.toastService.showSuccess('Produit créé avec succès!');
-          },
-          error: () => {
-            this.isSubmitting = false;
-            this.toastService.showError('Erreur lors de la création du produit');
-          },
-        });
-      }
-    }
+    // Pour l'édition, on peut soit créer une page dédiée, soit utiliser un modal
+    // Pour l'instant, on affiche une notification
+    this.toastService.showInfo('Fonctionnalité d\'édition à venir');
   }
 
   deleteProduit(id: string) {
@@ -299,32 +236,6 @@ export class ProduitListComponent implements OnInit {
           this.toastService.showError('Erreur lors de la suppression du produit');
         },
       });
-    }
-  }
-
-  getStatutBadgeClass(statut: string): string {
-    switch (statut) {
-      case 'actif':
-        return 'statut-actif';
-      case 'rupture_stock':
-        return 'statut-rupture_stock';
-      case 'archive':
-        return 'statut-archive';
-      default:
-        return '';
-    }
-  }
-
-  getStatutLabel(statut: string): string {
-    switch (statut) {
-      case 'actif':
-        return 'Actif';
-      case 'rupture_stock':
-        return 'Rupture de stock';
-      case 'archive':
-        return 'Archivé';
-      default:
-        return statut;
     }
   }
 }

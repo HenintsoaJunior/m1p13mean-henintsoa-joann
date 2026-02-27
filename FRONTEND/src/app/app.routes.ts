@@ -27,6 +27,7 @@ import { BoutiqueDashboardComponent } from './boutique/pages/dashboard/boutique-
 
 // Boutique components - Produits
 import { ProduitListComponent } from './boutique/components/produits/pages/produit-list/produit-list.component';
+import { ProduitCreateComponent } from './boutique/components/produits/pages/produit-create/produit-create.component';
 
 // Boutique components - Categories
 import { CategorieListComponent } from './boutique/components/categories/pages/categorie-list/categorie-list.component';
@@ -79,6 +80,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: BoutiqueDashboardComponent },
       { path: 'produits', component: ProduitListComponent },
+      { path: 'produits/nouveau', component: ProduitCreateComponent },
       { path: 'categories', component: CategorieListComponent },
     ],
   },
