@@ -7,5 +7,7 @@
 .list ul { list-style:none; padding:0 }
 .list li { border-bottom:1px solid #f0f0f0; padding:0.5rem 0 }
 .meta { display:flex; gap:1rem; align-items:center }
+
+.meta .email { font-size: 0.85rem; color: #555; }
 .meta .statut { background:#eef; color:#036; padding:2px 6px; border-radius:4px }
 .actions button { margin-right:0.5rem }

@@ -36,6 +36,10 @@ import { CategorieListComponent } from './boutique/components/categories/pages/c
 import { AppelsOffreListComponent } from './admin/components/appels-offre/pages/appels-offre-list/appels-offre-list.component';
 import { ReponsesComponent } from './admin/components/appels-offre/pages/reponses/reponses.component';
 
+// Client components - Appels d'offre
+import { AppelsOffreClientComponent } from './client/components/appels-offre/appels-offre-client.component';
+import { ResponseFormClientComponent } from './client/components/appels-offre/response-form-client.component';
+
 export const routes: Routes = [
   { path: '', component: LandingComponent }, // Default landing page
   {
@@ -85,6 +89,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: BoutiqueDashboardComponent },
+      { path: 'appels/:id/reponses', component: ReponsesComponent },
       { path: 'produits', component: ProduitListComponent },
       { path: 'produits/nouveau', component: ProduitCreateComponent },
       { path: 'categories', component: CategorieListComponent },
@@ -100,6 +105,8 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./client/components/home/home.component').then((m) => m.HomeComponent),
       }, // Client home page (accessible to all)
+      { path: 'appels', component: AppelsOffreClientComponent }, // List of open appels d'offre
+      { path: 'appels/:id/reponse', component: ResponseFormClientComponent }, // Response form for an appel d'offre
     ],
   },
   { path: '**', redirectTo: '/' }, // Redirect unknown routes to landing page

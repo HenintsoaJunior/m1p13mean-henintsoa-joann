@@ -3,8 +3,9 @@ const router = express.Router();
 const { authentification, verifierRole } = require("./../middleware/auth");
 const reponseController = require("../controllers/admin/ReponseAppelOffreController");
 
-// Création d'une réponse (boutique ou admin)
-router.post("/", authentification, reponseController.createReponse.bind(reponseController));
+// Création d'une réponse (ouverte à tous)
+// note: aucun middleware d'authentification pour permettre aux non-connectés de soumettre
+router.post("/", reponseController.createReponse.bind(reponseController));
 
 // Lister les réponses pour un appel d'offre (boutique/admin)
 router.get("/appel/:appelId", authentification, reponseController.getReponsesByAppel.bind(reponseController));

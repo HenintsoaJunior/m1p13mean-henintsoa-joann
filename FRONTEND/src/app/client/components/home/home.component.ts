@@ -3,11 +3,12 @@ import { CommonModule, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { ToastService } from '../../../services/toast.service';
+import { AppelsOffreClientComponent } from '../appels-offre/appels-offre-client.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NgIf],
+  imports: [CommonModule, NgIf, AppelsOffreClientComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -17,6 +18,9 @@ export class HomeComponent {
   private toastService = inject(ToastService);
 
   showLogoutPopup = false;
+  activeTab = 'nouveautes'; // Track active tab
+
+  // no longer navigating away, simply render inline
 
   get isLoggedIn(): boolean {
     return this.authService.isAuthenticated();
@@ -49,6 +53,10 @@ export class HomeComponent {
 
   closePopup() {
     this.showLogoutPopup = false;
+  }
+
+  selectTab(tabName: string): void {
+    this.activeTab = tabName;
   }
 
   getUserInitials(): string {

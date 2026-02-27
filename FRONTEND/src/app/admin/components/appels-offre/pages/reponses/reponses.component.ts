@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ReponsesService, ReponseDto } from '../../services/reponses.service';
 import { ToastService } from '../../../../../services/toast.service';
@@ -8,15 +7,13 @@ import { ToastService } from '../../../../../services/toast.service';
 @Component({
   selector: 'app-reponses',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './reponses.component.html',
   styleUrls: ['./reponses.component.css']
 })
 export class ReponsesComponent implements OnInit {
   appelId: string | null = null;
   reponses: ReponseDto[] = [];
-  message = '';
-  montant?: number;
   loading = false;
 
   constructor(
@@ -42,23 +39,6 @@ export class ReponsesComponent implements OnInit {
     });
   }
 
-  submit() {
-    if (!this.appelId) {
-      this.toastService.showError('Appel d\'offre non spécifié');
-      return;
-    }
-    const payload: Partial<ReponseDto> = { appel_offre_id: this.appelId, message: this.message };
-    if (this.montant !== undefined) payload.montant_propose = this.montant;
-    this.reponseSvc.createReponse(payload).subscribe({
-      next: () => {
-        this.toastService.showSuccess('Réponse créée avec succès');
-        this.message = '';
-        this.montant = undefined;
-        this.loadReponses();
-      },
-      error: (err) => this.toastService.showError(err.error?.message || err.message || 'Erreur création réponse'),
-    });
-  }
 
   accept(id: string | undefined) {
     if (!id) {

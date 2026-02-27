@@ -18,6 +18,23 @@ class EmailService {
   }
 
   /**
+   * Envoyer les identifiants (email + mot de passe) à un nouvel utilisateur
+   * @param {Object} utilisateur
+   * @param {string} motDePasse
+   * @param {string} [destinataireOverride] - si fourni, envoie à cet email au lieu de `utilisateur.email`
+   */
+  async envoyerIdentifiants(utilisateur, motDePasse, destinataireOverride) {
+    const destinataire = destinataireOverride || utilisateur.email;
+    console.log(`📧 Envoi identifiants à ${destinataire}`);
+    const template = this.genererTemplateIdentifiants(utilisateur, motDePasse);
+    try {
+      await this.envoyerEmail(destinataire, 'Vos identifiants boutique', template);
+    } catch (err) {
+      console.error('Erreur envoi identifiants:', err);
+    }
+  }
+
+  /**
    * Envoyer un token de réinitialisation
    * @param {Object} utilisateur - Utilisateur
    * @param {string} token - Token de réinitialisation
@@ -72,6 +89,20 @@ class EmailService {
   }
 
   /**
+   * Template pour l'envoi des identifiants
+   */
+  genererTemplateIdentifiants(utilisateur, motDePasse) {
+    return `
+      <h1>Votre compte boutique</h1>
+      <p>Bonjour ${utilisateur.prenom || 'Utilisateur'},</p>
+      <p>Votre compte boutique a été créé automatiquement suite à votre réponse à l'appel d'offre.</p>
+      <p><strong>Email:</strong> ${utilisateur.email}</p>
+      <p><strong>Mot de passe temporaire:</strong> ${motDePasse}</p>
+      <p>Veuillez vous connecter et modifier votre mot de passe dès la première connexion.</p>
+    `;
+  }
+
+  /**
    * Générer le template de réinitialisation
    * @param {Object} utilisateur - Utilisateur
    * @param {string} token - Token
@@ -118,7 +149,9 @@ class EmailService {
   }
 
   /**
-   * Envoyer un email (à implémenter avec un vrai service)
+   * Envoyer un email via SMTP en se basant sur les variables d'environnement
+   * Variables supportées: SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS, EMAIL_FROM
+   * Si SMTP_HOST n'est pas configuré, on simule l'envoi en loggant le contenu.
    * @param {string} destinataire - Email du destinataire
    * @param {string} sujet - Sujet de l'email
    * @param {string} contenu - Contenu HTML
@@ -126,9 +159,42 @@ class EmailService {
    * @private
    */
   async envoyerEmail(destinataire, sujet, contenu) {
-    // TODO: Intégrer avec SendGrid, Mailgun, ou autre service
-    console.log(`Email envoyé: ${destinataire} - ${sujet}`);
+    try {
+      const nodemailer = require('nodemailer');
+      const host = process.env.SMTP_HOST;
+      if (!host) {
+        console.warn('SMTP non configuré — email simulé. Contenu:', { destinataire, sujet });
+        console.log('--- Email HTML ---');
+        console.log(contenu);
+        console.log('------------------');
+        return;
+      }
+
+      const port = parseInt(process.env.SMTP_PORT || '587', 10);
+      const secure = (process.env.SMTP_SECURE === 'true');
+      const user = process.env.SMTP_USER || undefined;
+      const pass = process.env.SMTP_PASS || undefined;
+      const from = process.env.EMAIL_FROM || `no-reply@${process.env.BOUTIQUE_EMAIL_DOMAIN || 'example.com'}`;
+
+      const transporterOptions = { host, port, secure };
+      if (user) transporterOptions.auth = { user, pass };
+
+      const transporter = nodemailer.createTransport(transporterOptions);
+
+      await transporter.sendMail({
+        from,
+        to: destinataire,
+        subject: sujet,
+        html: contenu,
+      });
+
+      console.log(`Email envoyé: ${destinataire} - ${sujet}`);
+    } catch (err) {
+      console.error('Erreur lors de lEnvoi d\'email:', err);
+      throw err;
+    }
   }
 }
+
 
 module.exports = EmailService;

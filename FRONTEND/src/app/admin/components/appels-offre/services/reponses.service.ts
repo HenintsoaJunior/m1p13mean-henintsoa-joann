@@ -8,6 +8,7 @@ export interface ReponseDto {
   appel_offre_id: string;
   boutique_id?: string;
   montant_propose?: number;
+  email_proposeur?: string;
   message?: string;
   statut?: string;
   cree_le?: Date;
