@@ -5,6 +5,13 @@ import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
 import { ToastService } from '../../../../services/toast.service';
 
+export interface ProduitVariante {
+  couleur: string;
+  couleurHex: string;
+  unite: string;  // Peut être une taille (S, M, L), un volume (75cl), un poids (1kg), etc.
+  quantite: number;
+}
+
 export interface Produit {
   _id?: string;
   idBoutique?: string;
@@ -19,6 +26,7 @@ export interface Produit {
   stock: {
     quantite: number;
   };
+  variantes?: ProduitVariante[];
   images?: string[];
   attributs?: {
     couleur?: string | null;
@@ -42,6 +50,7 @@ export interface ProduitFormData {
   stock: {
     quantite: number;
   };
+  variantes?: ProduitVariante[];
   images?: string[];
   attributs?: {
     couleur?: string;
@@ -144,6 +153,38 @@ export class ProduitService {
       headers: this.getAuthHeaders(),
     }).pipe(
       tap(() => this.toastService.showSuccess('Stock mis à jour avec succès')),
+      catchError(this.handleError.bind(this)),
+    );
+  }
+
+  // Gestion des variantes
+  addVariante(id: string, variante: ProduitVariante): Observable<Produit> {
+    return this.http.post<Produit>(`${this.apiUrl}/${id}/variantes`, variante, {
+      headers: this.getAuthHeaders(),
+    }).pipe(
+      tap(() => this.toastService.showSuccess('Variante ajoutée avec succès')),
+      catchError(this.handleError.bind(this)),
+    );
+  }
+
+  updateVarianteStock(id: string, couleur: string, taille: string, quantite: number): Observable<Produit> {
+    return this.http.put<Produit>(`${this.apiUrl}/${id}/variantes/stock`, {
+      couleur,
+      taille,
+      quantite
+    }, {
+      headers: this.getAuthHeaders(),
+    }).pipe(
+      tap(() => this.toastService.showSuccess('Stock variante mis à jour avec succès')),
+      catchError(this.handleError.bind(this)),
+    );
+  }
+
+  removeVariante(id: string, couleur: string, taille: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}/variantes/${encodeURIComponent(couleur)}/${encodeURIComponent(taille)}`, {
+      headers: this.getAuthHeaders(),
+    }).pipe(
+      tap(() => this.toastService.showSuccess('Variante supprimée avec succès')),
       catchError(this.handleError.bind(this)),
     );
   }
