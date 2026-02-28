@@ -920,12 +920,6 @@ export class ProduitCreateComponent implements OnInit {
     this.stockExceeded = totalVariantes > globalStock;
   }
 
-  getAvailableStockForVariantes(): number {
-    const globalStock = this.produitForm.get('stock.quantite')?.value || 0;
-    const currentTotal = this.getTotalStock();
-    return globalStock - currentTotal;
-  }
-
   removeVariante(index: number) {
     if (index >= 0 && index < this.variantes.length) {
       this.variantes.splice(index, 1);
@@ -936,9 +930,15 @@ export class ProduitCreateComponent implements OnInit {
 
   getTotalStock(): number {
     if (this.useVariantesMode && this.variantes.length > 0) {
-      return this.variantes.reduce((total, v) => total + v.quantite, 0);
+      return this.variantes.reduce((total, v) => total + (v.quantite || 0), 0);
     }
-    return this.produitForm.get('stock.quantite')?.value || 0;
+    return 0;
+  }
+
+  getAvailableStockForVariantes(): number {
+    const globalStock = this.produitForm.get('stock.quantite')?.value || 0;
+    const currentTotal = this.getTotalStock();
+    return Math.max(0, globalStock - currentTotal);
   }
 
   // ── Images ───────────────────────────────────

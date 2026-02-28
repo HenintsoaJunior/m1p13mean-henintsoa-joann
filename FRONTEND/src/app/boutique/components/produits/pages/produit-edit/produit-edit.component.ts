@@ -15,6 +15,11 @@ import {
   CategorieFormData,
 } from '../../../categories/services/categorie.service';
 import { ToastService } from '../../../../../services/toast.service';
+import { TypeUniteService } from '../../services/type-unite.service';
+import { CouleurService } from '../../services/couleur.service';
+import { TailleService } from '../../services/taille.service';
+import { MarqueService } from '../../services/marque.service';
+import { TypeUnite, Couleur, Taille, Marque } from '../../models/boutique.models';
 export interface StepConfig {
   id: number;
   label: string;
@@ -157,6 +162,18 @@ export class ProduitEditComponent implements OnInit {
   // ── Images ───────────────────────────────────
   imagePreviews: string[] = [];
 
+  // ── Données API pour les attributs ─────────────────────────────────
+  typesUnites: TypeUnite[] = [];
+  couleurs: Couleur[] = [];
+  tailles: Taille[] = [];
+  marques: Marque[] = [];
+  selectedTypeUniteId: string | null = null;
+  selectedMarqueId: string | null = null;
+  
+  // ── Nouvelle marque ─────────────────────────────────
+  showNewMarqueField = false;
+  newMarqueNom = '';
+
   constructor(
     private produitService: ProduitService,
     private categorieService: CategorieService,
@@ -164,6 +181,10 @@ export class ProduitEditComponent implements OnInit {
     private toastService: ToastService,
     private router: Router,
     private route: ActivatedRoute,
+    private typeUniteService: TypeUniteService,
+    private couleurService: CouleurService,
+    private tailleService: TailleService,
+    private marqueService: MarqueService,
   ) {
     this.produitForm = this.formBuilder.group({
       idCategorie: ['', [Validators.required]],
@@ -180,9 +201,10 @@ export class ProduitEditComponent implements OnInit {
       variantes: this.formBuilder.array([]),
       images: [[]],
       attributs: this.formBuilder.group({
-        couleur: [''],
-        taille: [[]],
+        couleurs: [[]],
+        tailles: [[]],
         marque: [''],
+        typeUnitePrincipal: [''],
       }),
       statut: ['actif'],
     });
@@ -206,6 +228,9 @@ export class ProduitEditComponent implements OnInit {
     this.loadProduit();
     this.loadCategories();
     this.loadCategoriesTree();
+    this.loadTypesUnites();
+    this.loadCouleurs();
+    this.loadMarques();
   }
 
   loadProduit() {
@@ -291,9 +316,10 @@ export class ProduitEditComponent implements OnInit {
 
     // Gérer les attributs
     patchValue.attributs = {
-      couleur: produit.attributs?.couleur || '',
-      taille: Array.isArray(produit.attributs?.taille) ? produit.attributs.taille : [],
+      couleurs: Array.isArray(produit.attributs?.couleurs) ? produit.attributs.couleurs : [],
+      tailles: Array.isArray(produit.attributs?.tailles) ? produit.attributs.tailles : [],
       marque: produit.attributs?.marque || '',
+      typeUnitePrincipal: produit.attributs?.typeUnitePrincipal || '',
     };
 
     console.log('📝 Valeurs à patcher:', patchValue);
@@ -329,9 +355,47 @@ export class ProduitEditComponent implements OnInit {
     }
 
     // Mettre à jour les options
-    this.produitOptions.avecCouleur = !!(produit.attributs?.couleur && produit.attributs.couleur.length > 0);
-    this.produitOptions.avecUnite = !!(produit.attributs?.taille && produit.attributs.taille.length > 0);
-    this.produitOptions.avecMarque = !!(produit.attributs?.marque && produit.attributs.marque.length > 0);
+    this.produitOptions.avecCouleur = !!(produit.attributs?.couleurs && produit.attributs.couleurs.length > 0);
+    this.produitOptions.avecUnite = !!(produit.attributs?.tailles && produit.attributs.tailles.length > 0);
+    this.produitOptions.avecMarque = !!(produit.attributs?.marque);
+
+    // Initialiser les couleurs sélectionnées depuis la BDD
+    if (produit.attributs?.couleurs && Array.isArray(produit.attributs.couleurs)) {
+      produit.attributs.couleurs.forEach((couleurId: string) => {
+        const couleurDb = this.couleurs.find(c => c._id === couleurId);
+        if (couleurDb) {
+          this.selectedColors.push({ name: couleurDb.nom, hex: couleurDb.codeHex });
+        }
+      });
+    }
+
+    // Initialiser les tailles sélectionnées depuis la BDD
+    if (produit.attributs?.tailles && Array.isArray(produit.attributs.tailles)) {
+      produit.attributs.tailles.forEach((tailleId: string) => {
+        const tailleDb = this.tailles.find(t => t._id === tailleId);
+        if (tailleDb) {
+          this.selectedSizes.push(tailleDb.label || tailleDb.valeur);
+        }
+      });
+    }
+
+    // Initialiser la marque sélectionnée depuis la BDD
+    if (produit.attributs?.marque) {
+      const marqueId = typeof produit.attributs.marque === 'string' ? produit.attributs.marque : produit.attributs.marque._id;
+      const marqueDb = this.marques.find(m => m._id === marqueId);
+      if (marqueDb) {
+        this.selectedMarqueId = marqueId;
+      }
+    }
+
+    // Initialiser le type d'unité principal
+    if (produit.attributs?.typeUnitePrincipal) {
+      const typeUniteId = typeof produit.attributs.typeUnitePrincipal === 'string' 
+        ? produit.attributs.typeUnitePrincipal 
+        : produit.attributs.typeUnitePrincipal._id;
+      this.selectedTypeUniteId = typeUniteId;
+      this.loadTaillesParType(typeUniteId);
+    }
 
     // Mettre à jour la longueur de description
     this.descriptionLength = (produit.description || '').length;
@@ -463,6 +527,94 @@ export class ProduitEditComponent implements OnInit {
     // Already loaded via loadCategoriesTree
   }
 
+  loadTypesUnites() {
+    this.typeUniteService.getAllTypesUnites(true).subscribe({
+      next: (data) => {
+        this.typesUnites = data.typesUnites;
+        // Charger les tailles pour le type d'unité par défaut (standard)
+        const standardType = this.typesUnites.find(t => t.nom === 'standard');
+        if (standardType && !this.selectedTypeUniteId) {
+          this.selectedTypeUniteId = standardType._id!;
+          this.loadTaillesParType(standardType._id!);
+        }
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors du chargement des types d\'unités');
+      },
+    });
+  }
+
+  loadCouleurs() {
+    this.couleurService.getAllCouleurs(true).subscribe({
+      next: (data) => {
+        this.couleurs = data.couleurs;
+        // Mettre à jour les presets de couleurs avec les données API
+        this.colorPresets = this.couleurs.map(c => ({
+          name: c.nom,
+          hex: c.codeHex,
+          display: c.codeHex,
+        }));
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors du chargement des couleurs');
+      },
+    });
+  }
+
+  loadTaillesParType(idTypeUnite: string) {
+    this.tailleService.getTaillesParTypeUnite(idTypeUnite).subscribe({
+      next: (data) => {
+        this.tailles = data.tailles;
+        // Mettre à jour les presets en fonction du type d'unité
+        this.updateSizePresets();
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors du chargement des tailles');
+      },
+    });
+  }
+
+  updateSizePresets() {
+    // Mettre à jour les presets en fonction des tailles chargées
+    const tailleValues = this.tailles.map(t => t.label || t.valeur);
+    
+    // Déterminer le type d'unité actuel
+    const typeUnite = this.typesUnites.find(t => t._id === this.selectedTypeUniteId);
+    
+    if (typeUnite?.nom === 'standard') {
+      this.sizePresets = tailleValues;
+      this.liquidPresets = [];
+      this.weightPresets = [];
+      this.packagePresets = [];
+    } else if (typeUnite?.nom === 'liquide') {
+      this.liquidPresets = tailleValues;
+      this.sizePresets = [];
+      this.weightPresets = [];
+      this.packagePresets = [];
+    } else if (typeUnite?.nom === 'poids') {
+      this.weightPresets = tailleValues;
+      this.sizePresets = [];
+      this.liquidPresets = [];
+      this.packagePresets = [];
+    } else if (typeUnite?.nom === 'conditionnement') {
+      this.packagePresets = tailleValues;
+      this.sizePresets = [];
+      this.liquidPresets = [];
+      this.weightPresets = [];
+    }
+  }
+
+  loadMarques() {
+    this.marqueService.getAllMarques(true).subscribe({
+      next: (data) => {
+        this.marques = data.marques;
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors du chargement des marques');
+      },
+    });
+  }
+
   getSelectionCountForRoot(root: CategorieTree): number {
     let count = 0;
     const idsToCheck = [root._id!];
@@ -529,7 +681,7 @@ export class ProduitEditComponent implements OnInit {
       const customColor = { name: 'Personnalisée', hex: value };
       if (!this.selectedColors.some(c => c.hex === value)) {
         this.selectedColors.push(customColor);
-        this.produitForm.get('attributs.couleur')?.setValue(
+        this.produitForm.get('attributs.couleurs')?.setValue(
           this.selectedColors.map(c => c.name).join(', ')
         );
       }
@@ -540,7 +692,7 @@ export class ProduitEditComponent implements OnInit {
     const colorName = this.colorPresets.find(c => c.hex === value)?.name || 'Personnalisée';
     if (!this.selectedColors.some(c => c.hex === value)) {
       this.selectedColors.push({ name: colorName, hex: value });
-      this.produitForm.get('attributs.couleur')?.setValue(
+      this.produitForm.get('attributs.couleurs')?.setValue(
         this.selectedColors.map(c => c.name).join(', ')
       );
     }
@@ -594,6 +746,45 @@ export class ProduitEditComponent implements OnInit {
     this.produitForm.patchValue({ statut: status });
   }
 
+  // ── Type d'unité ─────────────────────────────────
+  onTypeUniteChange(idTypeUnite: string) {
+    this.selectedTypeUniteId = idTypeUnite;
+    this.loadTaillesParType(idTypeUnite);
+  }
+
+  // ── Marque ─────────────────────────────────
+  onMarqueChange() {
+    this.produitForm.get('attributs.marque')?.setValue(this.selectedMarqueId);
+  }
+
+  createNewMarque() {
+    if (!this.newMarqueNom.trim()) {
+      this.toastService.showError('Veuillez entrer un nom de marque');
+      return;
+    }
+
+    const slug = this.newMarqueNom
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    this.marqueService.createMarque({ nom: this.newMarqueNom.trim(), slug }).subscribe({
+      next: (data) => {
+        this.selectedMarqueId = data.marque._id!;
+        this.produitForm.get('attributs.marque')?.setValue(this.selectedMarqueId);
+        this.loadMarques();
+        this.newMarqueNom = '';
+        this.showNewMarqueField = false;
+        this.toastService.showSuccess('Marque créée avec succès');
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors de la création de la marque');
+      },
+    });
+  }
+
   // ── Couleurs ─────────────────────────────────
   isColorSelected(hex: string): boolean {
     return this.selectedColors.some(c => c.hex === hex);
@@ -606,7 +797,7 @@ export class ProduitEditComponent implements OnInit {
       } else {
         this.singleSelectedColor = { name, hex };
       }
-      this.produitForm.get('attributs.couleur')?.setValue(
+      this.produitForm.get('attributs.couleurs')?.setValue(
         this.singleSelectedColor ? this.singleSelectedColor.name : ''
       );
     } else {
@@ -616,7 +807,7 @@ export class ProduitEditComponent implements OnInit {
       } else {
         this.selectedColors.push({ name, hex });
       }
-      this.produitForm.get('attributs.couleur')?.setValue(
+      this.produitForm.get('attributs.couleurs')?.setValue(
         this.selectedColors.map(c => c.name).join(', ')
       );
     }
@@ -626,7 +817,7 @@ export class ProduitEditComponent implements OnInit {
     const index = this.selectedColors.findIndex(c => c.hex === hex);
     if (index > -1) {
       this.selectedColors.splice(index, 1);
-      this.produitForm.get('attributs.couleur')?.setValue(
+      this.produitForm.get('attributs.couleurs')?.setValue(
         this.selectedColors.map(c => c.name).join(', ')
       );
     }
@@ -638,7 +829,7 @@ export class ProduitEditComponent implements OnInit {
 
   clearSingleColor() {
     this.singleSelectedColor = null;
-    this.produitForm.get('attributs.couleur')?.setValue('');
+    this.produitForm.get('attributs.couleurs')?.setValue('');
   }
 
   // ── Tailles ──────────────────────────────────
@@ -653,7 +844,7 @@ export class ProduitEditComponent implements OnInit {
       } else {
         this.singleSelectedSize = size;
       }
-      this.produitForm.get('attributs.taille')?.setValue(
+      this.produitForm.get('attributs.tailles')?.setValue(
         this.singleSelectedSize ? [this.singleSelectedSize] : []
       );
     } else {
@@ -687,8 +878,12 @@ export class ProduitEditComponent implements OnInit {
     return this.selectedSizes.filter(s => !this.sizePresets.includes(s));
   }
 
+  getSelectedColorsNames(): string {
+    return this.selectedColors.map(c => c.name).join(', ');
+  }
+
   updateTaillesForm() {
-    this.produitForm.get('attributs.taille')?.setValue(this.selectedSizes);
+    this.produitForm.get('attributs.tailles')?.setValue(this.selectedSizes);
   }
 
   isSingleSizeSelected(size: string): boolean {
@@ -697,7 +892,7 @@ export class ProduitEditComponent implements OnInit {
 
   clearSingleSize() {
     this.singleSelectedSize = '';
-    this.produitForm.get('attributs.taille')?.setValue([]);
+    this.produitForm.get('attributs.tailles')?.setValue([]);
   }
 
   updateSingleStock(delta: number) {
@@ -753,8 +948,8 @@ export class ProduitEditComponent implements OnInit {
     this.singleSelectedColor = null;
     this.singleSelectedSize = '';
     this.singleSelectedStock = 0;
-    this.produitForm.get('attributs.couleur')?.setValue('');
-    this.produitForm.get('attributs.taille')?.setValue([]);
+    this.produitForm.get('attributs.couleurs')?.setValue('');
+    this.produitForm.get('attributs.tailles')?.setValue([]);
 
     this.toastService.showSuccess('Variante ajoutée avec succès');
   }
@@ -846,12 +1041,6 @@ export class ProduitEditComponent implements OnInit {
     this.stockExceeded = totalVariantes > globalStock;
   }
 
-  getAvailableStockForVariantes(): number {
-    const globalStock = this.produitForm.get('stock.quantite')?.value || 0;
-    const currentTotal = this.getTotalStock();
-    return globalStock - currentTotal;
-  }
-
   removeVariante(index: number) {
     if (index >= 0 && index < this.variantes.length) {
       this.variantes.splice(index, 1);
@@ -862,9 +1051,15 @@ export class ProduitEditComponent implements OnInit {
 
   getTotalStock(): number {
     if (this.useVariantesMode && this.variantes.length > 0) {
-      return this.variantes.reduce((total, v) => total + v.quantite, 0);
+      return this.variantes.reduce((total, v) => total + (v.quantite || 0), 0);
     }
-    return this.produitForm.get('stock.quantite')?.value || 0;
+    return 0;
+  }
+
+  getAvailableStockForVariantes(): number {
+    const globalStock = this.produitForm.get('stock.quantite')?.value || 0;
+    const currentTotal = this.getTotalStock();
+    return Math.max(0, globalStock - currentTotal);
   }
 
   // ── Images ───────────────────────────────────
@@ -949,6 +1144,37 @@ export class ProduitEditComponent implements OnInit {
         produitData.stock.quantite = this.getTotalStock();
         produitData.variantes = this.variantes;
       }
+
+      // Formater les attributs pour envoyer les IDs au lieu des noms
+      const attributsFormates: any = {};
+      
+      // Couleurs : envoyer les IDs
+      if (this.selectedColors.length > 0) {
+        attributsFormates.couleurs = this.selectedColors.map(c => {
+          const couleurDb = this.couleurs.find(col => col.codeHex === c.hex);
+          return couleurDb?._id || c.hex;
+        });
+      }
+      
+      // Tailles : envoyer les IDs
+      if (this.selectedSizes.length > 0) {
+        attributsFormates.tailles = this.selectedSizes.map(tailleLabel => {
+          const tailleDb = this.tailles.find(t => t.label === tailleLabel || t.valeur === tailleLabel.toLowerCase());
+          return tailleDb?._id || tailleLabel;
+        });
+      }
+      
+      // Marque : envoyer l'ID
+      if (this.selectedMarqueId) {
+        attributsFormates.marque = this.selectedMarqueId;
+      }
+      
+      // Type d'unité principal
+      if (this.selectedTypeUniteId) {
+        attributsFormates.typeUnitePrincipal = this.selectedTypeUniteId;
+      }
+
+      produitData.attributs = attributsFormates;
 
       this.produitService.updateProduit(this.produitId, produitData).subscribe({
         next: () => {

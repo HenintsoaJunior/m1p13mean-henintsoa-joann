@@ -29,9 +29,10 @@ export interface Produit {
   variantes?: ProduitVariante[];
   images?: string[];
   attributs?: {
-    couleur?: string | null;
-    taille?: string[];
-    marque?: string | null;
+    couleurs?: string[] | any[];
+    tailles?: string[] | any[];
+    marque?: string | any | null;
+    typeUnitePrincipal?: string | any | null;
   };
   statut: 'actif' | 'rupture_stock' | 'archive';
   dateCreation?: Date;
@@ -53,9 +54,10 @@ export interface ProduitFormData {
   variantes?: ProduitVariante[];
   images?: string[];
   attributs?: {
-    couleur?: string;
-    taille?: string[];
+    couleurs?: string[];
+    tailles?: string[];
     marque?: string;
+    typeUnitePrincipal?: string;
   };
   statut?: 'actif' | 'rupture_stock' | 'archive';
 }

@@ -643,11 +643,16 @@
                         {{ getAvailableStockForVariantes() }} unités</strong
                       >
                     </p>
-                  } @else if (variantes.length > 0 || (singleSelectedColor && singleSelectedSize)) {
+                  } @else {
                     <p class="variantes-stock-available">
                       ✓ Stock disponible :
                       <strong>{{ getAvailableStockForVariantes() }} unités</strong> sur
                       {{ produitForm.get('stock.quantite')?.value }}
+                      @if (variantes.length > 0) {
+                        <span class="stock-detail">
+                          ({{ getTotalStock() }} unités déjà allouées à {{ variantes.length }} variante(s))
+                        </span>
+                      }
                     </p>
                   }
                 </div>
