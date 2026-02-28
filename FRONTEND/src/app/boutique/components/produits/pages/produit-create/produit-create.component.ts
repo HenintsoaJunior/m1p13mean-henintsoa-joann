@@ -15,6 +15,11 @@ import {
   CategorieFormData,
 } from '../../../categories/services/categorie.service';
 import { ToastService } from '../../../../../services/toast.service';
+import { TypeUniteService } from '../../services/type-unite.service';
+import { CouleurService } from '../../services/couleur.service';
+import { TailleService } from '../../services/taille.service';
+import { MarqueService } from '../../services/marque.service';
+import { TypeUnite, Couleur, Taille, Marque } from '../../models/boutique.models';
 
 // ------------------------------------------------
 // INTERFACES LOCALES
@@ -96,6 +101,18 @@ export class ProduitCreateComponent implements OnInit {
   priceFocused = false;
   descriptionLength = 0;
 
+  // ── Données API pour les attributs ─────────────────────────────────
+  typesUnites: TypeUnite[] = [];
+  couleurs: Couleur[] = [];
+  tailles: Taille[] = [];
+  marques: Marque[] = [];
+  selectedTypeUniteId: string | null = null;
+  selectedMarqueId: string | null = null;
+  
+  // ── Nouvelle marque ─────────────────────────────────
+  showNewMarqueField = false;
+  newMarqueNom = '';
+
   // ── Formulaires ──────────────────────────────
   produitForm!: FormGroup;
   categorieForm!: FormGroup;
@@ -175,6 +192,10 @@ export class ProduitCreateComponent implements OnInit {
     private formBuilder: FormBuilder,
     private toastService: ToastService,
     private router: Router,
+    private typeUniteService: TypeUniteService,
+    private couleurService: CouleurService,
+    private tailleService: TailleService,
+    private marqueService: MarqueService,
   ) {
     this.produitForm = this.formBuilder.group({
       idCategorie: ['', [Validators.required]],
@@ -191,9 +212,10 @@ export class ProduitCreateComponent implements OnInit {
       variantes: this.formBuilder.array([]),
       images: [[]],
       attributs: this.formBuilder.group({
-        couleur: [''],
-        taille: [[]],
+        couleurs: [[]],
+        tailles: [[]],
         marque: [''],
+        typeUnitePrincipal: [''],
       }),
       statut: ['actif'],
     });
@@ -210,6 +232,97 @@ export class ProduitCreateComponent implements OnInit {
   ngOnInit() {
     this.loadCategories();
     this.loadCategoriesTree();
+    this.loadTypesUnites();
+    this.loadCouleurs();
+    this.loadMarques();
+  }
+
+  loadTypesUnites() {
+    this.typeUniteService.getAllTypesUnites(true).subscribe({
+      next: (data) => {
+        this.typesUnites = data.typesUnites;
+        // Charger les tailles pour le type d'unité par défaut (standard)
+        const standardType = this.typesUnites.find(t => t.nom === 'standard');
+        if (standardType) {
+          this.selectedTypeUniteId = standardType._id!;
+          this.loadTaillesParType(standardType._id!);
+        }
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors du chargement des types d\'unités');
+      },
+    });
+  }
+
+  loadCouleurs() {
+    this.couleurService.getAllCouleurs(true).subscribe({
+      next: (data) => {
+        this.couleurs = data.couleurs;
+        // Mettre à jour les presets de couleurs avec les données API
+        this.colorPresets = this.couleurs.map(c => ({
+          name: c.nom,
+          hex: c.codeHex,
+          display: c.codeHex,
+        }));
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors du chargement des couleurs');
+      },
+    });
+  }
+
+  loadTaillesParType(idTypeUnite: string) {
+    this.tailleService.getTaillesParTypeUnite(idTypeUnite).subscribe({
+      next: (data) => {
+        this.tailles = data.tailles;
+        // Mettre à jour les presets en fonction du type d'unité
+        this.updateSizePresets();
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors du chargement des tailles');
+      },
+    });
+  }
+
+  updateSizePresets() {
+    // Mettre à jour les presets en fonction des tailles chargées
+    const tailleValues = this.tailles.map(t => t.label || t.valeur);
+    
+    // Déterminer le type d'unité actuel
+    const typeUnite = this.typesUnites.find(t => t._id === this.selectedTypeUniteId);
+    
+    if (typeUnite?.nom === 'standard') {
+      this.sizePresets = tailleValues;
+      this.liquidPresets = [];
+      this.weightPresets = [];
+      this.packagePresets = [];
+    } else if (typeUnite?.nom === 'liquide') {
+      this.liquidPresets = tailleValues;
+      this.sizePresets = [];
+      this.weightPresets = [];
+      this.packagePresets = [];
+    } else if (typeUnite?.nom === 'poids') {
+      this.weightPresets = tailleValues;
+      this.sizePresets = [];
+      this.liquidPresets = [];
+      this.packagePresets = [];
+    } else if (typeUnite?.nom === 'conditionnement') {
+      this.packagePresets = tailleValues;
+      this.sizePresets = [];
+      this.liquidPresets = [];
+      this.weightPresets = [];
+    }
+  }
+
+  loadMarques() {
+    this.marqueService.getAllMarques(true).subscribe({
+      next: (data) => {
+        this.marques = data.marques;
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors du chargement des marques');
+      },
+    });
   }
 
   @HostListener('document:click', ['$event'])
@@ -439,6 +552,45 @@ export class ProduitCreateComponent implements OnInit {
   selectStatus(status: string) {
     this.selectedStatus = status;
     this.produitForm.patchValue({ statut: status });
+  }
+
+  // ── Type d'unité ─────────────────────────────────
+  onTypeUniteChange(idTypeUnite: string) {
+    this.selectedTypeUniteId = idTypeUnite;
+    this.loadTaillesParType(idTypeUnite);
+  }
+
+  // ── Marque ─────────────────────────────────
+  onMarqueChange() {
+    this.produitForm.get('attributs.marque')?.setValue(this.selectedMarqueId);
+  }
+
+  createNewMarque() {
+    if (!this.newMarqueNom.trim()) {
+      this.toastService.showError('Veuillez entrer un nom de marque');
+      return;
+    }
+
+    const slug = this.newMarqueNom
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    this.marqueService.createMarque({ nom: this.newMarqueNom.trim(), slug }).subscribe({
+      next: (data) => {
+        this.selectedMarqueId = data.marque._id!;
+        this.produitForm.get('attributs.marque')?.setValue(this.selectedMarqueId);
+        this.loadMarques();
+        this.newMarqueNom = '';
+        this.showNewMarqueField = false;
+        this.toastService.showSuccess('Marque créée avec succès');
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors de la création de la marque');
+      },
+    });
   }
 
   // ── Couleurs ─────────────────────────────────
@@ -871,6 +1023,37 @@ export class ProduitCreateComponent implements OnInit {
         produitData.stock.quantite = this.getTotalStock();
         produitData.variantes = this.variantes;
       }
+
+      // Formater les attributs pour envoyer les IDs au lieu des noms
+      const attributsFormates: any = {};
+      
+      // Couleurs : envoyer les IDs
+      if (this.selectedColors.length > 0) {
+        attributsFormates.couleurs = this.selectedColors.map(c => {
+          const couleurDb = this.couleurs.find(col => col.codeHex === c.hex);
+          return couleurDb?._id || c.hex;
+        });
+      }
+      
+      // Tailles : envoyer les IDs
+      if (this.selectedSizes.length > 0) {
+        attributsFormates.tailles = this.selectedSizes.map(tailleLabel => {
+          const tailleDb = this.tailles.find(t => t.label === tailleLabel || t.valeur === tailleLabel.toLowerCase());
+          return tailleDb?._id || tailleLabel;
+        });
+      }
+      
+      // Marque : envoyer l'ID
+      if (this.selectedMarqueId) {
+        attributsFormates.marque = this.selectedMarqueId;
+      }
+      
+      // Type d'unité principal
+      if (this.selectedTypeUniteId) {
+        attributsFormates.typeUnitePrincipal = this.selectedTypeUniteId;
+      }
+
+      produitData.attributs = attributsFormates;
 
       this.produitService.createProduit(produitData).subscribe({
         next: () => {
