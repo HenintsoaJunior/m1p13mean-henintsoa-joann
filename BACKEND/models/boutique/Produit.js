@@ -29,50 +29,52 @@ const produitSchema = new mongoose.Schema(
       trim: true,
       maxlength: [2000, "La description ne peut pas dépasser 2000 caractères"],
     },
-    prix: {
-      devise: {
-        type: String,
-        required: [true, "La devise est requise"],
-        uppercase: true,
-        trim: true,
-        default: "EUR",
-      },
-      montant: {
-        type: Number,
-        required: [true, "Le montant est requis"],
-        min: [0, "Le montant ne peut pas être négatif"],
-      },
-    },
-    stock: {
-      quantite: {
-        type: Number,
-        required: [true, "La quantité est requise"],
-        min: [0, "La quantité ne peut pas être négative"],
-        default: 0,
-      },
-    },
     images: {
       type: [String],
       default: [],
     },
-    attributs: {
-      couleurs: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Couleur",
-      }],
-      tailles: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Taille",
-      }],
-      marque: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Marque",
+    variantes: [
+      {
+        couleur: {
+          type: String,
+          trim: true,
+        },
+        couleurHex: {
+          type: String,
+          trim: true,
+        },
+        unite: {
+          type: String,
+          trim: true,
+        },
+        typeUnitePrincipal: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "TypeUnite",
+        },
+        prix: {
+          devise: {
+            type: String,
+            uppercase: true,
+            trim: true,
+            default: "EUR",
+          },
+          montant: {
+            type: Number,
+            required: [true, "Le prix est requis"],
+            min: [0, "Le prix ne peut pas être négatif"],
+            default: 0,
+          },
+        },
+        stock: {
+          quantite: {
+            type: Number,
+            required: [true, "Le stock est requis"],
+            min: [0, "Le stock ne peut pas être négatif"],
+            default: 0,
+          },
+        },
       },
-      typeUnitePrincipal: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "TypeUnite",
-      },
-    },
+    ],
     statut: {
       type: String,
       enum: {
@@ -84,7 +86,7 @@ const produitSchema = new mongoose.Schema(
   },
   {
     timestamps: { createdAt: "dateCreation", updatedAt: "dateMiseAJour" },
-  }
+  },
 );
 
 // Index composé pour optimiser les recherches

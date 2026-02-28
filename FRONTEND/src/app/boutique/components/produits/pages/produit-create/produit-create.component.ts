@@ -192,6 +192,7 @@ export class ProduitCreateComponent implements OnInit {
       nom: ['', [Validators.required]],
       slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
       description: [''],
+      // Prix et stock sont maintenant dans les variantes, mais gardés pour initialisation
       prix: this.formBuilder.group({
         devise: ['EUR', [Validators.required]],
         montant: [0, [Validators.required, Validators.min(0)]],
@@ -201,12 +202,6 @@ export class ProduitCreateComponent implements OnInit {
       }),
       variantes: this.formBuilder.array([]),
       images: [[]],
-      attributs: this.formBuilder.group({
-        couleurs: [[]],
-        tailles: [[]],
-        marque: [''],
-        typeUnitePrincipal: [''],
-      }),
       statut: ['actif'],
     });
 
@@ -569,9 +564,14 @@ export class ProduitCreateComponent implements OnInit {
     this.loadTaillesParType(idTypeUnite);
   }
 
+  getTypeUniteLabel(): string {
+    const typeUnite = this.typesUnites.find(t => t._id === this.selectedTypeUniteId);
+    return typeUnite?.label || '—';
+  }
+
   // ── Marque ─────────────────────────────────
   onMarqueChange() {
-    this.produitForm.get('attributs.marque')?.setValue(this.selectedMarqueId);
+    // La marque n'est plus utilisée dans le modèle Produit
   }
 
   createNewMarque() {
@@ -590,7 +590,6 @@ export class ProduitCreateComponent implements OnInit {
     this.marqueService.createMarque({ nom: this.newMarqueNom.trim(), slug }).subscribe({
       next: (data) => {
         this.selectedMarqueId = data.marque._id!;
-        this.produitForm.get('attributs.marque')?.setValue(this.selectedMarqueId);
         this.loadMarques();
         this.newMarqueNom = '';
         this.showNewMarqueField = false;
@@ -615,9 +614,6 @@ export class ProduitCreateComponent implements OnInit {
     } else {
       this.selectedColors.push({ name, hex });
     }
-    this.produitForm
-      .get('attributs.couleurs')
-      ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
     // Auto-générer les variantes
     setTimeout(() => this.genererVariantes(), 100);
   }
@@ -625,9 +621,6 @@ export class ProduitCreateComponent implements OnInit {
   selectColor(hex: string, name: string) {
     if (!this.isColorSelected(hex)) {
       this.selectedColors.push({ name, hex });
-      this.produitForm
-        .get('attributs.couleur')
-        ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
       this.generateVariantes();
     }
   }
@@ -636,9 +629,6 @@ export class ProduitCreateComponent implements OnInit {
     const index = this.selectedColors.findIndex((c) => c.hex === hex);
     if (index > -1) {
       this.selectedColors.splice(index, 1);
-      this.produitForm
-        .get('attributs.couleur')
-        ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
       this.generateVariantes();
     }
   }
@@ -677,7 +667,6 @@ export class ProduitCreateComponent implements OnInit {
   clearSingleColor() {
     this.singleSelectedColor = null;
     this.singleSelectedPrix = 0;
-    this.produitForm.get('attributs.couleur')?.setValue('');
   }
 
   // ── Tailles ──────────────────────────────────
@@ -721,7 +710,6 @@ export class ProduitCreateComponent implements OnInit {
   }
 
   updateTaillesForm() {
-    this.produitForm.get('attributs.taille')?.setValue(this.selectedSizes);
     this.generateVariantes();
   }
 
@@ -751,7 +739,6 @@ export class ProduitCreateComponent implements OnInit {
   clearSingleSize() {
     this.singleSelectedSize = '';
     this.singleSelectedStock = 0;
-    this.produitForm.get('attributs.taille')?.setValue([]);
   }
 
   updateSingleStock(delta: number) {
@@ -816,8 +803,6 @@ export class ProduitCreateComponent implements OnInit {
     this.singleSelectedSize = '';
     this.singleSelectedPrix = 0;
     this.singleSelectedStock = 0;
-    this.produitForm.get('attributs.couleur')?.setValue('');
-    this.produitForm.get('attributs.taille')?.setValue([]);
 
     this.toastService.showSuccess('Variante ajoutée avec succès');
   }
@@ -1039,61 +1024,44 @@ export class ProduitCreateComponent implements OnInit {
       this.isSubmitting = true;
       const produitData = this.produitForm.value;
 
-      // Si le mode variantes est activé, mettre à jour le stock global avec le total
+      // Formater les variantes avec prix et stock imbriqués
       if (this.useVariantesMode && this.variantes.length > 0) {
-        produitData.stock.quantite = this.getTotalStock();
-        produitData.variantes = this.variantes;
+        produitData.variantes = this.variantes.map(v => ({
+          couleur: v.couleur || '',
+          couleurHex: v.couleurHex || '',
+          unite: v.unite || '',
+          typeUnitePrincipal: this.selectedTypeUniteId,
+          prix: {
+            devise: 'EUR',
+            montant: v.prix || 0,
+          },
+          stock: {
+            quantite: v.quantite || 0,
+          },
+        }));
+      } else if (this.useVariantesMode && this.variantes.length === 0) {
+        // Si pas de variantes, créer une variante par défaut
+        produitData.variantes = [{
+          couleur: '',
+          couleurHex: '',
+          unite: '',
+          typeUnitePrincipal: this.selectedTypeUniteId,
+          prix: {
+            devise: 'EUR',
+            montant: this.produitForm.get('prix.montant')?.value || 0,
+          },
+          stock: {
+            quantite: this.produitForm.get('stock.quantite')?.value || 0,
+          },
+        }];
       }
 
-      // Formater les attributs pour envoyer les IDs au lieu des noms
-      const attributsFormates: any = {};
+      // Supprimer attributs, prix et stock globaux (maintenant dans les variantes)
+      delete produitData.attributs;
+      delete produitData.prix;
+      delete produitData.stock;
 
-      console.log('🎨 Couleurs sélectionnées:', this.selectedColors);
-      console.log('📏 Tailles sélectionnées:', this.selectedSizes);
-      console.log('🏷️ Marque sélectionnée:', this.selectedMarqueId);
-      console.log('📦 Toutes les couleurs en mémoire:', this.couleurs.length);
-      console.log('📦 Toutes les tailles en mémoire:', this.tailles.length);
-
-      // Couleurs : envoyer les IDs
-      if (this.selectedColors.length > 0) {
-        attributsFormates.couleurs = this.selectedColors.map(c => {
-          // Chercher par codeHex (format #RRVVBB)
-          const couleurDb = this.couleurs.find(col => col.codeHex?.toUpperCase() === c.hex?.toUpperCase());
-          console.log('🔍 Recherche couleur hex:', c.hex, '→ Trouvée:', couleurDb?._id);
-          return couleurDb?._id || c.hex;
-        });
-      } else {
-        attributsFormates.couleurs = [];
-      }
-
-      // Tailles : envoyer les IDs
-      if (this.selectedSizes.length > 0) {
-        attributsFormates.tailles = this.selectedSizes.map(tailleLabel => {
-          const tailleDb = this.tailles.find(t => {
-            const labelMatch = t.label?.toLowerCase() === tailleLabel.toLowerCase();
-            const valeurMatch = t.valeur?.toLowerCase() === tailleLabel.toLowerCase();
-            return labelMatch || valeurMatch;
-          });
-          console.log('🔍 Recherche taille:', tailleLabel, '→ Trouvée:', tailleDb?._id);
-          return tailleDb?._id || tailleLabel;
-        });
-      } else {
-        attributsFormates.tailles = [];
-      }
-
-      // Marque : envoyer l'ID
-      if (this.selectedMarqueId) {
-        attributsFormates.marque = this.selectedMarqueId;
-      }
-
-      // Type d'unité principal
-      if (this.selectedTypeUniteId) {
-        attributsFormates.typeUnitePrincipal = this.selectedTypeUniteId;
-      }
-
-      console.log('📤 Attributs formatés à envoyer:', attributsFormates);
-
-      produitData.attributs = attributsFormates;
+      console.log('📤 Variantes à envoyer:', produitData.variantes);
 
       this.produitService.createProduit(produitData).subscribe({
         next: () => {
@@ -1101,7 +1069,8 @@ export class ProduitCreateComponent implements OnInit {
           this.router.navigate(['/boutique/produits']);
           this.isSubmitting = false;
         },
-        error: () => {
+        error: (err) => {
+          console.error('❌ Erreur création produit:', err);
           this.isSubmitting = false;
           this.toastService.showError('Erreur lors de la création du produit');
         },

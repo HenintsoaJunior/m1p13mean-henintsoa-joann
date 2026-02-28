@@ -22,10 +22,9 @@ class ProduitService {
       nom,
       slug,
       description,
-      prix,
-      stock,
       images,
       attributs,
+      variantes,
       statut,
     } = donneesProduit;
 
@@ -36,10 +35,9 @@ class ProduitService {
       nom,
       slug,
       description,
-      prix,
-      stock,
       images,
       attributs,
+      variantes,
       statut,
     });
 
@@ -248,27 +246,23 @@ class ProduitService {
     if (donnees.description !== undefined) {
       nettoyees.description = donnees.description ? donnees.description.trim() : null;
     }
-    if (donnees.prix) {
-      nettoyees.prix = {
-        devise: (donnees.prix.devise || "EUR").toUpperCase().trim(),
-        montant: parseFloat(donnees.prix.montant) || 0,
-      };
-    }
-    if (donnees.stock) {
-      nettoyees.stock = {
-        quantite: parseInt(donnees.stock.quantite) >= 0 ? parseInt(donnees.stock.quantite) : 0,
-      };
-    }
     if (donnees.images) {
       nettoyees.images = Array.isArray(donnees.images) ? donnees.images : [];
     }
-    if (donnees.attributs) {
-      nettoyees.attributs = {
-        couleurs: Array.isArray(donnees.attributs.couleurs) ? donnees.attributs.couleurs : [],
-        tailles: Array.isArray(donnees.attributs.tailles) ? donnees.attributs.tailles : [],
-        marque: donnees.attributs.marque ? donnees.attributs.marque.trim() : null,
-        typeUnitePrincipal: donnees.attributs.typeUnitePrincipal || null,
-      };
+    if (donnees.variantes && Array.isArray(donnees.variantes)) {
+      nettoyees.variantes = donnees.variantes.map(variante => ({
+        couleur: variante.couleur ? variante.couleur.trim() : '',
+        couleurHex: variante.couleurHex ? variante.couleurHex.trim() : '',
+        unite: variante.unite ? variante.unite.trim() : '',
+        typeUnitePrincipal: variante.typeUnitePrincipal || null,
+        prix: {
+          devise: (variante.prix?.devise || "EUR").toUpperCase().trim(),
+          montant: parseFloat(variante.prix?.montant) || 0,
+        },
+        stock: {
+          quantite: parseInt(variante.stock?.quantite) >= 0 ? parseInt(variante.stock?.quantite) : 0,
+        },
+      }));
     }
     if (donnees.statut && ["actif", "rupture_stock", "archive"].includes(donnees.statut)) {
       nettoyees.statut = donnees.statut;

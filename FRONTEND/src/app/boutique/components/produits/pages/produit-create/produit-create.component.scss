@@ -1413,6 +1413,9 @@
   &.accent-gray {
     border-left-color: var(--color-gray-400);
   }
+  &.accent-blue {
+    border-left-color: var(--sidebar-primary);
+  }
 }
 
 .summary-block-title {
@@ -2009,7 +2012,153 @@
   color: var(--text-secondary);
 }
 
-// Summary variantes chips
+// Summary variantes - Nouveau style avec cartes
+.variantes-summary-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.variante-summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--sidebar-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.variante-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.variante-summary-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.color-dot-small {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--border-primary);
+  flex-shrink: 0;
+}
+
+.variante-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.variante-unite {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.variante-index {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.variante-summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variante-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.variante-detail-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  i {
+    font-size: 10px;
+  }
+}
+
+.variante-detail-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.variante-summary-total {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.total-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.total-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+// Image previews summary
+.image-previews-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.image-preview-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border-primary);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// Summary variantes chips (ancien style - gardé pour rétrocompatibilité)
 .variante-summary-chip {
   display: inline-flex;
   align-items: center;
