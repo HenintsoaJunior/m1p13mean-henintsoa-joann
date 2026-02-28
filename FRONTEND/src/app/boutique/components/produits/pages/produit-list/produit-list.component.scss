@@ -567,6 +567,13 @@
   }
 }
 
+.stock-hint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  margin-left: 6px;
+}
+
 .description-text {
   white-space: pre-wrap;
   line-height: 1.6;
@@ -717,6 +724,11 @@
     &.stock-critique {
       color: var(--color-danger);
     }
+  }
+
+  .variante-prix {
+    font-weight: 700;
+    color: var(--sidebar-accent);
   }
 }
 

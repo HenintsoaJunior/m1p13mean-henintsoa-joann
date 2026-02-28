@@ -349,8 +349,8 @@ export class ProduitEditComponent implements OnInit {
         couleur: v.couleur || '',
         couleurHex: v.couleurHex || '',
         unite: v.unite || '',
-        prix: v.prix || 0,
-        quantite: v.quantite || 0,
+        prix: (typeof v.prix === 'number' ? v.prix : v.prix?.montant) || 0,
+        quantite: (v as any).stock?.quantite || (v as any).quantite || 0,
       }));
       this.useVariantesMode = true;
       this.updateVariantesFormArray();
@@ -1230,70 +1230,42 @@ export class ProduitEditComponent implements OnInit {
       }
 
       this.isSubmitting = true;
-      const produitData: ProduitFormData = this.produitForm.value;
+
+      // Formater les variantes avec prix et stock imbriqués
+      const variantesFormatees = this.variantes.map(v => ({
+        couleur: v.couleur || '',
+        couleurHex: v.couleurHex || '',
+        unite: v.unite || '',
+        typeUnitePrincipal: this.selectedTypeUniteId,
+        prix: {
+          devise: 'EUR',
+          montant: v.prix || 0,
+        },
+        stock: {
+          quantite: v.quantite || 0,
+        },
+      }));
+
+      const produitData: any = this.produitForm.value;
 
       if (this.useVariantesMode && this.variantes.length > 0) {
-        produitData.stock.quantite = this.getTotalStock();
-        produitData.variantes = this.variantes;
+        produitData.variantes = variantesFormatees;
       }
 
-      // Formater les attributs pour envoyer les IDs au lieu des noms
-      const attributsFormates: any = {};
+      // Supprimer attributs, prix et stock globaux (maintenant dans les variantes)
+      delete produitData.attributs;
+      delete produitData.prix;
+      delete produitData.stock;
 
-      console.log('🎨 Couleurs sélectionnées:', this.selectedColors);
-      console.log('📏 Tailles sélectionnées:', this.selectedSizes);
-      console.log('🏷️ Marque sélectionnée:', this.selectedMarqueId);
-      console.log('📦 Toutes les couleurs en mémoire:', this.couleurs.length);
-      console.log('📦 Toutes les tailles en mémoire:', this.tailles.length);
-
-      // Couleurs : envoyer les IDs
-      if (this.selectedColors.length > 0) {
-        attributsFormates.couleurs = this.selectedColors.map((c) => {
-          const couleurDb = this.couleurs.find(
-            (col) => col.codeHex?.toUpperCase() === c.hex?.toUpperCase(),
-          );
-          console.log('🔍 Recherche couleur hex:', c.hex, '→ Trouvée:', couleurDb?._id);
-          return couleurDb?._id || c.hex;
-        });
-      } else {
-        attributsFormates.couleurs = [];
-      }
-
-      // Tailles : envoyer les IDs
-      if (this.selectedSizes.length > 0) {
-        attributsFormates.tailles = this.selectedSizes.map((tailleLabel) => {
-          const tailleDb = this.tailles.find((t) => {
-            const labelMatch = t.label?.toLowerCase() === tailleLabel.toLowerCase();
-            const valeurMatch = t.valeur?.toLowerCase() === tailleLabel.toLowerCase();
-            return labelMatch || valeurMatch;
-          });
-          console.log('🔍 Recherche taille:', tailleLabel, '→ Trouvée:', tailleDb?._id);
-          return tailleDb?._id || tailleLabel;
-        });
-      } else {
-        attributsFormates.tailles = [];
-      }
-
-      // Marque : envoyer l'ID
-      if (this.selectedMarqueId) {
-        attributsFormates.marque = this.selectedMarqueId;
-      }
-
-      // Type d'unité principal
-      if (this.selectedTypeUniteId) {
-        attributsFormates.typeUnitePrincipal = this.selectedTypeUniteId;
-      }
-
-      console.log('📤 Attributs formatés à envoyer:', attributsFormates);
-
-      produitData.attributs = attributsFormates;
+      console.log('📤 Variantes à envoyer:', produitData.variantes);
 
       this.produitService.updateProduit(this.produitId, produitData).subscribe({
         next: () => {
           this.router.navigate(['/boutique/produits']);
           this.isSubmitting = false;
         },
-        error: () => {
+        error: (err) => {
+          console.error('❌ Erreur mise à jour produit:', err);
           this.isSubmitting = false;
           this.toastService.showError('Erreur lors de la mise à jour du produit');
         },
