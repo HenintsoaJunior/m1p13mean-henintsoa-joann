@@ -13,7 +13,9 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // Vérifier les variables d'environnement
 if (!process.env.MONGO_URI) {
-  console.error("ERREUR: MONGO_URI n'est pas défini dans les variables d'environnement");
+  console.error(
+    "ERREUR: MONGO_URI n'est pas défini dans les variables d'environnement",
+  );
 }
 
 // Connexion à MongoDB (seulement si MONGO_URI est défini)

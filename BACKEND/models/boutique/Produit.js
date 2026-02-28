@@ -56,17 +56,21 @@ const produitSchema = new mongoose.Schema(
       default: [],
     },
     attributs: {
-      couleur: {
-        type: String,
-        trim: true,
-      },
-      taille: {
-        type: [String],
-        default: [],
-      },
+      couleurs: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Couleur",
+      }],
+      tailles: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Taille",
+      }],
       marque: {
-        type: String,
-        trim: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Marque",
+      },
+      typeUnitePrincipal: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "TypeUnite",
       },
     },
     statut: {

@@ -512,50 +512,25 @@
               <div class="unite-type-selector">
                 <label class="unite-type-label">Type d'unité :</label>
                 <div class="unite-type-options">
-                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'standard'">
-                    <input type="radio" name="uniteType" value="standard" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
-                    <span class="unite-type-icon">👕</span>
-                    <span class="unite-type-name">Standard</span>
-                    <span class="unite-type-desc">XS, S, M, L...</span>
+                  @for (type of typesUnites; track type._id) {
+                  <label class="unite-type-radio" [class.active]="selectedTypeUniteId === type._id">
+                    <input type="radio" name="uniteType" [value]="type._id" [(ngModel)]="selectedTypeUniteId" [ngModelOptions]="{ standalone: true }" (change)="onTypeUniteChange(type._id!)" />
+                    <span class="unite-type-icon">{{ type.icon || '📏' }}</span>
+                    <span class="unite-type-name">{{ type.label }}</span>
+                    <span class="unite-type-desc">{{ type.description }}</span>
                   </label>
-                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'liquide'">
-                    <input type="radio" name="uniteType" value="liquide" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
-                    <span class="unite-type-icon">💧</span>
-                    <span class="unite-type-name">Liquide</span>
-                    <span class="unite-type-desc">cl, L...</span>
-                  </label>
-                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'poids'">
-                    <input type="radio" name="uniteType" value="poids" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
-                    <span class="unite-type-icon">⚖️</span>
-                    <span class="unite-type-name">Poids</span>
-                    <span class="unite-type-desc">g, kg...</span>
-                  </label>
-                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'conditionnement'">
-                    <input type="radio" name="uniteType" value="conditionnement" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
-                    <span class="unite-type-icon">📦</span>
-                    <span class="unite-type-name">Conditionnement</span>
-                    <span class="unite-type-desc">unités, cartons...</span>
-                  </label>
-                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'personnalise'">
-                    <input type="radio" name="uniteType" value="personnalise" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
-                    <span class="unite-type-icon">✏️</span>
-                    <span class="unite-type-name">Personnalisé</span>
-                    <span class="unite-type-desc">Votre propre unité</span>
-                  </label>
+                  }
                 </div>
               </div>
               
               <div class="size-presets">
-                @for (s of (selectedUniteType === 'standard' ? sizePresets : 
-                           selectedUniteType === 'liquide' ? liquidPresets : 
-                           selectedUniteType === 'poids' ? weightPresets : 
-                           selectedUniteType === 'conditionnement' ? packagePresets : []); track s) {
+                @for (taille of tailles; track taille._id) {
                   <div
                     class="size-tag"
-                    [class.selected]="useVariantesMode ? isSingleSizeSelected(s) : isSizeSelected(s)"
-                    (click)="toggleSize(s)"
+                    [class.selected]="useVariantesMode ? isSingleSizeSelected(taille.label || taille.valeur) : isSizeSelected(taille.label || taille.valeur)"
+                    (click)="toggleSize(taille.label || taille.valeur)"
                   >
-                    {{ s }}
+                    {{ taille.label || taille.valeur }}
                   </div>
                 }
               </div>
@@ -598,14 +573,45 @@
             @if (produitOptions.avecMarque) {
             <div class="attribute-section">
               <h4 class="attribute-title">Marque</h4>
-              <div class="form-group" formGroupName="attributs">
-                <input
-                  type="text"
-                  class="form-input"
-                  formControlName="marque"
-                  placeholder="Ex : Nike, Adidas, Apple..."
-                />
+              <div class="form-group">
+                <label class="form-label">Sélectionner une marque</label>
+                <select
+                  class="form-select"
+                  [(ngModel)]="selectedMarqueId"
+                  [ngModelOptions]="{ standalone: true }"
+                  (change)="onMarqueChange()"
+                >
+                  <option value="">-- Sélectionner une marque --</option>
+                  @for (marque of marques; track marque._id) {
+                    <option [value]="marque._id">{{ marque.nom }} ({{ marque.paysOrigine || 'N/A' }})</option>
+                  }
+                </select>
               </div>
+              
+              <!-- Option pour ajouter une nouvelle marque -->
+              <div class="form-group">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="showNewMarqueField = !showNewMarqueField">
+                  {{ showNewMarqueField ? 'Annuler' : '+ Ajouter une nouvelle marque' }}
+                </button>
+              </div>
+              
+              @if (showNewMarqueField) {
+              <div class="form-group">
+                <label class="form-label">Nom de la nouvelle marque</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-input"
+                    [(ngModel)]="newMarqueNom"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="Ex : Nike, Adidas..."
+                  />
+                  <button type="button" class="btn btn-primary" (click)="createNewMarque()" [disabled]="!newMarqueNom.trim()">
+                    Créer
+                  </button>
+                </div>
+              </div>
+              }
             </div>
             }
 

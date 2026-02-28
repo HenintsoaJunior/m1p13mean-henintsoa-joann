@@ -25,15 +25,15 @@ router.use((req, res, next) => {
 });
 
 // Routes pour les catégories
-router.post("/", categorieController.creerCategorie.bind(categorieController));
-router.get("/", categorieController.obtenirListeCategories.bind(categorieController));
-router.get("/boutique", categorieController.obtenirCategoriesParBoutique.bind(categorieController));
-router.get("/arbre", categorieController.obtenirArbreCategories.bind(categorieController));
-router.get("/hierarchie", categorieController.obtenirCategoriesAvecHierarchie.bind(categorieController));
-router.get("/slug/:slug", categorieController.obtenirCategorieParSlug.bind(categorieController));
-router.get("/:id", categorieController.obtenirCategorieParId.bind(categorieController));
-router.get("/parent/:idParent/enfants", categorieController.obtenirCategoriesEnfants.bind(categorieController));
-router.put("/:id", categorieController.mettreAJourCategorie.bind(categorieController));
-router.delete("/:id", categorieController.supprimerCategorie.bind(categorieController));
+router.post("/", (req, res) => categorieController.creerCategorie(req, res));
+router.get("/", (req, res) => categorieController.obtenirListeCategories(req, res));
+router.get("/boutique", (req, res) => categorieController.obtenirCategoriesParBoutique(req, res));
+router.get("/arbre", (req, res) => categorieController.obtenirArbreCategories(req, res));
+router.get("/hierarchie", (req, res) => categorieController.obtenirCategoriesAvecHierarchie(req, res));
+router.get("/slug/:slug", (req, res) => categorieController.obtenirCategorieParSlug(req, res));
+router.get("/:id", (req, res) => categorieController.obtenirCategorieParId(req, res));
+router.get("/parent/:idParent/enfants", (req, res) => categorieController.obtenirCategoriesEnfants(req, res));
+router.put("/:id", (req, res) => categorieController.mettreAJourCategorie(req, res));
+router.delete("/:id", (req, res) => categorieController.supprimerCategorie(req, res));
 
 module.exports = router;
