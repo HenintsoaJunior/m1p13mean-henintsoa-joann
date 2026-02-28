@@ -38,7 +38,14 @@ const typesUnitesData = [
     label: "Conditionnement",
     description: "Quantités et conditionnements (unités, cartons...)",
     icon: "📦",
-    valeurs: ["1 unité", "3 unités", "6 unités", "12 unités", "24 unités", "Carton"],
+    valeurs: [
+      "1 unité",
+      "3 unités",
+      "6 unités",
+      "12 unités",
+      "24 unités",
+      "Carton",
+    ],
   },
   {
     nom: "personnalise",
@@ -165,7 +172,9 @@ async function seedCouleurs() {
     const existing = await Couleur.findOne({ codeHex: couleurData.codeHex });
     if (!existing) {
       await Couleur.create(couleurData);
-      console.log(`  ✓ Couleur créée: ${couleurData.nom} (${couleurData.codeHex})`);
+      console.log(
+        `  ✓ Couleur créée: ${couleurData.nom} (${couleurData.codeHex})`,
+      );
     } else {
       console.log(`  - Couleur déjà existante: ${couleurData.nom}`);
     }
