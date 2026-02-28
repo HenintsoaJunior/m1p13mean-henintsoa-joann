@@ -364,7 +364,71 @@
           </div>
 
           <div class="panel-content">
-            <!-- COULEURS -->
+            <!-- Options du produit -->
+            <div class="attribute-section">
+              <h4 class="attribute-title">
+                <i class="fas fa-sliders-h"></i> Options du produit
+              </h4>
+              <p class="attribute-description">
+                Personnalisez les attributs disponibles pour ce produit
+              </p>
+              
+              <div class="options-grid">
+                <!-- Option Couleur -->
+                <div class="option-card" [class.active]="produitOptions.avecCouleur">
+                  <label class="option-toggle">
+                    <input 
+                      type="checkbox" 
+                      [(ngModel)]="produitOptions.avecCouleur"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                    <span class="option-slider"></span>
+                  </label>
+                  <div class="option-icon">🎨</div>
+                  <div class="option-label">
+                    <strong>Couleurs</strong>
+                    <span>Disponible en plusieurs couleurs</span>
+                  </div>
+                </div>
+
+                <!-- Option Unités -->
+                <div class="option-card" [class.active]="produitOptions.avecUnite">
+                  <label class="option-toggle">
+                    <input 
+                      type="checkbox" 
+                      [(ngModel)]="produitOptions.avecUnite"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                    <span class="option-slider"></span>
+                  </label>
+                  <div class="option-icon">📏</div>
+                  <div class="option-label">
+                    <strong>Unités / Variantes</strong>
+                    <span>Tailles, volumes, poids, conditionnements...</span>
+                  </div>
+                </div>
+
+                <!-- Option Marque -->
+                <div class="option-card" [class.active]="produitOptions.avecMarque">
+                  <label class="option-toggle">
+                    <input 
+                      type="checkbox" 
+                      [(ngModel)]="produitOptions.avecMarque"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                    <span class="option-slider"></span>
+                  </label>
+                  <div class="option-icon">🏷️</div>
+                  <div class="option-label">
+                    <strong>Marque</strong>
+                    <span>Préciser la marque du produit</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- COULEURS (conditionnel) -->
+            @if (produitOptions.avecCouleur) {
             <div class="attribute-section">
               <h4 class="attribute-title">
                 Couleurs disponibles
@@ -432,22 +496,63 @@
                 }
               </div>
             </div>
+            }
 
-            <!-- TAILLES -->
+            <!-- UNITÉS (conditionnel) -->
+            @if (produitOptions.avecUnite) {
             <div class="attribute-section">
               <h4 class="attribute-title">
-                Tailles disponibles
+                Unités / Variantes disponibles
                 @if (useVariantesMode) {
                   <span class="attribute-hint">(sélection unique)</span>
                 }
               </h4>
+              
+              <!-- Type d'unité -->
+              <div class="unite-type-selector">
+                <label class="unite-type-label">Type d'unité :</label>
+                <div class="unite-type-options">
+                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'standard'">
+                    <input type="radio" name="uniteType" value="standard" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
+                    <span class="unite-type-icon">👕</span>
+                    <span class="unite-type-name">Standard</span>
+                    <span class="unite-type-desc">XS, S, M, L...</span>
+                  </label>
+                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'liquide'">
+                    <input type="radio" name="uniteType" value="liquide" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
+                    <span class="unite-type-icon">💧</span>
+                    <span class="unite-type-name">Liquide</span>
+                    <span class="unite-type-desc">cl, L...</span>
+                  </label>
+                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'poids'">
+                    <input type="radio" name="uniteType" value="poids" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
+                    <span class="unite-type-icon">⚖️</span>
+                    <span class="unite-type-name">Poids</span>
+                    <span class="unite-type-desc">g, kg...</span>
+                  </label>
+                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'conditionnement'">
+                    <input type="radio" name="uniteType" value="conditionnement" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
+                    <span class="unite-type-icon">📦</span>
+                    <span class="unite-type-name">Conditionnement</span>
+                    <span class="unite-type-desc">unités, cartons...</span>
+                  </label>
+                  <label class="unite-type-radio" [class.active]="selectedUniteType === 'personnalise'">
+                    <input type="radio" name="uniteType" value="personnalise" [(ngModel)]="selectedUniteType" [ngModelOptions]="{ standalone: true }" />
+                    <span class="unite-type-icon">✏️</span>
+                    <span class="unite-type-name">Personnalisé</span>
+                    <span class="unite-type-desc">Votre propre unité</span>
+                  </label>
+                </div>
+              </div>
+              
               <div class="size-presets">
-                @for (s of sizePresets; track s) {
+                @for (s of (selectedUniteType === 'standard' ? sizePresets : 
+                           selectedUniteType === 'liquide' ? liquidPresets : 
+                           selectedUniteType === 'poids' ? weightPresets : 
+                           selectedUniteType === 'conditionnement' ? packagePresets : []); track s) {
                   <div
                     class="size-tag"
-                    [class.selected]="
-                      useVariantesMode ? isSingleSizeSelected(s) : isSizeSelected(s)
-                    "
+                    [class.selected]="useVariantesMode ? isSingleSizeSelected(s) : isSizeSelected(s)"
                     (click)="toggleSize(s)"
                   >
                     {{ s }}
@@ -461,7 +566,7 @@
                   class="form-input"
                   [(ngModel)]="customSizeInput"
                   [ngModelOptions]="{ standalone: true }"
-                  placeholder="Taille personnalisée (ex: 46, XL, 38/32...)"
+                  placeholder="Unité personnalisée (ex: 46, 75cl, 1kg, carton...)"
                   (keyup.enter)="addCustomSize()"
                 />
                 <button type="button" class="btn btn-secondary" (click)="addCustomSize()">
@@ -487,8 +592,10 @@
                 </div>
               }
             </div>
+            }
 
-            <!-- MARQUE -->
+            <!-- MARQUE (conditionnel) -->
+            @if (produitOptions.avecMarque) {
             <div class="attribute-section">
               <h4 class="attribute-title">Marque</h4>
               <div class="form-group" formGroupName="attributs">
@@ -500,6 +607,7 @@
                 />
               </div>
             </div>
+            }
 
             <!-- VARIANTES PAR COULEUR/TAILLE -->
             <div class="attribute-section">
@@ -544,8 +652,12 @@
                     <table class="variantes-table">
                       <thead>
                         <tr>
-                          <th>Couleur</th>
-                          <th>Taille</th>
+                          @if (produitOptions.avecCouleur) {
+                            <th>Couleur</th>
+                          }
+                          @if (produitOptions.avecUnite) {
+                            <th>Unité</th>
+                          }
                           <th>Stock</th>
                           <th>Actions</th>
                         </tr>
@@ -553,34 +665,29 @@
                       <tbody>
                         <!-- Ligne d'ajout de nouvelle variante -->
                         <tr class="variantes-add-row">
-                          <td class="variante-couleur">
-                            @if (singleSelectedColor) {
-                              <span
-                                class="color-dot"
-                                [style.background]="singleSelectedColor.hex"
-                              ></span>
-                              {{ singleSelectedColor.name }}
-                            } @else {
-                              <span class="text-muted">—</span>
-                            }
-                          </td>
-                          <td class="variante-taille">
-                            @if (singleSelectedSize) {
-                              <span class="size-badge">{{ singleSelectedSize }}</span>
-                            } @else {
-                              <span class="text-muted">—</span>
-                            }
-                          </td>
+                          @if (produitOptions.avecCouleur) {
+                            <td class="variante-couleur">
+                              @if (singleSelectedColor) {
+                                <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
+                                {{ singleSelectedColor.name }}
+                              } @else {
+                                <span class="text-muted">—</span>
+                              }
+                            </td>
+                          }
+                          @if (produitOptions.avecUnite) {
+                            <td class="variante-taille">
+                              @if (singleSelectedSize) {
+                                <span class="size-badge">{{ singleSelectedSize }}</span>
+                              } @else {
+                                <span class="text-muted">—</span>
+                              }
+                            </td>
+                          }
                           <td class="variante-stock">
-                            @if (singleSelectedColor && singleSelectedSize) {
+                            @if ((produitOptions.avecCouleur && singleSelectedColor) || (produitOptions.avecUnite && singleSelectedSize)) {
                               <div class="stock-stepper-mini">
-                                <button
-                                  type="button"
-                                  class="stock-btn-mini"
-                                  (click)="updateSingleStock(-1)"
-                                >
-                                  −
-                                </button>
+                                <button type="button" class="stock-btn-mini" (click)="updateSingleStock(-1)">−</button>
                                 <input
                                   type="number"
                                   class="stock-input-mini"
@@ -588,16 +695,10 @@
                                   (input)="onStockInputChange(+($any($event.target).value || 0))"
                                   min="0"
                                 />
-                                <button
-                                  type="button"
-                                  class="stock-btn-mini"
-                                  (click)="updateSingleStock(1)"
-                                >
-                                  +
-                                </button>
+                                <button type="button" class="stock-btn-mini" (click)="updateSingleStock(1)">+</button>
                               </div>
                             } @else {
-                              <span class="text-muted">Sélectionnez couleur et taille</span>
+                              <span class="text-muted">Sélectionnez une option</span>
                             }
                           </td>
                           <td class="variante-actions">
@@ -605,9 +706,7 @@
                               type="button"
                               class="btn btn-success btn-icon btn-sm"
                               (click)="addVarianteManually()"
-                              [disabled]="
-                                !singleSelectedColor || !singleSelectedSize || stockExceeded
-                              "
+                              [disabled]="(produitOptions.avecCouleur && !singleSelectedColor) || (produitOptions.avecUnite && !singleSelectedSize) || stockExceeded"
                               title="Ajouter cette variante"
                             >
                               <i class="fas fa-plus"></i>
@@ -618,18 +717,17 @@
                         <!-- Variantes existantes -->
                         @for (variante of variantes; track variante; let i = $index) {
                           <tr class="variantes-row">
-                            <td class="variante-couleur">
-                              <span
-                                class="color-dot"
-                                [style.background]="variante.couleurHex || '#ccc'"
-                              ></span>
-                              {{ variante.couleur || '—' }}
-                            </td>
-                            <td class="variante-taille">
-                              <span class="size-badge">{{
-                                variante.taille || 'Taille unique'
-                              }}</span>
-                            </td>
+                            @if (produitOptions.avecCouleur && variante.couleur) {
+                              <td class="variante-couleur">
+                                <span class="color-dot" [style.background]="variante.couleurHex || '#ccc'"></span>
+                                {{ variante.couleur }}
+                              </td>
+                            }
+                            @if (produitOptions.avecUnite && variante.unite) {
+                              <td class="variante-taille">
+                                <span class="size-badge">{{ variante.unite }}</span>
+                              </td>
+                            }
                             <td class="variante-stock">
                               <div class="stock-stepper-mini">
                                 <button
@@ -779,7 +877,7 @@
                           [style.background]="v.couleurHex || '#ccc'"
                         ></span>
                         <span>{{ v.couleur || '—' }}</span>
-                        <span class="size-badge-mini">{{ v.taille || 'Taille unique' }}</span>
+                        <span class="size-badge-mini">{{ v.unite || 'Unité unique' }}</span>
                         <span class="stock-badge-mini">{{ v.quantite }} un.</span>
                       </div>
                     }

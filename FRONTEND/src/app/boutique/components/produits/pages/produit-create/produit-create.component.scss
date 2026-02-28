@@ -266,6 +266,176 @@
   letter-spacing: normal;
 }
 
+.attribute-description {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin: -8px 0 16px 0;
+}
+
+// Options du produit
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.option-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+
+  &:hover {
+    border-color: var(--color-gray-400);
+    background: var(--bg-tertiary);
+  }
+
+  &.active {
+    border-color: var(--sidebar-primary);
+    background: rgba(54, 96, 169, 0.06);
+  }
+}
+
+.option-toggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+    &:checked + .option-slider {
+      background: var(--sidebar-primary);
+    }
+
+    &:checked + .option-slider:before {
+      transform: translateX(18px);
+    }
+  }
+}
+
+.option-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-gray-300);
+  transition: 0.3s;
+  border-radius: 22px;
+
+  &:before {
+    position: absolute;
+    content: '';
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.option-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.option-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  span {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+}
+
+// Selecteur de type d'unité
+.unite-type-selector {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-primary);
+
+  .unite-type-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+}
+
+.unite-type-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.unite-type-radio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background: white;
+  border: 1.5px solid var(--border-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 90px;
+  text-align: center;
+
+  input {
+    display: none;
+  }
+
+  &:hover {
+    border-color: var(--color-gray-400);
+  }
+
+  &.active {
+    border-color: var(--sidebar-primary);
+    background: rgba(54, 96, 169, 0.06);
+  }
+}
+
+.unite-type-icon {
+  font-size: 24px;
+}
+
+.unite-type-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.unite-type-desc {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
 // ------------------------------------------------
 // FORM GRID & GROUPS
 // ------------------------------------------------

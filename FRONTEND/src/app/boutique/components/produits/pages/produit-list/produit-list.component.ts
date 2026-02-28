@@ -19,6 +19,9 @@ export class ProduitListComponent implements OnInit {
   searchTerm = '';
   filterStatut = '';
   showCategorieModal = false;
+  showProduitModal = false;
+  selectedProduit: Produit | null = null;
+  currentImageIndex = 0;
   isCreatingCategorie = false;
   categorieForm: FormGroup;
   categories: Categorie[] = [];
@@ -220,9 +223,22 @@ export class ProduitListComponent implements OnInit {
   }
 
   editProduit(produit: Produit) {
-    // Pour l'édition, on peut soit créer une page dédiée, soit utiliser un modal
-    // Pour l'instant, on affiche une notification
+    this.closeProduitModal();
+    // Pour l'édition, on redirige vers la page d'édition
+    // À implémenter selon votre routing
     this.toastService.showInfo('Fonctionnalité d\'édition à venir');
+  }
+
+  viewProduit(produit: Produit) {
+    this.selectedProduit = produit;
+    this.currentImageIndex = 0;
+    this.showProduitModal = true;
+  }
+
+  closeProduitModal() {
+    this.showProduitModal = false;
+    this.selectedProduit = null;
+    this.currentImageIndex = 0;
   }
 
   deleteProduit(id: string) {
