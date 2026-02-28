@@ -796,30 +796,15 @@
                   <span>Slug</span>
                   <span class="summary-val mono">{{ produitForm.get('slug')?.value || '—' }}</span>
                 </div>
+                <div class="summary-row" style="display: block">
+                  <span>Description</span>
+                  <span class="summary-val" style="display: block; margin-top: 8px; white-space: pre-wrap; line-height: 1.5">
+                    {{ produitForm.get('description')?.value || 'Aucune description' }}
+                  </span>
+                </div>
               </div>
 
               <div class="summary-block accent-amber">
-                <div class="summary-block-title"><i class="fas fa-tags"></i> Prix & Stock</div>
-                <div class="summary-row">
-                  <span>Montant</span>
-                  <span class="summary-val">
-                    {{ produitForm.get('prix.montant')?.value }}
-                    {{ produitForm.get('prix.devise')?.value }}
-                  </span>
-                </div>
-                <div class="summary-row">
-                  <span>Stock</span>
-                  @if (useVariantesMode && variantes.length > 0) {
-                    <span class="summary-val">
-                      {{ getTotalStock() }} unités ({{ variantes.length }} variantes)
-                    </span>
-                  } @else {
-                    <span class="summary-val">{{ produitForm.get('stock.quantite')?.value }}</span>
-                  }
-                </div>
-              </div>
-
-              <div class="summary-block accent-green">
                 <div class="summary-block-title"><i class="fas fa-layer-group"></i> Catégories</div>
                 <div class="summary-row">
                   <span class="summary-val">
@@ -832,46 +817,90 @@
                 </div>
               </div>
 
-              <div class="summary-block accent-gray">
-                <div class="summary-block-title"><i class="fas fa-palette"></i> Attributs</div>
+              <div class="summary-block accent-blue">
+                <div class="summary-block-title"><i class="fas fa-sliders-h"></i> Type d'unité</div>
                 <div class="summary-row">
-                  <span>Couleur</span>
-                  <span class="summary-val">{{
-                    produitForm.get('attributs.couleur')?.value || '—'
-                  }}</span>
+                  <span>Type</span>
+                  <span class="summary-val">
+                    {{ getTypeUniteLabel() }}
+                  </span>
                 </div>
-                <div class="summary-row">
-                  <span>Tailles</span>
-                  <span class="summary-val">{{
-                    selectedSizes.length > 0 ? selectedSizes.join(', ') : '—'
-                  }}</span>
+              </div>
+
+              <div class="summary-block accent-green" style="grid-column: 1 / -1">
+                <div class="summary-block-title">
+                  <i class="fas fa-boxes"></i> Variantes ({{ variantes.length }})
                 </div>
-                @if (useVariantesMode && variantes.length > 0) {
-                  <div class="summary-row" style="display: block; margin-top: 12px">
-                    <span
-                      style="
-                        font-size: 13px;
-                        color: var(--color-gray-400);
-                        margin-bottom: 8px;
-                        display: block;
-                      "
-                    >
-                      Variantes configurées :
+                @if (variantes.length === 0) {
+                  <div class="summary-row">
+                    <span class="summary-val" style="color: var(--color-gray-400)">
+                      Aucune variante configurée — Une variante par défaut sera créée
                     </span>
+                  </div>
+                } @else {
+                  <div class="variantes-summary-list">
                     @for (v of variantes; track v; let i = $index) {
-                      <div class="variante-summary-chip">
-                        <span
-                          class="color-dot-mini"
-                          [style.background]="v.couleurHex || '#ccc'"
-                        ></span>
-                        <span>{{ v.couleur || '—' }}</span>
-                        <span class="size-badge-mini">{{ v.unite || 'Unité unique' }}</span>
-                        <span class="stock-badge-mini">{{ v.quantite }} un.</span>
+                      <div class="variante-summary-card">
+                        <div class="variante-summary-header">
+                          <div class="variante-summary-identity">
+                            @if (v.couleurHex) {
+                              <span class="color-dot-small" [style.background]="v.couleurHex"></span>
+                            }
+                            <span class="variante-name">
+                              {{ v.couleur || 'Sans couleur' }}
+                              @if (v.unite) {
+                                <span class="variante-unite">• {{ v.unite }}</span>
+                              }
+                            </span>
+                          </div>
+                          <span class="variante-index">#{{ i + 1 }}</span>
+                        </div>
+                        <div class="variante-summary-details">
+                          <div class="variante-detail">
+                            <span class="variante-detail-label">
+                              <i class="fas fa-tag"></i> Prix
+                            </span>
+                            <span class="variante-detail-value">
+                              {{ v.prix | number:'1.2-2' }} €
+                            </span>
+                          </div>
+                          <div class="variante-detail">
+                            <span class="variante-detail-label">
+                              <i class="fas fa-box"></i> Stock
+                            </span>
+                            <span class="variante-detail-value">
+                              {{ v.quantite }} un.
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    @if (variantes.length > 0) {
+                      <div class="variante-summary-total">
+                        <span class="total-label">
+                          <i class="fas fa-calculator"></i> Stock total
+                        </span>
+                        <span class="total-value">
+                          {{ getTotalStock() }} unités
+                        </span>
                       </div>
                     }
                   </div>
                 }
               </div>
+
+              @if (imagePreviews.length > 0) {
+                <div class="summary-block accent-gray">
+                  <div class="summary-block-title"><i class="fas fa-images"></i> Images</div>
+                  <div class="image-previews-summary">
+                    @for (preview of imagePreviews; track preview; let i = $index) {
+                      <div class="image-preview-thumb">
+                        <img [src]="preview" alt="Image {{ i + 1 }}" />
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             </div>
 
             <div class="summary-notice">

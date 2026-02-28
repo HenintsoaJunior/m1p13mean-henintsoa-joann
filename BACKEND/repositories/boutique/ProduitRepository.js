@@ -171,6 +171,21 @@ class ProduitRepository {
   }
 
   /**
+   * Mettre à jour le stock d'une variante spécifique
+   * @param {string} idProduit - ID du produit
+   * @param {number} indexVariante - Index de la variante
+   * @param {number} quantite - Nouvelle quantité
+   * @returns {Promise<Object>} Produit mis à jour
+   */
+  async mettreAJourStockVariante(idProduit, indexVariante, quantite) {
+    return await Produit.findByIdAndUpdate(
+      idProduit,
+      { [`variantes.${indexVariante}.stock.quantite`]: quantite },
+      { new: true }
+    );
+  }
+
+  /**
    * Vérifier si un slug existe déjà pour une boutique
    * @param {string} slug - Slug à vérifier
    * @param {string} idBoutique - ID de la boutique
