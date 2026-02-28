@@ -61,7 +61,12 @@
               <td>
                 <div class="produit-info">
                   @if (produit.images && produit.images.length > 0) {
-                    <img [src]="produit.images[0]" [alt]="produit.nom" class="produit-image" />
+                    <div class="produit-image-gallery">
+                      <img [src]="produit.images[0]" [alt]="produit.nom" class="produit-image" />
+                      @if (produit.images.length > 1) {
+                        <div class="image-count-badge">+{{ produit.images.length - 1 }}</div>
+                      }
+                    </div>
                   }
                   <div>
                     <div class="produit-name">{{ produit.nom }}</div>
@@ -104,6 +109,9 @@
                   </button>
                   <button (click)="editProduit(produit); $event.stopPropagation();" class="btn-icon btn-edit" title="Modifier">
                     <i class="fas fa-edit" style="color: white"></i>
+                  </button>
+                  <button (click)="confirmDeleteProduit(produit); $event.stopPropagation();" class="btn-icon btn-delete" title="Supprimer">
+                    <i class="fas fa-trash" style="color: white"></i>
                   </button>
                 </div>
               </td>
@@ -226,19 +234,30 @@
           <!-- Images -->
           <div class="produit-images-section">
             <div class="main-image-container" *ngIf="selectedProduit.images && selectedProduit.images.length > 0">
-              <img [src]="selectedProduit.images[0]" [alt]="selectedProduit.nom" class="main-image" />
+              <img [src]="selectedProduit.images[currentImageIndex]" [alt]="selectedProduit.nom" class="main-image" />
+              @if (selectedProduit.images.length > 1) {
+                <div class="image-navigation">
+                  <button class="nav-btn nav-prev" (click)="previousImage()" [disabled]="currentImageIndex === 0">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <span class="image-counter">{{ currentImageIndex + 1 }} / {{ selectedProduit.images.length }}</span>
+                  <button class="nav-btn nav-next" (click)="nextImage()" [disabled]="currentImageIndex === selectedProduit.images.length - 1">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </div>
+              }
             </div>
             <div class="main-image-placeholder" *ngIf="!selectedProduit.images || selectedProduit.images.length === 0">
               <i class="fas fa-image"></i>
               <p>Aucune image</p>
             </div>
-            
+
             <!-- Miniatures -->
             <div class="thumbnails-container" *ngIf="selectedProduit.images && selectedProduit.images.length > 1">
-              <div 
-                *ngFor="let image of selectedProduit.images; let i = index" 
+              <div
+                *ngFor="let image of selectedProduit.images; let i = index"
                 class="thumbnail"
-                [class.active]="i === 0"
+                [class.active]="i === currentImageIndex"
                 (click)="currentImageIndex = i"
               >
                 <img [src]="image" [alt]="selectedProduit.nom + ' ' + (i + 1)" />
@@ -267,16 +286,6 @@
             <div class="produit-slug-detail">
               <i class="fas fa-link"></i>
               <span class="slug-text">/boutique/{{ selectedProduit.slug }}</span>
-            </div>
-
-            <!-- Prix & Stock (depuis la première variante) -->
-            <div class="info-block">
-              <div class="info-label">
-                <i class="fas fa-tag"></i> Prix de base
-              </div>
-              <div class="info-value prix-value">
-                {{ getProduitPrix(selectedProduit) | number: '1.2-2' }} €
-              </div>
             </div>
 
             <div class="info-block">
@@ -440,8 +449,45 @@
 
     <div class="modal-footer">
       <button type="button" class="btn btn-secondary" (click)="closeProduitModal()">Fermer</button>
+      <button type="button" class="btn btn-danger" (click)="confirmDeleteProduit(selectedProduit)" *ngIf="selectedProduit">
+        <i class="fas fa-trash"></i> Supprimer
+      </button>
       <button type="button" class="btn btn-primary" (click)="editProduit(selectedProduit)" *ngIf="selectedProduit">
         <i class="fas fa-edit"></i> Modifier
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
+  <div class="modal-content modal-content-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-danger">
+      <h2 class="modal-title">
+        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+      </h2>
+      <button class="btn-close" (click)="cancelDelete()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="delete-warning">
+        <i class="fas fa-trash-alt"></i>
+        <p>Êtes-vous sûr de vouloir supprimer le produit <strong>"{{ produitASupprimer?.nom }}"</strong> ?</p>
+      </div>
+      <div class="delete-info">
+        <i class="fas fa-info-circle"></i>
+        <p>Cette action est irréversible. Toutes les données liées à ce produit seront définitivement supprimées.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="cancelDelete()">Annuler</button>
+      <button type="button" class="btn btn-danger" (click)="executeDelete()" [disabled]="isDeleting">
+        @if (isDeleting) {
+          <i class="fas fa-spinner fa-spin"></i> Suppression...
+        } @else {
+          <i class="fas fa-trash"></i> Supprimer
+        }
       </button>
     </div>
   </div>

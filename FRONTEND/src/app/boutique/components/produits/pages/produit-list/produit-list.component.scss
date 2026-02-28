@@ -17,19 +17,48 @@
     height: 50px;
     object-fit: cover;
     border: 1px solid var(--border-primary);
+    border-radius: 4px;
+  }
+}
+
+/* ─── Produit image gallery (tableau) ─── */
+.produit-image-gallery {
+  position: relative;
+  display: inline-block;
+
+  .produit-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border: 1px solid var(--border-primary);
+    border-radius: 4px;
   }
 
-  .produit-name {
-    font-weight: 500;
-    color: var(--text-primary);
-    font-size: 14px;
+  .image-count-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background: var(--sidebar-primary);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 6px;
+    border: 1px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
+}
 
-  .produit-slug {
-    font-size: 12px;
-    color: var(--text-tertiary);
-    margin-top: 2px;
-  }
+.produit-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.produit-slug {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
 }
 
 /* ─── Table row hover effect ─── */
@@ -236,6 +265,33 @@
   }
 }
 
+/* ─── Bouton Danger (suppression) ─── */
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-white);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-danger-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 /* ─── Table ─── */
 .table-container {
   .table-header {
@@ -359,6 +415,22 @@
   padding: 20px 24px;
   border-bottom: 1px solid var(--border-primary);
   background: var(--bg-secondary);
+
+  &.modal-header-danger {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+    border-bottom-color: var(--color-danger);
+
+    .modal-title {
+      color: var(--color-danger);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      i {
+        font-size: 20px;
+      }
+    }
+  }
 }
 
 .modal-title {
@@ -403,6 +475,59 @@
   background: var(--bg-secondary);
 }
 
+/* ─── Delete Confirmation Modal ─── */
+.delete-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--color-danger);
+  border-radius: 8px;
+  margin-bottom: 16px;
+
+  i {
+    font-size: 32px;
+    color: var(--color-danger);
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.6;
+
+    strong {
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+  }
+}
+
+.delete-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+
+  i {
+    font-size: 20px;
+    color: var(--sidebar-primary);
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
 /* ─── Produit Detail Modal ─── */
 .produit-detail {
   display: grid;
@@ -420,6 +545,57 @@
     overflow: hidden;
     border: 1px solid var(--border-primary);
     margin-bottom: 12px;
+    position: relative;
+
+    .image-navigation {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 8px 16px;
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+
+      .nav-btn {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+
+        &:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.3);
+          transform: scale(1.1);
+        }
+
+        &:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+
+        i {
+          font-size: 12px;
+        }
+      }
+
+      .image-counter {
+        color: white;
+        font-size: 13px;
+        font-weight: 600;
+        min-width: 60px;
+        text-align: center;
+      }
+    }
   }
 
   .main-image {

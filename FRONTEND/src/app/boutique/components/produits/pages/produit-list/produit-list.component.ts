@@ -1,9 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
 import { ProduitService, Produit } from '../../services/produit.service';
-import { CategorieService, Categorie, CategorieTree, CategorieFormData } from '../../../categories/services/categorie.service';
+import {
+  CategorieService,
+  Categorie,
+  CategorieTree,
+  CategorieFormData,
+} from '../../../categories/services/categorie.service';
 import { ToastService } from '../../../../../services/toast.service';
 import { CouleurService } from '../../services/couleur.service';
 import { MarqueService } from '../../services/marque.service';
@@ -24,14 +35,17 @@ export class ProduitListComponent implements OnInit {
   filterStatut = '';
   showCategorieModal = false;
   showProduitModal = false;
+  showDeleteConfirm = false;
   selectedProduit: Produit | null = null;
+  produitASupprimer: Produit | null = null;
   currentImageIndex = 0;
   isCreatingCategorie = false;
+  isDeleting = false;
   categorieForm: FormGroup;
   categories: Categorie[] = [];
   categoriesTree: CategorieTree[] = [];
-  flattenedCategories: { cat: CategorieTree, level: number, indent: string }[] = [];
-  
+  flattenedCategories: { cat: CategorieTree; level: number; indent: string }[] = [];
+
   // Données pour les attributs
   couleurs: Couleur[] = [];
   marques: Marque[] = [];
@@ -121,13 +135,16 @@ export class ProduitListComponent implements OnInit {
   }
 
   // Méthode utilitaire pour aplatir l'arbre des catégories
-  flattenCategories(tree: CategorieTree[], level: number = 0): { cat: CategorieTree, level: number, indent: string }[] {
-    let result: { cat: CategorieTree, level: number, indent: string }[] = [];
+  flattenCategories(
+    tree: CategorieTree[],
+    level: number = 0,
+  ): { cat: CategorieTree; level: number; indent: string }[] {
+    let result: { cat: CategorieTree; level: number; indent: string }[] = [];
     for (const cat of tree) {
       result.push({
         cat,
         level,
-        indent: '  '.repeat(level)
+        indent: '  '.repeat(level),
       });
       if (cat.children && cat.children.length > 0) {
         result = result.concat(this.flattenCategories(cat.children, level + 1));
@@ -136,7 +153,7 @@ export class ProduitListComponent implements OnInit {
     return result;
   }
 
-  getFlattenedCategories(): { cat: CategorieTree, level: number, indent: string }[] {
+  getFlattenedCategories(): { cat: CategorieTree; level: number; indent: string }[] {
     return this.flattenedCategories;
   }
 
@@ -278,28 +295,45 @@ export class ProduitListComponent implements OnInit {
     this.currentImageIndex = 0;
   }
 
-  deleteProduit(id: string) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      this.produitService.deleteProduit(id).subscribe({
-        next: () => {
-          this.loadProduits();
-          this.toastService.showSuccess('Produit supprimé avec succès!');
-        },
-        error: () => {
-          this.toastService.showError('Erreur lors de la suppression du produit');
-        },
-      });
-    }
+  // Confirmation de suppression
+  confirmDeleteProduit(produit: Produit) {
+    this.produitASupprimer = produit;
+    this.showDeleteConfirm = true;
+  }
+
+  cancelDelete() {
+    this.showDeleteConfirm = false;
+    this.produitASupprimer = null;
+    this.isDeleting = false;
+  }
+
+  executeDelete() {
+    if (!this.produitASupprimer?._id) return;
+
+    this.isDeleting = true;
+    this.produitService.deleteProduit(this.produitASupprimer._id).subscribe({
+      next: () => {
+        this.loadProduits();
+        this.showDeleteConfirm = false;
+        this.closeProduitModal();
+        this.produitASupprimer = null;
+        this.isDeleting = false;
+      },
+      error: () => {
+        this.toastService.showError('Erreur lors de la suppression du produit');
+        this.isDeleting = false;
+      },
+    });
   }
 
   // Méthodes pour afficher les vrais noms des attributs
   getCouleurName(couleurId: string): string {
-    const couleur = this.couleurs.find(c => c._id === couleurId);
+    const couleur = this.couleurs.find((c) => c._id === couleurId);
     return couleur ? couleur.nom : couleurId;
   }
 
   getCouleurHex(couleurId: string): string {
-    const couleur = this.couleurs.find(c => c._id === couleurId);
+    const couleur = this.couleurs.find((c) => c._id === couleurId);
     return couleur ? couleur.codeHex : '#cccccc';
   }
 
@@ -309,32 +343,31 @@ export class ProduitListComponent implements OnInit {
   }
 
   getMarqueName(marqueId: string): string {
-    const marque = this.marques.find(m => m._id === marqueId);
+    const marque = this.marques.find((m) => m._id === marqueId);
     return marque ? marque.nom : marqueId;
   }
 
   getTailleName(tailleId: string): string {
-    const taille = this.tailles.find(t => t._id === tailleId);
-    return taille ? (taille.label || taille.valeur) : tailleId;
+    const taille = this.tailles.find((t) => t._id === tailleId);
+    return taille ? taille.label || taille.valeur : tailleId;
   }
 
-  getAttributsDisplay(produit: Produit): { couleurs?: string, tailles?: string, marque?: string } {
-    const result: { couleurs?: string, tailles?: string, marque?: string } = {};
+  getAttributsDisplay(produit: Produit): { couleurs?: string; tailles?: string; marque?: string } {
+    const result: { couleurs?: string; tailles?: string; marque?: string } = {};
 
     if (produit.attributs?.couleurs && produit.attributs.couleurs.length > 0) {
-      result.couleurs = produit.attributs.couleurs
-        .map(id => this.getCouleurName(id))
-        .join(', ');
+      result.couleurs = produit.attributs.couleurs.map((id) => this.getCouleurName(id)).join(', ');
     }
 
     if (produit.attributs?.tailles && produit.attributs.tailles.length > 0) {
-      result.tailles = produit.attributs.tailles
-        .map(id => this.getTailleName(id))
-        .join(', ');
+      result.tailles = produit.attributs.tailles.map((id) => this.getTailleName(id)).join(', ');
     }
 
     if (produit.attributs?.marque) {
-      const marqueId = typeof produit.attributs.marque === 'string' ? produit.attributs.marque : produit.attributs.marque._id;
+      const marqueId =
+        typeof produit.attributs.marque === 'string'
+          ? produit.attributs.marque
+          : produit.attributs.marque._id;
       result.marque = this.getMarqueName(marqueId);
     }
 
@@ -354,5 +387,18 @@ export class ProduitListComponent implements OnInit {
       return produit.variantes.reduce((total, v) => total + (v.stock.quantite || 0), 0);
     }
     return 0;
+  }
+
+  // Navigation des images
+  previousImage(): void {
+    if (this.currentImageIndex > 0) {
+      this.currentImageIndex--;
+    }
+  }
+
+  nextImage(): void {
+    if (this.selectedProduit && this.currentImageIndex < this.selectedProduit.images!.length - 1) {
+      this.currentImageIndex++;
+    }
   }
 }
