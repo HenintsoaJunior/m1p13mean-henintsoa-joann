@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProduitService, Produit } from '../../services/produit.service';
 import { CategorieService, Categorie, CategorieTree, CategorieFormData } from '../../../categories/services/categorie.service';
@@ -33,6 +33,7 @@ export class ProduitListComponent implements OnInit {
     private categorieService: CategorieService,
     private formBuilder: FormBuilder,
     private toastService: ToastService,
+    private router: Router,
   ) {
     this.categorieForm = this.formBuilder.group({
       nom: ['', [Validators.required]],
@@ -224,9 +225,8 @@ export class ProduitListComponent implements OnInit {
 
   editProduit(produit: Produit) {
     this.closeProduitModal();
-    // Pour l'édition, on redirige vers la page d'édition
-    // À implémenter selon votre routing
-    this.toastService.showInfo('Fonctionnalité d\'édition à venir');
+    // Rediriger vers la page d'édition
+    this.router.navigate(['/boutique/produits/edit', produit._id]);
   }
 
   viewProduit(produit: Produit) {

@@ -28,6 +28,7 @@ import { BoutiqueDashboardComponent } from './boutique/pages/dashboard/boutique-
 // Boutique components - Produits
 import { ProduitListComponent } from './boutique/components/produits/pages/produit-list/produit-list.component';
 import { ProduitCreateComponent } from './boutique/components/produits/pages/produit-create/produit-create.component';
+import { ProduitEditComponent } from './boutique/components/produits/pages/produit-edit/produit-edit.component';
 
 // Boutique components - Categories
 import { CategorieListComponent } from './boutique/components/categories/pages/categorie-list/categorie-list.component';
@@ -92,6 +93,7 @@ export const routes: Routes = [
       { path: 'appels/:id/reponses', component: ReponsesComponent },
       { path: 'produits', component: ProduitListComponent },
       { path: 'produits/nouveau', component: ProduitCreateComponent },
+      { path: 'produits/edit/:id', component: ProduitEditComponent },
       { path: 'categories', component: CategorieListComponent },
     ],
   },
