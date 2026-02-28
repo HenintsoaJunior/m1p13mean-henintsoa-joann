@@ -9,8 +9,14 @@ export interface ProduitVariante {
   couleur: string;
   couleurHex: string;
   unite: string;  // Peut être une taille (S, M, L), un volume (75cl), un poids (1kg), etc.
-  prix: number;
-  quantite: number;
+  typeUnitePrincipal?: string;
+  prix: {
+    devise: string;
+    montant: number;
+  };
+  stock: {
+    quantite: number;
+  };
 }
 
 export interface Produit {
@@ -20,11 +26,11 @@ export interface Produit {
   nom: string;
   slug: string;
   description?: string | null;
-  prix: {
+  prix?: {
     devise: string;
     montant: number;
   };
-  stock: {
+  stock?: {
     quantite: number;
   };
   variantes?: ProduitVariante[];

@@ -41,7 +41,6 @@
         <tr>
           <th>Produit</th>
           <th>Catégorie</th>
-          <th>Prix</th>
           <th>Stock</th>
           <th>Statut</th>
           <th>Actions</th>
@@ -80,13 +79,8 @@
                 </span>
               </td>
               <td>
-                <span class="produit-prix">
-                  {{ produit.prix.montant | number: '1.2-2' }} {{ produit.prix.devise }}
-                </span>
-              </td>
-              <td>
-                <span class="produit-stock" [class.stock-critique]="produit.stock.quantite === 0">
-                  {{ produit.stock.quantite }}
+                <span class="produit-stock" [class.stock-critique]="getProduitStock(produit) === 0">
+                  {{ getProduitStock(produit) }}
                 </span>
               </td>
               <td>
@@ -275,24 +269,26 @@
               <span class="slug-text">/boutique/{{ selectedProduit.slug }}</span>
             </div>
 
-            <!-- Prix -->
+            <!-- Prix & Stock (depuis la première variante) -->
             <div class="info-block">
               <div class="info-label">
-                <i class="fas fa-tag"></i> Prix
+                <i class="fas fa-tag"></i> Prix de base
               </div>
               <div class="info-value prix-value">
-                {{ selectedProduit.prix.montant | number: '1.2-2' }} {{ selectedProduit.prix.devise }}
+                {{ getProduitPrix(selectedProduit) | number: '1.2-2' }} €
               </div>
             </div>
 
-            <!-- Stock -->
             <div class="info-block">
               <div class="info-label">
-                <i class="fas fa-boxes"></i> Stock
+                <i class="fas fa-boxes"></i> Stock total
               </div>
               <div class="info-value">
-                <span class="stock-value" [class.stock-critique]="selectedProduit.stock.quantite === 0">
-                  {{ selectedProduit.stock.quantite }} unités
+                <span class="stock-value" [class.stock-critique]="getProduitStock(selectedProduit) === 0">
+                  {{ getProduitStock(selectedProduit) }} unités
+                  @if (selectedProduit.variantes && selectedProduit.variantes.length > 1) {
+                    <span class="stock-hint">({{ selectedProduit.variantes.length }} variantes)</span>
+                  }
                 </span>
               </div>
             </div>
@@ -384,7 +380,7 @@
             <!-- Variantes -->
             <div class="info-block" *ngIf="selectedProduit.variantes && selectedProduit.variantes.length > 0">
               <div class="info-label">
-                <i class="fas fa-boxes"></i> Variantes
+                <i class="fas fa-boxes"></i> Variantes ({{ selectedProduit.variantes.length }})
               </div>
               <div class="info-value">
                 <div class="variantes-table">
@@ -393,6 +389,7 @@
                       <tr>
                         <th>Couleur</th>
                         <th>Unité</th>
+                        <th>Prix</th>
                         <th>Stock</th>
                       </tr>
                     </thead>
@@ -401,14 +398,19 @@
                         <td>
                           <span class="variante-couleur" *ngIf="variante.couleurHex">
                             <span class="color-dot" [style.background]="variante.couleurHex"></span>
-                            {{ variante.couleur }}
+                            {{ variante.couleur || '—' }}
                           </span>
-                          <span *ngIf="!variante.couleurHex">-</span>
+                          <span *ngIf="!variante.couleur && !variante.couleurHex">—</span>
                         </td>
-                        <td>{{ variante.unite || '-' }}</td>
+                        <td>{{ variante.unite || '—' }}</td>
                         <td>
-                          <span class="variante-stock" [class.stock-critique]="variante.quantite === 0">
-                            {{ variante.quantite }}
+                          <span class="variante-prix">
+                            {{ variante.prix.montant | number: '1.2-2' }} €
+                          </span>
+                        </td>
+                        <td>
+                          <span class="variante-stock" [class.stock-critique]="variante.stock.quantite === 0">
+                            {{ variante.stock.quantite }}
                           </span>
                         </td>
                       </tr>

@@ -320,24 +320,39 @@ export class ProduitListComponent implements OnInit {
 
   getAttributsDisplay(produit: Produit): { couleurs?: string, tailles?: string, marque?: string } {
     const result: { couleurs?: string, tailles?: string, marque?: string } = {};
-    
+
     if (produit.attributs?.couleurs && produit.attributs.couleurs.length > 0) {
       result.couleurs = produit.attributs.couleurs
         .map(id => this.getCouleurName(id))
         .join(', ');
     }
-    
+
     if (produit.attributs?.tailles && produit.attributs.tailles.length > 0) {
       result.tailles = produit.attributs.tailles
         .map(id => this.getTailleName(id))
         .join(', ');
     }
-    
+
     if (produit.attributs?.marque) {
       const marqueId = typeof produit.attributs.marque === 'string' ? produit.attributs.marque : produit.attributs.marque._id;
       result.marque = this.getMarqueName(marqueId);
     }
-    
+
     return result;
+  }
+
+  // Méthodes pour obtenir le prix et le stock depuis les variantes
+  getProduitPrix(produit: Produit): number {
+    if (produit.variantes && produit.variantes.length > 0) {
+      return produit.variantes[0].prix.montant || 0;
+    }
+    return 0;
+  }
+
+  getProduitStock(produit: Produit): number {
+    if (produit.variantes && produit.variantes.length > 0) {
+      return produit.variantes.reduce((total, v) => total + (v.stock.quantite || 0), 0);
+    }
+    return 0;
   }
 }
