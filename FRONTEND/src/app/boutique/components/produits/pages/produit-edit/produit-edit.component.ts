@@ -174,6 +174,8 @@ export class ProduitEditComponent implements OnInit {
   // ── Nouvelle marque ─────────────────────────────────
   showNewMarqueField = false;
   newMarqueNom = '';
+  marqueSearchQuery = '';
+  filteredMarques: Marque[] = [];
 
   constructor(
     private produitService: ProduitService,
@@ -637,11 +639,38 @@ export class ProduitEditComponent implements OnInit {
     this.marqueService.getAllMarques(true).subscribe({
       next: (data) => {
         this.marques = data.marques;
+        this.filteredMarques = this.marques; // Initialiser les marques filtrées
       },
       error: () => {
         this.toastService.showError('Erreur lors du chargement des marques');
       },
     });
+  }
+
+  filterMarques() {
+    const query = this.marqueSearchQuery.toLowerCase().trim();
+    if (!query) {
+      this.filteredMarques = this.marques;
+    } else {
+      this.filteredMarques = this.marques.filter(m =>
+        m.nom.toLowerCase().includes(query)
+      );
+    }
+  }
+
+  selectMarque(marqueId: string) {
+    this.selectedMarqueId = marqueId;
+    this.onMarqueChange();
+  }
+
+  getSelectedMarqueName(): string {
+    const marque = this.marques.find(m => m._id === this.selectedMarqueId);
+    return marque ? marque.nom : 'Inconnue';
+  }
+
+  clearMarque() {
+    this.selectedMarqueId = null;
+    this.onMarqueChange();
   }
 
   getSelectionCountForRoot(root: CategorieTree): number {

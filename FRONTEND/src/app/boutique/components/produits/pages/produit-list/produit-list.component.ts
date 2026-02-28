@@ -5,6 +5,10 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ProduitService, Produit } from '../../services/produit.service';
 import { CategorieService, Categorie, CategorieTree, CategorieFormData } from '../../../categories/services/categorie.service';
 import { ToastService } from '../../../../../services/toast.service';
+import { CouleurService } from '../../services/couleur.service';
+import { MarqueService } from '../../services/marque.service';
+import { TailleService } from '../../services/taille.service';
+import { Couleur, Marque, Taille } from '../../models/boutique.models';
 
 @Component({
   selector: 'app-produit-list',
@@ -27,6 +31,11 @@ export class ProduitListComponent implements OnInit {
   categories: Categorie[] = [];
   categoriesTree: CategorieTree[] = [];
   flattenedCategories: { cat: CategorieTree, level: number, indent: string }[] = [];
+  
+  // Données pour les attributs
+  couleurs: Couleur[] = [];
+  marques: Marque[] = [];
+  tailles: Taille[] = [];
 
   constructor(
     private produitService: ProduitService,
@@ -34,6 +43,9 @@ export class ProduitListComponent implements OnInit {
     private formBuilder: FormBuilder,
     private toastService: ToastService,
     private router: Router,
+    private couleurService: CouleurService,
+    private marqueService: MarqueService,
+    private tailleService: TailleService,
   ) {
     this.categorieForm = this.formBuilder.group({
       nom: ['', [Validators.required]],
@@ -48,6 +60,31 @@ export class ProduitListComponent implements OnInit {
     this.loadProduits();
     this.loadCategories();
     this.loadCategoriesTree();
+    this.loadAttributsData();
+  }
+
+  loadAttributsData() {
+    // Charger les couleurs, marques et tailles pour l'affichage
+    this.couleurService.getAllCouleurs(true).subscribe({
+      next: (data) => {
+        this.couleurs = data.couleurs;
+      },
+      error: () => {},
+    });
+
+    this.marqueService.getAllMarques(true).subscribe({
+      next: (data) => {
+        this.marques = data.marques;
+      },
+      error: () => {},
+    });
+
+    this.tailleService.getAllTailles(true).subscribe({
+      next: (data) => {
+        this.tailles = data.tailles;
+      },
+      error: () => {},
+    });
   }
 
   loadCategoriesTree() {
@@ -253,5 +290,54 @@ export class ProduitListComponent implements OnInit {
         },
       });
     }
+  }
+
+  // Méthodes pour afficher les vrais noms des attributs
+  getCouleurName(couleurId: string): string {
+    const couleur = this.couleurs.find(c => c._id === couleurId);
+    return couleur ? couleur.nom : couleurId;
+  }
+
+  getCouleurHex(couleurId: string): string {
+    const couleur = this.couleurs.find(c => c._id === couleurId);
+    return couleur ? couleur.codeHex : '#cccccc';
+  }
+
+  getFirstCouleurHex(produit: Produit): string {
+    if (!produit.attributs?.couleurs?.length) return '#cccccc';
+    return this.getCouleurHex(produit.attributs.couleurs[0]);
+  }
+
+  getMarqueName(marqueId: string): string {
+    const marque = this.marques.find(m => m._id === marqueId);
+    return marque ? marque.nom : marqueId;
+  }
+
+  getTailleName(tailleId: string): string {
+    const taille = this.tailles.find(t => t._id === tailleId);
+    return taille ? (taille.label || taille.valeur) : tailleId;
+  }
+
+  getAttributsDisplay(produit: Produit): { couleurs?: string, tailles?: string, marque?: string } {
+    const result: { couleurs?: string, tailles?: string, marque?: string } = {};
+    
+    if (produit.attributs?.couleurs && produit.attributs.couleurs.length > 0) {
+      result.couleurs = produit.attributs.couleurs
+        .map(id => this.getCouleurName(id))
+        .join(', ');
+    }
+    
+    if (produit.attributs?.tailles && produit.attributs.tailles.length > 0) {
+      result.tailles = produit.attributs.tailles
+        .map(id => this.getTailleName(id))
+        .join(', ');
+    }
+    
+    if (produit.attributs?.marque) {
+      const marqueId = typeof produit.attributs.marque === 'string' ? produit.attributs.marque : produit.attributs.marque._id;
+      result.marque = this.getMarqueName(marqueId);
+    }
+    
+    return result;
   }
 }

@@ -89,7 +89,6 @@ export interface Marque {
   description?: string | null;
   logo?: string | null;
   siteWeb?: string | null;
-  paysOrigine?: string | null;
   estActif?: boolean;
   dateCreation?: Date;
   dateMiseAJour?: Date;
@@ -101,7 +100,6 @@ export interface MarqueFormData {
   description?: string;
   logo?: string;
   siteWeb?: string;
-  paysOrigine?: string;
 }
 
 export interface Produit {
