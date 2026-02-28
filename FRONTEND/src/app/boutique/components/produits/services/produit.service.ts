@@ -9,6 +9,7 @@ export interface ProduitVariante {
   couleur: string;
   couleurHex: string;
   unite: string;  // Peut être une taille (S, M, L), un volume (75cl), un poids (1kg), etc.
+  prix: number;
   quantite: number;
 }
 

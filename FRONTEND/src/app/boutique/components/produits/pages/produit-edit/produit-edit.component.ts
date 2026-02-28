@@ -48,6 +48,7 @@ export interface ProduitVariante {
   couleur: string;
   couleurHex: string;
   unite: string;
+  prix: number;
   quantite: number;
 }
 
@@ -133,7 +134,6 @@ export class ProduitEditComponent implements OnInit {
 
   selectedSizes: string[] = [];
   singleSelectedSize: string = '';
-  singleSelectedStock: number = 0;
   customSizeInput = '';
 
   // ── Options du produit ──────────────────────────────────
@@ -145,8 +145,10 @@ export class ProduitEditComponent implements OnInit {
 
   // ── Variantes ──────────────────────────────────
   variantes: ProduitVariante[] = [];
-  useVariantesMode = false;
-  stockExceeded = false;
+  singleSelectedPrix: number = 0; // Prix pour la nouvelle variante
+  singleSelectedStock: number = 0; // Stock pour la nouvelle variante
+  useVariantesMode: boolean = true; // Mode variantes toujours activé
+  stockExceeded: boolean = false; // Stock dépassé
 
   // ── Images ───────────────────────────────────
   imagePreviews: string[] = [];
@@ -347,6 +349,7 @@ export class ProduitEditComponent implements OnInit {
         couleur: v.couleur || '',
         couleurHex: v.couleurHex || '',
         unite: v.unite || '',
+        prix: v.prix || 0,
         quantite: v.quantite || 0,
       }));
       this.useVariantesMode = true;
@@ -718,29 +721,17 @@ export class ProduitEditComponent implements OnInit {
   }
 
   updateColorFromText(value: string) {
+    // Pour la saisie manuelle, on sélectionne une couleur personnalisée
     if (value.startsWith('#')) {
       const customColor = { name: 'Personnalisée', hex: value };
-      if (!this.selectedColors.some((c) => c.hex === value)) {
-        this.selectedColors.push(customColor);
-        this.produitForm
-          .get('attributs.couleurs')
-          ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
-        // Auto-générer les variantes
-        setTimeout(() => this.generateVariantes(), 100);
-      }
+      this.selectSingleColor(customColor.hex, customColor.name);
     }
   }
 
   updateColorFromPicker(value: string) {
+    // Pour le picker, on sélectionne la couleur
     const colorName = this.colorPresets.find((c) => c.hex === value)?.name || 'Personnalisée';
-    if (!this.selectedColors.some((c) => c.hex === value)) {
-      this.selectedColors.push({ name: colorName, hex: value });
-      this.produitForm
-        .get('attributs.couleurs')
-        ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
-      // Auto-générer les variantes
-      setTimeout(() => this.generateVariantes(), 100);
-    }
+    this.selectSingleColor(value, colorName);
   }
 
   toggleVariantesMode() {
@@ -872,8 +863,21 @@ export class ProduitEditComponent implements OnInit {
     return this.singleSelectedColor?.hex === hex;
   }
 
+  selectSingleColor(hex: string, name: string) {
+    // Sélection unique : si on clique sur la même couleur, on désélectionne
+    if (this.singleSelectedColor?.hex === hex) {
+      this.clearSingleColor();
+    } else {
+      this.singleSelectedColor = { name, hex };
+      // Réinitialiser le prix à la valeur du formulaire
+      const prixBase = this.produitForm.get('prix.montant')?.value || 0;
+      this.singleSelectedPrix = prixBase;
+    }
+  }
+
   clearSingleColor() {
     this.singleSelectedColor = null;
+    this.singleSelectedPrix = 0;
     this.produitForm.get('attributs.couleurs')?.setValue('');
   }
 
@@ -937,8 +941,27 @@ export class ProduitEditComponent implements OnInit {
     return this.singleSelectedSize === size;
   }
 
+  selectSingleSize(size: string) {
+    // Sélection unique : si on clique sur la même taille, on désélectionne
+    if (this.singleSelectedSize === size) {
+      this.clearSingleSize();
+    } else {
+      this.singleSelectedSize = size;
+      // Réinitialiser le stock à 0
+      this.singleSelectedStock = 0;
+    }
+  }
+
+  addCustomSizeSingle() {
+    if (this.customSizeInput.trim()) {
+      this.selectSingleSize(this.customSizeInput.trim());
+      this.customSizeInput = '';
+    }
+  }
+
   clearSingleSize() {
     this.singleSelectedSize = '';
+    this.singleSelectedStock = 0;
     this.produitForm.get('attributs.tailles')?.setValue([]);
   }
 
@@ -965,13 +988,6 @@ export class ProduitEditComponent implements OnInit {
       return;
     }
 
-    if (this.stockExceeded) {
-      this.toastService.showError(
-        `Le total des variantes dépasse le stock global. Stock disponible : ${this.getAvailableStockForVariantes()} unités`,
-      );
-      return;
-    }
-
     const existingIndex = this.variantes.findIndex((v) => {
       const colorMatch =
         !this.produitOptions.avecCouleur || v.couleur === this.singleSelectedColor?.name;
@@ -989,6 +1005,7 @@ export class ProduitEditComponent implements OnInit {
       couleur: this.produitOptions.avecCouleur ? this.singleSelectedColor?.name || '' : '',
       couleurHex: this.produitOptions.avecCouleur ? this.singleSelectedColor?.hex || '' : '',
       unite: this.produitOptions.avecUnite ? this.singleSelectedSize.trim() || '' : '',
+      prix: this.singleSelectedPrix > 0 ? this.singleSelectedPrix : (this.produitForm.get('prix.montant')?.value || 0),
       quantite: this.singleSelectedStock,
     });
 
@@ -997,6 +1014,7 @@ export class ProduitEditComponent implements OnInit {
 
     this.singleSelectedColor = null;
     this.singleSelectedSize = '';
+    this.singleSelectedPrix = 0;
     this.singleSelectedStock = 0;
     this.produitForm.get('attributs.couleurs')?.setValue('');
     this.produitForm.get('attributs.tailles')?.setValue([]);
@@ -1040,6 +1058,7 @@ export class ProduitEditComponent implements OnInit {
           couleur: this.produitOptions.avecCouleur ? couleur.name : '',
           couleurHex: this.produitOptions.avecCouleur ? couleur.hex : '',
           unite: this.produitOptions.avecUnite ? unite : '',
+          prix: existingVariante ? existingVariante.prix : (this.produitForm.get('prix.montant')?.value || 0),
           quantite: existingVariante ? existingVariante.quantite : 0,
         });
       }
@@ -1060,6 +1079,7 @@ export class ProduitEditComponent implements OnInit {
           couleur: [variante.couleur],
           couleurHex: [variante.couleurHex],
           unite: [variante.unite],
+          prix: [variante.prix, [Validators.min(0)]],
           quantite: [variante.quantite, [Validators.min(0)]],
         }),
       );
