@@ -1883,6 +1883,55 @@
   max-width: 220px;
 }
 
+// Stock input group - horizontal layout for + and - buttons
+.stock-input-group {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--border-primary);
+  width: fit-content;
+  min-width: 140px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:focus-within {
+    border-color: var(--sidebar-primary);
+    box-shadow: 0 0 0 2px rgba(54, 96, 169, 0.1);
+  }
+}
+
+.stock-btn-small {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--bg-tertiary);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  &:hover {
+    background: var(--color-gray-200);
+  }
+}
+
+.stock-input-small {
+  width: 70px;
+  height: 36px;
+  border: none;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  outline: none;
+  background: transparent;
+  padding: 0;
+}
+
 .stock-stepper-mini {
   display: flex;
   align-items: center;
