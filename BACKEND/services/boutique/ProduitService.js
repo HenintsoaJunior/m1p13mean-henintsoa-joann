@@ -264,9 +264,10 @@ class ProduitService {
     }
     if (donnees.attributs) {
       nettoyees.attributs = {
-        couleur: donnees.attributs.couleur ? donnees.attributs.couleur.trim() : null,
-        taille: Array.isArray(donnees.attributs.taille) ? donnees.attributs.taille : [],
+        couleurs: Array.isArray(donnees.attributs.couleurs) ? donnees.attributs.couleurs : [],
+        tailles: Array.isArray(donnees.attributs.tailles) ? donnees.attributs.tailles : [],
         marque: donnees.attributs.marque ? donnees.attributs.marque.trim() : null,
+        typeUnitePrincipal: donnees.attributs.typeUnitePrincipal || null,
       };
     }
     if (donnees.statut && ["actif", "rupture_stock", "archive"].includes(donnees.statut)) {

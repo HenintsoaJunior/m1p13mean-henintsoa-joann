@@ -138,20 +138,21 @@ export class ProduitEditComponent implements OnInit {
   liquidPresets: string[] = ['75cl', '100cl', '1L', '1.5L', '2L', '5L'];
   weightPresets: string[] = ['100g', '250g', '500g', '1kg', '2kg', '5kg'];
   packagePresets: string[] = ['1 unité', '6 unités', '12 unités', '24 unités', '50 unités'];
-  
+
   selectedSizes: string[] = [];
   singleSelectedSize: string = '';
   singleSelectedStock: number = 0;
   customSizeInput = '';
-  
-  selectedUniteType: 'standard' | 'liquide' | 'poids' | 'conditionnement' | 'personnalise' = 'standard';
+
+  selectedUniteType: 'standard' | 'liquide' | 'poids' | 'conditionnement' | 'personnalise' =
+    'standard';
 
   // ── Options du produit ──────────────────────────────────
   produitOptions: ProduitOptions = {
     avecCouleur: false,
     avecUnite: true,
     avecMarque: false,
-    typeUnite: 'standard'
+    typeUnite: 'standard',
   };
 
   // ── Variantes ──────────────────────────────────
@@ -169,7 +170,7 @@ export class ProduitEditComponent implements OnInit {
   marques: Marque[] = [];
   selectedTypeUniteId: string | null = null;
   selectedMarqueId: string | null = null;
-  
+
   // ── Nouvelle marque ─────────────────────────────────
   showNewMarqueField = false;
   newMarqueNom = '';
@@ -225,12 +226,16 @@ export class ProduitEditComponent implements OnInit {
       this.router.navigate(['/boutique/produits']);
       return;
     }
-    this.loadProduit();
-    this.loadCategories();
-    this.loadCategoriesTree();
+
+    // Charger d'abord les données de référence (couleurs, tailles, marques, types d'unités)
     this.loadTypesUnites();
     this.loadCouleurs();
     this.loadMarques();
+
+    // Ensuite charger le produit
+    this.loadProduit();
+    this.loadCategories();
+    this.loadCategoriesTree();
   }
 
   loadProduit() {
@@ -239,7 +244,7 @@ export class ProduitEditComponent implements OnInit {
     this.produitService.getProduitById(this.produitId).subscribe({
       next: (data: any) => {
         console.log('📡 Réponse API brute:', data);
-        
+
         // Le backend peut retourner un objet { succes: true, donnees: produit } ou directement le produit
         let produit: Produit;
         if (data && typeof data === 'object') {
@@ -257,7 +262,12 @@ export class ProduitEditComponent implements OnInit {
         }
 
         console.log('📦 Produit extrait:', produit);
-        this.populateForm(produit);
+
+        // Attendre que les couleurs et tailles soient chargées avant de peupler le formulaire
+        setTimeout(() => {
+          this.populateForm(produit);
+        }, 500);
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -288,7 +298,7 @@ export class ProduitEditComponent implements OnInit {
 
     // Gérer les catégories
     if (Array.isArray(produit.idCategorie)) {
-      const catIds = produit.idCategorie.map((c: any) => typeof c === 'object' ? c._id : c);
+      const catIds = produit.idCategorie.map((c: any) => (typeof c === 'object' ? c._id : c));
       patchValue.idCategorie = catIds.join(',');
       this.selectedCategories = catIds;
     } else if (typeof produit.idCategorie === 'string') {
@@ -343,7 +353,7 @@ export class ProduitEditComponent implements OnInit {
 
     // Charger les variantes
     if (produit.variantes && produit.variantes.length > 0) {
-      this.variantes = produit.variantes.map(v => ({
+      this.variantes = produit.variantes.map((v) => ({
         couleur: v.couleur || '',
         couleurHex: v.couleurHex || '',
         unite: v.unite || '',
@@ -355,34 +365,53 @@ export class ProduitEditComponent implements OnInit {
     }
 
     // Mettre à jour les options
-    this.produitOptions.avecCouleur = !!(produit.attributs?.couleurs && produit.attributs.couleurs.length > 0);
-    this.produitOptions.avecUnite = !!(produit.attributs?.tailles && produit.attributs.tailles.length > 0);
-    this.produitOptions.avecMarque = !!(produit.attributs?.marque);
+    this.produitOptions.avecCouleur = !!(
+      produit.attributs?.couleurs && produit.attributs.couleurs.length > 0
+    );
+    this.produitOptions.avecUnite = !!(
+      produit.attributs?.tailles && produit.attributs.tailles.length > 0
+    );
+    this.produitOptions.avecMarque = !!produit.attributs?.marque;
 
     // Initialiser les couleurs sélectionnées depuis la BDD
     if (produit.attributs?.couleurs && Array.isArray(produit.attributs.couleurs)) {
+      console.log('🎨 Couleurs à initialiser:', produit.attributs.couleurs);
+      console.log('🎨 Couleurs disponibles en mémoire:', this.couleurs);
+
       produit.attributs.couleurs.forEach((couleurId: string) => {
-        const couleurDb = this.couleurs.find(c => c._id === couleurId);
+        const couleurDb = this.couleurs.find((c) => c._id === couleurId);
+        console.log('🔍 Recherche couleur ID:', couleurId, '→ Trouvée:', couleurDb);
         if (couleurDb) {
           this.selectedColors.push({ name: couleurDb.nom, hex: couleurDb.codeHex });
         }
       });
+
+      console.log('✅ Couleurs sélectionnées:', this.selectedColors);
     }
 
     // Initialiser les tailles sélectionnées depuis la BDD
     if (produit.attributs?.tailles && Array.isArray(produit.attributs.tailles)) {
+      console.log('📏 Tailles à initialiser:', produit.attributs.tailles);
+      console.log('📏 Tailles disponibles en mémoire:', this.tailles);
+
       produit.attributs.tailles.forEach((tailleId: string) => {
-        const tailleDb = this.tailles.find(t => t._id === tailleId);
+        const tailleDb = this.tailles.find((t) => t._id === tailleId);
+        console.log('🔍 Recherche taille ID:', tailleId, '→ Trouvée:', tailleDb);
         if (tailleDb) {
           this.selectedSizes.push(tailleDb.label || tailleDb.valeur);
         }
       });
+
+      console.log('✅ Tailles sélectionnées:', this.selectedSizes);
     }
 
     // Initialiser la marque sélectionnée depuis la BDD
     if (produit.attributs?.marque) {
-      const marqueId = typeof produit.attributs.marque === 'string' ? produit.attributs.marque : produit.attributs.marque._id;
-      const marqueDb = this.marques.find(m => m._id === marqueId);
+      const marqueId =
+        typeof produit.attributs.marque === 'string'
+          ? produit.attributs.marque
+          : produit.attributs.marque._id;
+      const marqueDb = this.marques.find((m) => m._id === marqueId);
       if (marqueDb) {
         this.selectedMarqueId = marqueId;
       }
@@ -390,9 +419,10 @@ export class ProduitEditComponent implements OnInit {
 
     // Initialiser le type d'unité principal
     if (produit.attributs?.typeUnitePrincipal) {
-      const typeUniteId = typeof produit.attributs.typeUnitePrincipal === 'string' 
-        ? produit.attributs.typeUnitePrincipal 
-        : produit.attributs.typeUnitePrincipal._id;
+      const typeUniteId =
+        typeof produit.attributs.typeUnitePrincipal === 'string'
+          ? produit.attributs.typeUnitePrincipal
+          : produit.attributs.typeUnitePrincipal._id;
       this.selectedTypeUniteId = typeUniteId;
       this.loadTaillesParType(typeUniteId);
     }
@@ -448,7 +478,7 @@ export class ProduitEditComponent implements OnInit {
       result.push({
         cat,
         level,
-        indent: '  '.repeat(level)
+        indent: '  '.repeat(level),
       });
       if (cat.children && cat.children.length > 0) {
         result = result.concat(this.flattenCategories(cat.children, level + 1));
@@ -505,11 +535,10 @@ export class ProduitEditComponent implements OnInit {
       return;
     }
 
-    this.filteredRoots = this.categoriesTree.filter(root => {
+    this.filteredRoots = this.categoriesTree.filter((root) => {
       if (root.nom.toLowerCase().includes(query)) return true;
-      if (root.children && root.children.some(child =>
-        child.nom.toLowerCase().includes(query)
-      )) return true;
+      if (root.children && root.children.some((child) => child.nom.toLowerCase().includes(query)))
+        return true;
       return false;
     });
   }
@@ -532,14 +561,14 @@ export class ProduitEditComponent implements OnInit {
       next: (data) => {
         this.typesUnites = data.typesUnites;
         // Charger les tailles pour le type d'unité par défaut (standard)
-        const standardType = this.typesUnites.find(t => t.nom === 'standard');
+        const standardType = this.typesUnites.find((t) => t.nom === 'standard');
         if (standardType && !this.selectedTypeUniteId) {
           this.selectedTypeUniteId = standardType._id!;
           this.loadTaillesParType(standardType._id!);
         }
       },
       error: () => {
-        this.toastService.showError('Erreur lors du chargement des types d\'unités');
+        this.toastService.showError("Erreur lors du chargement des types d'unités");
       },
     });
   }
@@ -549,7 +578,7 @@ export class ProduitEditComponent implements OnInit {
       next: (data) => {
         this.couleurs = data.couleurs;
         // Mettre à jour les presets de couleurs avec les données API
-        this.colorPresets = this.couleurs.map(c => ({
+        this.colorPresets = this.couleurs.map((c) => ({
           name: c.nom,
           hex: c.codeHex,
           display: c.codeHex,
@@ -576,11 +605,11 @@ export class ProduitEditComponent implements OnInit {
 
   updateSizePresets() {
     // Mettre à jour les presets en fonction des tailles chargées
-    const tailleValues = this.tailles.map(t => t.label || t.valeur);
-    
+    const tailleValues = this.tailles.map((t) => t.label || t.valeur);
+
     // Déterminer le type d'unité actuel
-    const typeUnite = this.typesUnites.find(t => t._id === this.selectedTypeUniteId);
-    
+    const typeUnite = this.typesUnites.find((t) => t._id === this.selectedTypeUniteId);
+
     if (typeUnite?.nom === 'standard') {
       this.sizePresets = tailleValues;
       this.liquidPresets = [];
@@ -619,7 +648,7 @@ export class ProduitEditComponent implements OnInit {
     let count = 0;
     const idsToCheck = [root._id!];
     if (root.children) {
-      root.children.forEach(child => idsToCheck.push(child._id!));
+      root.children.forEach((child) => idsToCheck.push(child._id!));
     }
     for (const id of idsToCheck) {
       if (this.selectedCategories.includes(id)) {
@@ -679,22 +708,22 @@ export class ProduitEditComponent implements OnInit {
   updateColorFromText(value: string) {
     if (value.startsWith('#')) {
       const customColor = { name: 'Personnalisée', hex: value };
-      if (!this.selectedColors.some(c => c.hex === value)) {
+      if (!this.selectedColors.some((c) => c.hex === value)) {
         this.selectedColors.push(customColor);
-        this.produitForm.get('attributs.couleurs')?.setValue(
-          this.selectedColors.map(c => c.name).join(', ')
-        );
+        this.produitForm
+          .get('attributs.couleurs')
+          ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
       }
     }
   }
 
   updateColorFromPicker(value: string) {
-    const colorName = this.colorPresets.find(c => c.hex === value)?.name || 'Personnalisée';
-    if (!this.selectedColors.some(c => c.hex === value)) {
+    const colorName = this.colorPresets.find((c) => c.hex === value)?.name || 'Personnalisée';
+    if (!this.selectedColors.some((c) => c.hex === value)) {
       this.selectedColors.push({ name: colorName, hex: value });
-      this.produitForm.get('attributs.couleurs')?.setValue(
-        this.selectedColors.map(c => c.name).join(', ')
-      );
+      this.produitForm
+        .get('attributs.couleurs')
+        ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
     }
   }
 
@@ -787,7 +816,7 @@ export class ProduitEditComponent implements OnInit {
 
   // ── Couleurs ─────────────────────────────────
   isColorSelected(hex: string): boolean {
-    return this.selectedColors.some(c => c.hex === hex);
+    return this.selectedColors.some((c) => c.hex === hex);
   }
 
   toggleColor(hex: string, name: string) {
@@ -797,29 +826,29 @@ export class ProduitEditComponent implements OnInit {
       } else {
         this.singleSelectedColor = { name, hex };
       }
-      this.produitForm.get('attributs.couleurs')?.setValue(
-        this.singleSelectedColor ? this.singleSelectedColor.name : ''
-      );
+      this.produitForm
+        .get('attributs.couleurs')
+        ?.setValue(this.singleSelectedColor ? this.singleSelectedColor.name : '');
     } else {
-      const index = this.selectedColors.findIndex(c => c.hex === hex);
+      const index = this.selectedColors.findIndex((c) => c.hex === hex);
       if (index > -1) {
         this.selectedColors.splice(index, 1);
       } else {
         this.selectedColors.push({ name, hex });
       }
-      this.produitForm.get('attributs.couleurs')?.setValue(
-        this.selectedColors.map(c => c.name).join(', ')
-      );
+      this.produitForm
+        .get('attributs.couleurs')
+        ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
     }
   }
 
   removeColor(hex: string) {
-    const index = this.selectedColors.findIndex(c => c.hex === hex);
+    const index = this.selectedColors.findIndex((c) => c.hex === hex);
     if (index > -1) {
       this.selectedColors.splice(index, 1);
-      this.produitForm.get('attributs.couleurs')?.setValue(
-        this.selectedColors.map(c => c.name).join(', ')
-      );
+      this.produitForm
+        .get('attributs.couleurs')
+        ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
     }
   }
 
@@ -844,9 +873,9 @@ export class ProduitEditComponent implements OnInit {
       } else {
         this.singleSelectedSize = size;
       }
-      this.produitForm.get('attributs.tailles')?.setValue(
-        this.singleSelectedSize ? [this.singleSelectedSize] : []
-      );
+      this.produitForm
+        .get('attributs.tailles')
+        ?.setValue(this.singleSelectedSize ? [this.singleSelectedSize] : []);
     } else {
       const index = this.selectedSizes.indexOf(size);
       if (index > -1) {
@@ -875,11 +904,11 @@ export class ProduitEditComponent implements OnInit {
   }
 
   getCustomSizes(): string[] {
-    return this.selectedSizes.filter(s => !this.sizePresets.includes(s));
+    return this.selectedSizes.filter((s) => !this.sizePresets.includes(s));
   }
 
   getSelectedColorsNames(): string {
-    return this.selectedColors.map(c => c.name).join(', ');
+    return this.selectedColors.map((c) => c.name).join(', ');
   }
 
   updateTaillesForm() {
@@ -906,7 +935,10 @@ export class ProduitEditComponent implements OnInit {
   // ── Ajouter une variante manuellement ──────────────────────────────────
 
   addVarianteManually() {
-    if (this.produitOptions.avecCouleur && (!this.singleSelectedColor || !this.singleSelectedColor.hex)) {
+    if (
+      this.produitOptions.avecCouleur &&
+      (!this.singleSelectedColor || !this.singleSelectedColor.hex)
+    ) {
       this.toastService.showError('Veuillez sélectionner une couleur');
       return;
     }
@@ -917,18 +949,18 @@ export class ProduitEditComponent implements OnInit {
 
     if (this.stockExceeded) {
       this.toastService.showError(
-        `Le total des variantes dépasse le stock global. Stock disponible : ${this.getAvailableStockForVariantes()} unités`
+        `Le total des variantes dépasse le stock global. Stock disponible : ${this.getAvailableStockForVariantes()} unités`,
       );
       return;
     }
 
-    const existingIndex = this.variantes.findIndex(
-      v => {
-        const colorMatch = !this.produitOptions.avecCouleur || v.couleur === this.singleSelectedColor?.name;
-        const uniteMatch = !this.produitOptions.avecUnite || v.unite === this.singleSelectedSize.trim();
-        return colorMatch && uniteMatch;
-      }
-    );
+    const existingIndex = this.variantes.findIndex((v) => {
+      const colorMatch =
+        !this.produitOptions.avecCouleur || v.couleur === this.singleSelectedColor?.name;
+      const uniteMatch =
+        !this.produitOptions.avecUnite || v.unite === this.singleSelectedSize.trim();
+      return colorMatch && uniteMatch;
+    });
 
     if (existingIndex > -1) {
       this.toastService.showError('Cette combinaison existe déjà');
@@ -936,9 +968,9 @@ export class ProduitEditComponent implements OnInit {
     }
 
     this.variantes.push({
-      couleur: this.produitOptions.avecCouleur ? (this.singleSelectedColor?.name || '') : '',
-      couleurHex: this.produitOptions.avecCouleur ? (this.singleSelectedColor?.hex || '') : '',
-      unite: this.produitOptions.avecUnite ? (this.singleSelectedSize.trim() || '') : '',
+      couleur: this.produitOptions.avecCouleur ? this.singleSelectedColor?.name || '' : '',
+      couleurHex: this.produitOptions.avecCouleur ? this.singleSelectedColor?.hex || '' : '',
+      unite: this.produitOptions.avecUnite ? this.singleSelectedSize.trim() || '' : '',
       quantite: this.singleSelectedStock,
     });
 
@@ -957,8 +989,12 @@ export class ProduitEditComponent implements OnInit {
   generateVariantes() {
     if (!this.useVariantesMode) return;
 
-    if ((this.produitOptions.avecCouleur && this.selectedColors.length === 0) && 
-        (this.produitOptions.avecUnite && this.selectedSizes.length === 0)) {
+    if (
+      this.produitOptions.avecCouleur &&
+      this.selectedColors.length === 0 &&
+      this.produitOptions.avecUnite &&
+      this.selectedSizes.length === 0
+    ) {
       this.variantes = [];
       this.updateVariantesFormArray();
       this.checkStockExceeded();
@@ -967,22 +1003,20 @@ export class ProduitEditComponent implements OnInit {
 
     const newVariantes: ProduitVariante[] = [];
 
-    const couleurs = (this.produitOptions.avecCouleur && this.selectedColors.length > 0) 
-      ? this.selectedColors 
-      : [{ name: '', hex: '' }];
-    const unites = (this.produitOptions.avecUnite && this.selectedSizes.length > 0) 
-      ? this.selectedSizes 
-      : [''];
+    const couleurs =
+      this.produitOptions.avecCouleur && this.selectedColors.length > 0
+        ? this.selectedColors
+        : [{ name: '', hex: '' }];
+    const unites =
+      this.produitOptions.avecUnite && this.selectedSizes.length > 0 ? this.selectedSizes : [''];
 
     for (const couleur of couleurs) {
       for (const unite of unites) {
-        const existingVariante = this.variantes.find(
-          v => {
-            const colorMatch = !this.produitOptions.avecCouleur || v.couleur === couleur.name;
-            const uniteMatch = !this.produitOptions.avecUnite || v.unite === unite;
-            return colorMatch && uniteMatch;
-          }
-        );
+        const existingVariante = this.variantes.find((v) => {
+          const colorMatch = !this.produitOptions.avecCouleur || v.couleur === couleur.name;
+          const uniteMatch = !this.produitOptions.avecUnite || v.unite === unite;
+          return colorMatch && uniteMatch;
+        });
 
         newVariantes.push({
           couleur: this.produitOptions.avecCouleur ? couleur.name : '',
@@ -1009,7 +1043,7 @@ export class ProduitEditComponent implements OnInit {
           couleurHex: [variante.couleurHex],
           unite: [variante.unite],
           quantite: [variante.quantite, [Validators.min(0)]],
-        })
+        }),
       );
     }
   }
@@ -1066,7 +1100,7 @@ export class ProduitEditComponent implements OnInit {
   handleFileUpload(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      Array.from(input.files).forEach(file => {
+      Array.from(input.files).forEach((file) => {
         if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
           this.toastService.showError(`Fichier invalide: ${file.name}`);
           return;
@@ -1132,8 +1166,28 @@ export class ProduitEditComponent implements OnInit {
     if (this.produitForm.valid) {
       if (this.useVariantesMode && this.stockExceeded) {
         this.toastService.showError(
-          `Le total des variantes (${this.getTotalStock()}) dépasse le stock global (${this.produitForm.get('stock.quantite')?.value}). Veuillez corriger.`
+          `Le total des variantes (${this.getTotalStock()}) dépasse le stock global (${this.produitForm.get('stock.quantite')?.value}). Veuillez corriger.`,
         );
+        return;
+      }
+
+      // Vérifier que les couleurs sont chargées
+      if (
+        this.produitOptions.avecCouleur &&
+        this.selectedColors.length > 0 &&
+        this.couleurs.length === 0
+      ) {
+        this.toastService.showError('Chargement des couleurs en cours...');
+        return;
+      }
+
+      // Vérifier que les tailles sont chargées
+      if (
+        this.produitOptions.avecUnite &&
+        this.selectedSizes.length > 0 &&
+        this.tailles.length === 0
+      ) {
+        this.toastService.showError('Chargement des tailles en cours...');
         return;
       }
 
@@ -1147,38 +1201,57 @@ export class ProduitEditComponent implements OnInit {
 
       // Formater les attributs pour envoyer les IDs au lieu des noms
       const attributsFormates: any = {};
-      
+
+      console.log('🎨 Couleurs sélectionnées:', this.selectedColors);
+      console.log('📏 Tailles sélectionnées:', this.selectedSizes);
+      console.log('🏷️ Marque sélectionnée:', this.selectedMarqueId);
+      console.log('📦 Toutes les couleurs en mémoire:', this.couleurs.length);
+      console.log('📦 Toutes les tailles en mémoire:', this.tailles.length);
+
       // Couleurs : envoyer les IDs
       if (this.selectedColors.length > 0) {
-        attributsFormates.couleurs = this.selectedColors.map(c => {
-          const couleurDb = this.couleurs.find(col => col.codeHex === c.hex);
+        attributsFormates.couleurs = this.selectedColors.map((c) => {
+          const couleurDb = this.couleurs.find(
+            (col) => col.codeHex?.toUpperCase() === c.hex?.toUpperCase(),
+          );
+          console.log('🔍 Recherche couleur hex:', c.hex, '→ Trouvée:', couleurDb?._id);
           return couleurDb?._id || c.hex;
         });
+      } else {
+        attributsFormates.couleurs = [];
       }
-      
+
       // Tailles : envoyer les IDs
       if (this.selectedSizes.length > 0) {
-        attributsFormates.tailles = this.selectedSizes.map(tailleLabel => {
-          const tailleDb = this.tailles.find(t => t.label === tailleLabel || t.valeur === tailleLabel.toLowerCase());
+        attributsFormates.tailles = this.selectedSizes.map((tailleLabel) => {
+          const tailleDb = this.tailles.find((t) => {
+            const labelMatch = t.label?.toLowerCase() === tailleLabel.toLowerCase();
+            const valeurMatch = t.valeur?.toLowerCase() === tailleLabel.toLowerCase();
+            return labelMatch || valeurMatch;
+          });
+          console.log('🔍 Recherche taille:', tailleLabel, '→ Trouvée:', tailleDb?._id);
           return tailleDb?._id || tailleLabel;
         });
+      } else {
+        attributsFormates.tailles = [];
       }
-      
+
       // Marque : envoyer l'ID
       if (this.selectedMarqueId) {
         attributsFormates.marque = this.selectedMarqueId;
       }
-      
+
       // Type d'unité principal
       if (this.selectedTypeUniteId) {
         attributsFormates.typeUnitePrincipal = this.selectedTypeUniteId;
       }
 
+      console.log('📤 Attributs formatés à envoyer:', attributsFormates);
+
       produitData.attributs = attributsFormates;
 
       this.produitService.updateProduit(this.produitId, produitData).subscribe({
         next: () => {
-          this.toastService.showSuccess('Produit mis à jour avec succès!');
           this.router.navigate(['/boutique/produits']);
           this.isSubmitting = false;
         },

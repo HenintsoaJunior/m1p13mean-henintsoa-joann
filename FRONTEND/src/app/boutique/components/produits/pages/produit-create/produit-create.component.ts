@@ -1015,6 +1015,18 @@ export class ProduitCreateComponent implements OnInit {
         return;
       }
 
+      // Vérifier que les couleurs sont chargées
+      if (this.produitOptions.avecCouleur && this.selectedColors.length > 0 && this.couleurs.length === 0) {
+        this.toastService.showError('Chargement des couleurs en cours...');
+        return;
+      }
+
+      // Vérifier que les tailles sont chargées
+      if (this.produitOptions.avecUnite && this.selectedSizes.length > 0 && this.tailles.length === 0) {
+        this.toastService.showError('Chargement des tailles en cours...');
+        return;
+      }
+
       this.isSubmitting = true;
       const produitData = this.produitForm.value;
 
@@ -1026,32 +1038,51 @@ export class ProduitCreateComponent implements OnInit {
 
       // Formater les attributs pour envoyer les IDs au lieu des noms
       const attributsFormates: any = {};
-      
+
+      console.log('🎨 Couleurs sélectionnées:', this.selectedColors);
+      console.log('📏 Tailles sélectionnées:', this.selectedSizes);
+      console.log('🏷️ Marque sélectionnée:', this.selectedMarqueId);
+      console.log('📦 Toutes les couleurs en mémoire:', this.couleurs.length);
+      console.log('📦 Toutes les tailles en mémoire:', this.tailles.length);
+
       // Couleurs : envoyer les IDs
       if (this.selectedColors.length > 0) {
         attributsFormates.couleurs = this.selectedColors.map(c => {
-          const couleurDb = this.couleurs.find(col => col.codeHex === c.hex);
+          // Chercher par codeHex (format #RRVVBB)
+          const couleurDb = this.couleurs.find(col => col.codeHex?.toUpperCase() === c.hex?.toUpperCase());
+          console.log('🔍 Recherche couleur hex:', c.hex, '→ Trouvée:', couleurDb?._id);
           return couleurDb?._id || c.hex;
         });
+      } else {
+        attributsFormates.couleurs = [];
       }
-      
+
       // Tailles : envoyer les IDs
       if (this.selectedSizes.length > 0) {
         attributsFormates.tailles = this.selectedSizes.map(tailleLabel => {
-          const tailleDb = this.tailles.find(t => t.label === tailleLabel || t.valeur === tailleLabel.toLowerCase());
+          const tailleDb = this.tailles.find(t => {
+            const labelMatch = t.label?.toLowerCase() === tailleLabel.toLowerCase();
+            const valeurMatch = t.valeur?.toLowerCase() === tailleLabel.toLowerCase();
+            return labelMatch || valeurMatch;
+          });
+          console.log('🔍 Recherche taille:', tailleLabel, '→ Trouvée:', tailleDb?._id);
           return tailleDb?._id || tailleLabel;
         });
+      } else {
+        attributsFormates.tailles = [];
       }
-      
+
       // Marque : envoyer l'ID
       if (this.selectedMarqueId) {
         attributsFormates.marque = this.selectedMarqueId;
       }
-      
+
       // Type d'unité principal
       if (this.selectedTypeUniteId) {
         attributsFormates.typeUnitePrincipal = this.selectedTypeUniteId;
       }
+
+      console.log('📤 Attributs formatés à envoyer:', attributsFormates);
 
       produitData.attributs = attributsFormates;
 
