@@ -60,7 +60,6 @@ export interface ProduitOptions {
   avecCouleur: boolean;
   avecUnite: boolean;
   avecMarque: boolean;
-  typeUnite: 'standard' | 'personnalise';
 }
 
 @Component({
@@ -121,38 +120,27 @@ export class ProduitEditComponent implements OnInit {
   ];
 
   // ── Couleurs ─────────────────────────────────
-  colorPresets: ColorPreset[] = [
-    { name: 'Noir', hex: '#000000', display: '#000000' },
-    { name: 'Blanc', hex: '#FFFFFF', display: '#FFFFFF' },
-    { name: 'Rouge', hex: '#DC2626', display: '#DC2626' },
-    { name: 'Vert', hex: '#059669', display: '#059669' },
-    { name: 'Bleu', hex: '#3B82F6', display: '#3B82F6' },
-    { name: 'Jaune', hex: '#FAB548', display: '#FAB548' },
-  ];
+  colorPresets: ColorPreset[] = [];
 
   selectedColors: ColorSelection[] = [];
   singleSelectedColor: ColorSelection | null = null;
 
   // ── Unités ──────────────────────────────────
-  sizePresets: string[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-  liquidPresets: string[] = ['75cl', '100cl', '1L', '1.5L', '2L', '5L'];
-  weightPresets: string[] = ['100g', '250g', '500g', '1kg', '2kg', '5kg'];
-  packagePresets: string[] = ['1 unité', '6 unités', '12 unités', '24 unités', '50 unités'];
+  sizePresets: string[] = [];
+  liquidPresets: string[] = [];
+  weightPresets: string[] = [];
+  packagePresets: string[] = [];
 
   selectedSizes: string[] = [];
   singleSelectedSize: string = '';
   singleSelectedStock: number = 0;
   customSizeInput = '';
 
-  selectedUniteType: 'standard' | 'liquide' | 'poids' | 'conditionnement' | 'personnalise' =
-    'standard';
-
   // ── Options du produit ──────────────────────────────────
   produitOptions: ProduitOptions = {
     avecCouleur: false,
     avecUnite: true,
     avecMarque: false,
-    typeUnite: 'standard',
   };
 
   // ── Variantes ──────────────────────────────────
@@ -562,12 +550,7 @@ export class ProduitEditComponent implements OnInit {
     this.typeUniteService.getAllTypesUnites(true).subscribe({
       next: (data) => {
         this.typesUnites = data.typesUnites;
-        // Charger les tailles pour le type d'unité par défaut (standard)
-        const standardType = this.typesUnites.find((t) => t.nom === 'standard');
-        if (standardType && !this.selectedTypeUniteId) {
-          this.selectedTypeUniteId = standardType._id!;
-          this.loadTaillesParType(standardType._id!);
-        }
+        // Ne pas sélectionner de type par défaut, laisser l'utilisateur choisir
       },
       error: () => {
         this.toastService.showError("Erreur lors du chargement des types d'unités");
@@ -742,6 +725,8 @@ export class ProduitEditComponent implements OnInit {
         this.produitForm
           .get('attributs.couleurs')
           ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
+        // Auto-générer les variantes
+        setTimeout(() => this.generateVariantes(), 100);
       }
     }
   }
@@ -753,6 +738,8 @@ export class ProduitEditComponent implements OnInit {
       this.produitForm
         .get('attributs.couleurs')
         ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
+      // Auto-générer les variantes
+      setTimeout(() => this.generateVariantes(), 100);
     }
   }
 
@@ -921,6 +908,8 @@ export class ProduitEditComponent implements OnInit {
       this.selectedSizes.push(this.customSizeInput.trim());
       this.customSizeInput = '';
       this.updateTaillesForm();
+      // Auto-générer les variantes
+      setTimeout(() => this.generateVariantes(), 100);
     }
   }
 
