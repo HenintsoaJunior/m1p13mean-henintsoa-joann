@@ -66,7 +66,6 @@ export interface ProduitOptions {
   avecCouleur: boolean;
   avecUnite: boolean;
   avecMarque: boolean;
-  typeUnite: 'standard' | 'personnalise'; // standard (XS, S, M...) ou personnalisé (cl, kg, L, carton...)
 }
 
 // ------------------------------------------------
@@ -141,43 +140,31 @@ export class ProduitCreateComponent implements OnInit {
   ];
 
   // ── Couleurs ─────────────────────────────────
-  colorPresets: ColorPreset[] = [
-    { name: 'Noir', hex: '#000000', display: '#000000' },
-    { name: 'Blanc', hex: '#FFFFFF', display: '#FFFFFF' },
-    { name: 'Rouge', hex: '#DC2626', display: '#DC2626' },
-    { name: 'Vert', hex: '#059669', display: '#059669' },
-    { name: 'Bleu', hex: '#3B82F6', display: '#3B82F6' },
-    { name: 'Jaune', hex: '#FAB548', display: '#FAB548' },
-  ];
+  colorPresets: ColorPreset[] = [];
 
   selectedColors: ColorSelection[] = []; // Multi-sélection de couleurs
   singleSelectedColor: ColorSelection | null = null; // Sélection unique pour variantes
 
   // ── Unités (anciennement Tailles) ──────────────────────────────────
   // Unités standards (vêtements)
-  sizePresets: string[] = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  sizePresets: string[] = [];
   // Unités liquides (bouteilles, flacons...)
-  liquidPresets: string[] = ['75cl', '100cl', '1L', '1.5L', '2L', '5L'];
+  liquidPresets: string[] = [];
   // Unités poids (kg, g...)
-  weightPresets: string[] = ['100g', '250g', '500g', '1kg', '2kg', '5kg'];
+  weightPresets: string[] = [];
   // Unités conditionnement (cartons, packs...)
-  packagePresets: string[] = ['1 unité', '6 unités', '12 unités', '24 unités', '50 unités'];
+  packagePresets: string[] = [];
 
   selectedSizes: string[] = [];
   singleSelectedSize: string = ''; // Sélection unique pour variantes
   singleSelectedStock: number = 0; // Stock pour la nouvelle variante
   customSizeInput = '';
 
-  // Type d'unité sélectionné
-  selectedUniteType: 'standard' | 'liquide' | 'poids' | 'conditionnement' | 'personnalise' =
-    'standard';
-
   // ── Options du produit ──────────────────────────────────
   produitOptions: ProduitOptions = {
     avecCouleur: false,
     avecUnite: true,
     avecMarque: false,
-    typeUnite: 'standard',
   };
 
   // ── Variantes (combinaisons couleur + taille + stock) ──────────────────────────────────
@@ -243,12 +230,7 @@ export class ProduitCreateComponent implements OnInit {
     this.typeUniteService.getAllTypesUnites(true).subscribe({
       next: (data) => {
         this.typesUnites = data.typesUnites;
-        // Charger les tailles pour le type d'unité par défaut (standard)
-        const standardType = this.typesUnites.find(t => t.nom === 'standard');
-        if (standardType) {
-          this.selectedTypeUniteId = standardType._id!;
-          this.loadTaillesParType(standardType._id!);
-        }
+        // Ne pas sélectionner de type par défaut, laisser l'utilisateur choisir
       },
       error: () => {
         this.toastService.showError('Erreur lors du chargement des types d\'unités');
@@ -669,7 +651,8 @@ export class ProduitCreateComponent implements OnInit {
         this.produitForm
           .get('attributs.couleur')
           ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
-        this.generateVariantes();
+        // Auto-générer les variantes
+        setTimeout(() => this.genererVariantes(), 100);
       }
     }
   }
@@ -682,7 +665,8 @@ export class ProduitCreateComponent implements OnInit {
       this.produitForm
         .get('attributs.couleur')
         ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
-      this.generateVariantes();
+      // Auto-générer les variantes
+      setTimeout(() => this.genererVariantes(), 100);
     }
   }
 
@@ -719,6 +703,8 @@ export class ProduitCreateComponent implements OnInit {
       this.selectedSizes.push(this.customSizeInput.trim());
       this.customSizeInput = '';
       this.updateTaillesForm();
+      // Auto-générer les variantes
+      setTimeout(() => this.genererVariantes(), 100);
     }
   }
 

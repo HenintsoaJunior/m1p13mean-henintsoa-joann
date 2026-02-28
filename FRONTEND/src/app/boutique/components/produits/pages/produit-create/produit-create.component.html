@@ -369,16 +369,20 @@
               </h4>
               <div class="color-picker-block" formGroupName="attributs">
                 <div class="color-presets">
-                  @for (c of colorPresets; track c.hex) {
-                    <div
-                      class="color-swatch"
-                      [class.selected]="
-                        useVariantesMode ? isSingleColorSelected(c.hex) : isColorSelected(c.hex)
-                      "
-                      [style.background]="c.display"
-                      [title]="c.name + ' - Cliquer pour sélectionner'"
-                      (click)="toggleColor(c.hex, c.name)"
-                    ></div>
+                  @if (colorPresets.length === 0) {
+                    <small class="form-hint">Aucune couleur disponible</small>
+                  } @else {
+                    @for (c of colorPresets; track c.hex) {
+                      <div
+                        class="color-swatch"
+                        [class.selected]="
+                          useVariantesMode ? isSingleColorSelected(c.hex) : isColorSelected(c.hex)
+                        "
+                        [style.background]="c.display"
+                        [title]="c.name + ' - Cliquer pour sélectionner'"
+                        (click)="toggleColor(c.hex, c.name)"
+                      ></div>
+                    }
                   }
                 </div>
 
@@ -442,27 +446,35 @@
               <!-- Type d'unité -->
               <div class="unite-type-selector">
                 <label class="unite-type-label">Type d'unité :</label>
-                <div class="unite-type-options">
-                  @for (type of typesUnites; track type._id) {
-                  <label class="unite-type-radio" [class.active]="selectedTypeUniteId === type._id">
-                    <input type="radio" name="uniteType" [value]="type._id" [(ngModel)]="selectedTypeUniteId" [ngModelOptions]="{ standalone: true }" (change)="onTypeUniteChange(type._id!)" />
-                    <span class="unite-type-icon">{{ type.icon || '📏' }}</span>
-                    <span class="unite-type-name">{{ type.label }}</span>
-                    <span class="unite-type-desc">{{ type.description }}</span>
-                  </label>
-                  }
-                </div>
+                @if (typesUnites.length === 0) {
+                  <small class="form-hint">Aucun type d'unité disponible</small>
+                } @else {
+                  <div class="unite-type-options">
+                    @for (type of typesUnites; track type._id) {
+                    <label class="unite-type-radio" [class.active]="selectedTypeUniteId === type._id">
+                      <input type="radio" name="uniteType" [value]="type._id" [(ngModel)]="selectedTypeUniteId" [ngModelOptions]="{ standalone: true }" (change)="onTypeUniteChange(type._id!)" />
+                      <span class="unite-type-icon">{{ type.icon || '📏' }}</span>
+                      <span class="unite-type-name">{{ type.label }}</span>
+                      <span class="unite-type-desc">{{ type.description }}</span>
+                    </label>
+                    }
+                  </div>
+                }
               </div>
               
               <div class="size-presets">
-                @for (taille of tailles; track taille._id) {
-                  <div
-                    class="size-tag"
-                    [class.selected]="useVariantesMode ? isSingleSizeSelected(taille.label || taille.valeur) : isSizeSelected(taille.label || taille.valeur)"
-                    (click)="toggleSize(taille.label || taille.valeur)"
-                  >
-                    {{ taille.label || taille.valeur }}
-                  </div>
+                @if (tailles.length === 0) {
+                  <small class="form-hint">Aucune unité disponible</small>
+                } @else {
+                  @for (taille of tailles; track taille._id) {
+                    <div
+                      class="size-tag"
+                      [class.selected]="useVariantesMode ? isSingleSizeSelected(taille.label || taille.valeur) : isSizeSelected(taille.label || taille.valeur)"
+                      (click)="toggleSize(taille.label || taille.valeur)"
+                    >
+                      {{ taille.label || taille.valeur }}
+                    </div>
+                  }
                 }
               </div>
 
