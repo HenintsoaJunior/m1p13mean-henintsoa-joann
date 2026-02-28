@@ -28,10 +28,6 @@ const marqueSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    paysOrigine: {
-      type: String,
-      trim: true,
-    },
     estActif: {
       type: Boolean,
       default: true,

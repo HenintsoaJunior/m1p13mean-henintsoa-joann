@@ -2017,3 +2017,225 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gray-400);
 }
+
+// ------------------------------------------------
+// MARQUE - NOUVEAU DESIGN
+// ------------------------------------------------
+.marque-search-container {
+  margin-bottom: 20px;
+}
+
+.marque-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  
+  i {
+    position: absolute;
+    left: 16px;
+    color: var(--text-tertiary);
+    font-size: 16px;
+    pointer-events: none;
+  }
+}
+
+.marque-search-input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border: 2px solid var(--border-primary);
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+  transition: all var(--transition-fast);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--sidebar-primary);
+    box-shadow: 0 0 0 3px rgba(54, 96, 169, 0.1);
+  }
+  
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+}
+
+.marque-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.marque-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: white;
+  border: 2px solid var(--border-primary);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    border-color: var(--sidebar-primary);
+    background: rgba(54, 96, 169, 0.04);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  
+  &.selected {
+    border-color: var(--sidebar-primary);
+    background: rgba(54, 96, 169, 0.08);
+    box-shadow: 0 4px 12px rgba(54, 96, 169, 0.15);
+  }
+}
+
+.marque-card-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.marque-card-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border-radius: 8px;
+  font-size: 18px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+}
+
+.marque-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.marque-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.marque-card-check {
+  font-size: 20px;
+  color: var(--color-success);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all var(--transition-fast);
+  
+  &.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.marque-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-tertiary);
+  
+  i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.selected-marque-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(5, 150, 105, 0.08);
+  border: 2px solid rgba(5, 150, 105, 0.2);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  
+  i {
+    color: var(--color-success);
+    font-size: 16px;
+  }
+  
+  span {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  
+  .btn-remove {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: all var(--transition-fast);
+    
+    &:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--color-danger);
+    }
+  }
+}
+
+.marque-add-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-primary);
+}
+
+.new-marque-form {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: 10px;
+  
+  .input-group {
+    display: flex;
+    gap: 10px;
+    
+    .form-input {
+      flex: 1;
+    }
+    
+    .btn {
+      white-space: nowrap;
+    }
+  }
+}

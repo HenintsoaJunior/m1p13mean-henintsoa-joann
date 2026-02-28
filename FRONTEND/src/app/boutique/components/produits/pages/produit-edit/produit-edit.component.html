@@ -572,46 +572,104 @@
             <!-- MARQUE (conditionnel) -->
             @if (produitOptions.avecMarque) {
             <div class="attribute-section">
-              <h4 class="attribute-title">Marque</h4>
-              <div class="form-group">
-                <label class="form-label">Sélectionner une marque</label>
-                <select
-                  class="form-select"
-                  [(ngModel)]="selectedMarqueId"
-                  [ngModelOptions]="{ standalone: true }"
-                  (change)="onMarqueChange()"
-                >
-                  <option value="">-- Sélectionner une marque --</option>
-                  @for (marque of marques; track marque._id) {
-                    <option [value]="marque._id">{{ marque.nom }} ({{ marque.paysOrigine || 'N/A' }})</option>
-                  }
-                </select>
-              </div>
-              
-              <!-- Option pour ajouter une nouvelle marque -->
-              <div class="form-group">
-                <button type="button" class="btn btn-secondary btn-sm" (click)="showNewMarqueField = !showNewMarqueField">
-                  {{ showNewMarqueField ? 'Annuler' : '+ Ajouter une nouvelle marque' }}
-                </button>
-              </div>
-              
-              @if (showNewMarqueField) {
-              <div class="form-group">
-                <label class="form-label">Nom de la nouvelle marque</label>
-                <div class="input-group">
+              <h4 class="attribute-title">
+                <i class="fas fa-tag"></i> Marque
+              </h4>
+              <p class="attribute-description">Sélectionnez la marque de votre produit</p>
+
+              <!-- Barre de recherche -->
+              <div class="marque-search-container">
+                <div class="marque-search-box">
+                  <i class="fas fa-search"></i>
                   <input
                     type="text"
-                    class="form-input"
-                    [(ngModel)]="newMarqueNom"
+                    class="marque-search-input"
+                    placeholder="Rechercher une marque (Nike, Adidas, Apple...)"
+                    [(ngModel)]="marqueSearchQuery"
                     [ngModelOptions]="{ standalone: true }"
-                    placeholder="Ex : Nike, Adidas..."
+                    (input)="filterMarques()"
                   />
-                  <button type="button" class="btn btn-primary" (click)="createNewMarque()" [disabled]="!newMarqueNom.trim()">
-                    Créer
-                  </button>
                 </div>
               </div>
+
+              <!-- Grille des marques -->
+              <div class="marque-grid">
+                @for (marque of filteredMarques; track marque._id) {
+                <div
+                  class="marque-card"
+                  [class.selected]="selectedMarqueId === marque._id"
+                  (click)="selectMarque(marque._id!)"
+                >
+                  <div class="marque-card-content">
+                    <div class="marque-card-icon">
+                      @if (marque.logo) {
+                        <img [src]="marque.logo" [alt]="marque.nom" />
+                      } @else {
+                        <i class="fas fa-tag"></i>
+                      }
+                    </div>
+                    <div class="marque-card-info">
+                      <span class="marque-card-name">{{ marque.nom }}</span>
+                    </div>
+                  </div>
+                  <div class="marque-card-check" [class.visible]="selectedMarqueId === marque._id">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
+                </div>
+                } @empty {
+                <div class="marque-empty">
+                  <i class="fas fa-search"></i>
+                  <p>Aucune marque trouvée</p>
+                </div>
+                }
+              </div>
+
+              <!-- Marque sélectionnée (badge) -->
+              @if (selectedMarqueId) {
+              <div class="selected-marque-badge">
+                <i class="fas fa-check"></i>
+                <span>Marque sélectionnée : {{ getSelectedMarqueName() }}</span>
+                <button type="button" class="btn-remove" (click)="clearMarque()">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
               }
+
+              <!-- Option pour ajouter une nouvelle marque -->
+              <div class="marque-add-section">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  (click)="showNewMarqueField = !showNewMarqueField"
+                >
+                  <i class="fas fa-plus"></i>
+                  {{ showNewMarqueField ? 'Annuler' : 'Ajouter une nouvelle marque' }}
+                </button>
+
+                @if (showNewMarqueField) {
+                <div class="new-marque-form">
+                  <label class="form-label">Nom de la nouvelle marque</label>
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      class="form-input"
+                      [(ngModel)]="newMarqueNom"
+                      [ngModelOptions]="{ standalone: true }"
+                      placeholder="Ex : Nike, Adidas, Samsung..."
+                      (keyup.enter)="createNewMarque()"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      (click)="createNewMarque()"
+                      [disabled]="!newMarqueNom.trim()"
+                    >
+                      <i class="fas fa-plus"></i> Créer
+                    </button>
+                  </div>
+                </div>
+                }
+              </div>
             </div>
             }
 
