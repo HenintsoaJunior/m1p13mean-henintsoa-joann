@@ -157,7 +157,6 @@ export class ProduitCreateComponent implements OnInit {
 
   selectedSizes: string[] = [];
   singleSelectedSize: string = ''; // Sélection unique pour variantes
-  singleSelectedStock: number = 0; // Stock pour la nouvelle variante
   customSizeInput = '';
 
   // ── Options du produit ──────────────────────────────────
@@ -169,8 +168,10 @@ export class ProduitCreateComponent implements OnInit {
 
   // ── Variantes (combinaisons couleur + taille + stock) ──────────────────────────────────
   variantes: ProduitVariante[] = [];
-  useVariantesMode = false; // true = mode variantes activé
-  stockExceeded = false; // true si le total des variantes dépasse le stock global
+  singleSelectedPrix: number = 0; // Prix pour la nouvelle variante
+  singleSelectedStock: number = 0; // Stock pour la nouvelle variante
+  useVariantesMode: boolean = true; // Mode variantes toujours activé
+  stockExceeded: boolean = false; // Stock dépassé
 
   // ── Images ───────────────────────────────────
   imagePreviews: string[] = [];
@@ -643,31 +644,17 @@ export class ProduitCreateComponent implements OnInit {
   }
 
   updateColorFromText(value: string) {
-    // Pour la saisie manuelle, on garde une couleur personnalisée
+    // Pour la saisie manuelle, on sélectionne une couleur personnalisée
     if (value.startsWith('#')) {
       const customColor = { name: 'Personnalisée', hex: value };
-      if (!this.selectedColors.some((c) => c.hex === value)) {
-        this.selectedColors.push(customColor);
-        this.produitForm
-          .get('attributs.couleur')
-          ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
-        // Auto-générer les variantes
-        setTimeout(() => this.genererVariantes(), 100);
-      }
+      this.selectSingleColor(customColor.hex, customColor.name);
     }
   }
 
   updateColorFromPicker(value: string) {
-    // Pour le picker, on ajoute la couleur si elle n'existe pas
+    // Pour le picker, on sélectionne la couleur
     const colorName = this.colorPresets.find((c) => c.hex === value)?.name || 'Personnalisée';
-    if (!this.selectedColors.some((c) => c.hex === value)) {
-      this.selectedColors.push({ name: colorName, hex: value });
-      this.produitForm
-        .get('attributs.couleur')
-        ?.setValue(this.selectedColors.map((c) => c.name).join(', '));
-      // Auto-générer les variantes
-      setTimeout(() => this.genererVariantes(), 100);
-    }
+    this.selectSingleColor(value, colorName);
   }
 
   // Méthodes pour la sélection unique (mode variantes)
@@ -675,8 +662,21 @@ export class ProduitCreateComponent implements OnInit {
     return this.singleSelectedColor?.hex === hex;
   }
 
+  selectSingleColor(hex: string, name: string) {
+    // Sélection unique : si on clique sur la même couleur, on désélectionne
+    if (this.singleSelectedColor?.hex === hex) {
+      this.clearSingleColor();
+    } else {
+      this.singleSelectedColor = { name, hex };
+      // Réinitialiser le prix à la valeur du formulaire
+      const prixBase = this.produitForm.get('prix.montant')?.value || 0;
+      this.singleSelectedPrix = prixBase;
+    }
+  }
+
   clearSingleColor() {
     this.singleSelectedColor = null;
+    this.singleSelectedPrix = 0;
     this.produitForm.get('attributs.couleur')?.setValue('');
   }
 
@@ -730,8 +730,27 @@ export class ProduitCreateComponent implements OnInit {
     return this.singleSelectedSize === size;
   }
 
+  selectSingleSize(size: string) {
+    // Sélection unique : si on clique sur la même taille, on désélectionne
+    if (this.singleSelectedSize === size) {
+      this.clearSingleSize();
+    } else {
+      this.singleSelectedSize = size;
+      // Réinitialiser le stock à 0
+      this.singleSelectedStock = 0;
+    }
+  }
+
+  addCustomSizeSingle() {
+    if (this.customSizeInput.trim()) {
+      this.selectSingleSize(this.customSizeInput.trim());
+      this.customSizeInput = '';
+    }
+  }
+
   clearSingleSize() {
     this.singleSelectedSize = '';
+    this.singleSelectedStock = 0;
     this.produitForm.get('attributs.taille')?.setValue([]);
   }
 
@@ -767,14 +786,6 @@ export class ProduitCreateComponent implements OnInit {
       return;
     }
 
-    // Vérifier si le stock des variantes dépasse le stock global
-    if (this.stockExceeded) {
-      this.toastService.showError(
-        `Le total des variantes dépasse le stock global. Stock disponible : ${this.getAvailableStockForVariantes()} unités`,
-      );
-      return;
-    }
-
     // Vérifier si la combinaison existe déjà
     const existingIndex = this.variantes.findIndex((v) => {
       const colorMatch =
@@ -789,21 +800,12 @@ export class ProduitCreateComponent implements OnInit {
       return;
     }
 
-    // Vérifier si le stock de cette variante dépasse le stock restant
-    const availableStock = this.getAvailableStockForVariantes();
-    if (this.singleSelectedStock > availableStock) {
-      this.toastService.showError(
-        `Stock insuffisant. Maximum ${availableStock} unités disponibles.`,
-      );
-      return;
-    }
-
     // Ajouter la nouvelle variante
     this.variantes.push({
       couleur: this.produitOptions.avecCouleur ? this.singleSelectedColor?.name || '' : '',
       couleurHex: this.produitOptions.avecCouleur ? this.singleSelectedColor?.hex || '' : '',
       unite: this.produitOptions.avecUnite ? this.singleSelectedSize.trim() || '' : '',
-      prix: this.produitForm.get('prix.montant')?.value || 0,
+      prix: this.singleSelectedPrix > 0 ? this.singleSelectedPrix : (this.produitForm.get('prix.montant')?.value || 0),
       quantite: this.singleSelectedStock,
     });
 
@@ -812,6 +814,7 @@ export class ProduitCreateComponent implements OnInit {
     // Réinitialiser les sélections
     this.singleSelectedColor = null;
     this.singleSelectedSize = '';
+    this.singleSelectedPrix = 0;
     this.singleSelectedStock = 0;
     this.produitForm.get('attributs.couleur')?.setValue('');
     this.produitForm.get('attributs.taille')?.setValue([]);

@@ -431,10 +431,7 @@
             @if (produitOptions.avecCouleur) {
             <div class="attribute-section">
               <h4 class="attribute-title">
-                Couleurs disponibles
-                @if (useVariantesMode) {
-                  <span class="attribute-hint">(sélection unique)</span>
-                }
+                Couleurs disponibles <span class="attribute-hint">(sélection unique)</span>
               </h4>
               <div class="color-picker-block" formGroupName="attributs">
                 <div class="color-presets">
@@ -444,12 +441,10 @@
                     @for (c of colorPresets; track c.hex) {
                       <div
                         class="color-swatch"
-                        [class.selected]="
-                          useVariantesMode ? isSingleColorSelected(c.hex) : isColorSelected(c.hex)
-                        "
+                        [class.selected]="isSingleColorSelected(c.hex)"
                         [style.background]="c.display"
                         [title]="c.name + ' - Cliquer pour sélectionner'"
-                        (click)="toggleColor(c.hex, c.name)"
+                        (click)="selectSingleColor(c.hex, c.name)"
                       ></div>
                     }
                   }
@@ -471,7 +466,7 @@
                   />
                 </div>
 
-                @if (useVariantesMode && singleSelectedColor) {
+                @if (singleSelectedColor) {
                   <div class="selected-colors-chips">
                     <span class="color-chip">
                       <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
@@ -479,24 +474,8 @@
                       <span class="color-chip-remove" (click)="clearSingleColor()">×</span>
                     </span>
                   </div>
-                } @else if (!useVariantesMode && selectedColors.length > 0) {
-                  <div class="selected-colors-chips">
-                    @for (c of selectedColors; track c.hex) {
-                      <span class="color-chip">
-                        <span class="color-dot" [style.background]="c.hex"></span>
-                        {{ c.name }}
-                        <span class="color-chip-remove" (click)="removeColor(c.hex)">×</span>
-                      </span>
-                    }
-                  </div>
                 } @else {
-                  <small class="form-hint">
-                    @if (useVariantesMode) {
-                      Sélectionnez une couleur pour ajouter une variante
-                    } @else {
-                      Sélectionnez une ou plusieurs couleurs
-                    }
-                  </small>
+                  <small class="form-hint">Sélectionnez une couleur</small>
                 }
               </div>
             </div>
@@ -506,12 +485,9 @@
             @if (produitOptions.avecUnite) {
             <div class="attribute-section">
               <h4 class="attribute-title">
-                Unités / Variantes disponibles
-                @if (useVariantesMode) {
-                  <span class="attribute-hint">(sélection unique)</span>
-                }
+                Unités / Variantes disponibles <span class="attribute-hint">(sélection unique)</span>
               </h4>
-              
+
               <!-- Type d'unité -->
               <div class="unite-type-selector">
                 <label class="unite-type-label">Type d'unité :</label>
@@ -538,8 +514,8 @@
                   @for (taille of tailles; track taille._id) {
                     <div
                       class="size-tag"
-                      [class.selected]="useVariantesMode ? isSingleSizeSelected(taille.label || taille.valeur) : isSizeSelected(taille.label || taille.valeur)"
-                      (click)="toggleSize(taille.label || taille.valeur)"
+                      [class.selected]="isSingleSizeSelected(taille.label || taille.valeur)"
+                      (click)="selectSingleSize(taille.label || taille.valeur)"
                     >
                       {{ taille.label || taille.valeur }}
                     </div>
@@ -554,29 +530,22 @@
                   [(ngModel)]="customSizeInput"
                   [ngModelOptions]="{ standalone: true }"
                   placeholder="Unité personnalisée (ex: 46, 75cl, 1kg, carton...)"
-                  (keyup.enter)="addCustomSize()"
+                  (keyup.enter)="addCustomSizeSingle()"
                 />
-                <button type="button" class="btn btn-secondary" (click)="addCustomSize()">
+                <button type="button" class="btn btn-secondary" (click)="addCustomSizeSingle()">
                   + Ajouter
                 </button>
               </div>
 
-              @if (useVariantesMode && singleSelectedSize) {
+              @if (singleSelectedSize) {
                 <div class="size-chips">
                   <span class="size-chip">
                     {{ singleSelectedSize }}
                     <span class="size-chip-remove" (click)="clearSingleSize()">×</span>
                   </span>
                 </div>
-              } @else if (!useVariantesMode && getCustomSizes().length > 0) {
-                <div class="size-chips">
-                  @for (s of getCustomSizes(); track s) {
-                    <span class="size-chip">
-                      {{ s }}
-                      <span class="size-chip-remove" (click)="removeSize(s)">×</span>
-                    </span>
-                  }
-                </div>
+              } @else {
+                <small class="form-hint">Sélectionnez une unité</small>
               }
             </div>
             }
