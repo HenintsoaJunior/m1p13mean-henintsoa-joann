@@ -66,6 +66,7 @@ export class ProduitListComponent implements OnInit {
   currentImageIndex = 0;
   isCreatingCategorie = false;
   isDeleting = false;
+  isLoading = false;
   categorieForm: FormGroup;
   categories: Categorie[] = [];
   categoriesTree: CategorieTree[] = [];
@@ -183,6 +184,7 @@ export class ProduitListComponent implements OnInit {
   }
 
   loadProduits() {
+    this.isLoading = true;
     this.produitService.getProduitsByBoutique().subscribe({
       next: (data: any) => {
         // CORRECTION : le backend peut retourner un objet paginé { data: [], total: ... }
@@ -199,10 +201,12 @@ export class ProduitListComponent implements OnInit {
           this.produits = [];
         }
         this.applyFilters();
+        this.isLoading = false;
       },
       error: () => {
         this.produits = [];
         this.filteredProduits = [];
+        this.isLoading = false;
       },
     });
   }
