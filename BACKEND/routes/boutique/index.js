@@ -12,6 +12,9 @@ router.use("/tailles", require("./tailles"));
 router.use("/marques", require("./marques"));
 router.use("/types-unites", require("./types-unites"));
 
+// Gestion de stock
+router.use("/mouvements-stock", require("./mouvements-stock"));
+
 router.get("/", (req, res) => {
   res.json({ message: "Espace boutique - API disponible" });
 });

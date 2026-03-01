@@ -55,6 +55,20 @@
       </a>
 
       <a
+        routerLink="/boutique/stock"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Gestion des stocks' : null"
+        (click)="closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-boxes"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Stocks</span>
+        <div class="nav-indicator" *ngIf="currentRoute.startsWith('/boutique/stock')"></div>
+      </a>
+
+      <a
         routerLink="/boutique/commandes"
         routerLinkActive="active"
         class="nav-item"

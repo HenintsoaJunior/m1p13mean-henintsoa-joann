@@ -29,6 +29,7 @@ import { BoutiqueDashboardComponent } from './boutique/pages/dashboard/boutique-
 import { ProduitListComponent } from './boutique/components/produits/pages/produit-list/produit-list.component';
 import { ProduitCreateComponent } from './boutique/components/produits/pages/produit-create/produit-create.component';
 import { ProduitEditComponent } from './boutique/components/produits/pages/produit-edit/produit-edit.component';
+import { StockMouvementsComponent } from './boutique/components/produits/pages/stock-mouvements/stock-mouvements.component';
 
 // Boutique components - Categories
 import { CategorieListComponent } from './boutique/components/categories/pages/categorie-list/categorie-list.component';
@@ -94,6 +95,7 @@ export const routes: Routes = [
       { path: 'produits', component: ProduitListComponent },
       { path: 'produits/nouveau', component: ProduitCreateComponent },
       { path: 'produits/edit/:id', component: ProduitEditComponent },
+      { path: 'stock', component: StockMouvementsComponent },
       { path: 'categories', component: CategorieListComponent },
     ],
   },
