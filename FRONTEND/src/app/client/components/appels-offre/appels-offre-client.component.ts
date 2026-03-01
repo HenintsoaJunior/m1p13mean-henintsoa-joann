@@ -18,9 +18,13 @@ export class AppelsOffreClientComponent implements OnInit {
   loading = false;
   searchTerm = '';
   
-  // modal state
+  // modal state (soumettre)
   showModal = false;
   selectedAppel: AppelOffreDto | null = null;
+
+  // modal state (détails)
+  showDetailModal = false;
+  detailAppel: AppelOffreDto | null = null;
 
   // Pagination properties
   currentPage = 1;
@@ -79,6 +83,33 @@ export class AppelsOffreClientComponent implements OnInit {
   closeModal(): void {
     this.showModal = false;
     this.selectedAppel = null;
+  }
+
+  openDetailModal(appel: AppelOffreDto, event?: Event): void {
+    event?.stopPropagation();
+    this.detailAppel = appel;
+    this.showDetailModal = true;
+  }
+
+  closeDetailModal(): void {
+    this.showDetailModal = false;
+    this.detailAppel = null;
+  }
+
+  getTypeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      box: 'Box', kiosque: 'Kiosque', zone_loisirs: 'Zone loisirs',
+      zone_commune: 'Zone commune', pop_up: 'Pop-up', autre: 'Autre'
+    };
+    return labels[type] || type;
+  }
+
+  getStatutLabel(statut: string): string {
+    const labels: Record<string, string> = {
+      libre: 'Libre', occupe: 'Occupé', reserve: 'Réservé',
+      en_travaux: 'En travaux', en_negociation: 'En négociation'
+    };
+    return labels[statut] || statut;
   }
 
   // Pagination methods

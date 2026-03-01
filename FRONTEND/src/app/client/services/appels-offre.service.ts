@@ -12,6 +12,31 @@ export interface AppelOffreDto {
     code: string;
     surface_m2: number;
     loyer_mensuel: number;
+    type: string;
+    statut: string;
+    etage_id?: {
+      _id: string;
+      nom: string;
+      niveau: number;
+      surface_totale_m2?: number;
+      hauteur_sous_plafond_m?: number;
+      batiment_id?: {
+        _id: string;
+        nom: string;
+        description?: string;
+        centre_id?: {
+          _id: string;
+          nom: string;
+          description?: string;
+          adresse?: {
+            rue?: string;
+            ville?: string;
+            code_postal?: string;
+            pays?: string;
+          };
+        };
+      };
+    };
   };
   description: string;
   statut: string;
