@@ -5,8 +5,8 @@
   top: 0;
   bottom: 0;
   width: 240px;
-  background: #f8f9fa;
-  border-right: 1px solid #e9ecef;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -66,26 +66,25 @@
 /* Section label */
 .sidebar-section-label {
   width: 100%;
-  padding: 0 14px 10px 16px;
+  padding: 0 14px 8px 14px;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #adb5bd;
+  letter-spacing: 0.1em;
+  color: #9ca3af;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 
-  i { font-size: 10px; }
+  i { font-size: 9px; }
 }
 
 /* ========== CATEGORY TREE ========== */
 .category-tree {
   width: 100%;
-  padding: 0 8px;
+  padding: 0 6px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .no-categories {
