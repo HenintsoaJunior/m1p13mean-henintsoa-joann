@@ -89,7 +89,7 @@ class ReponseService {
         const nouvelUtilisateur = await Utilisateur.create({
           email: accountEmail,
           mot_de_passe: securePass,
-          prenom: '',
+          prenom: '_',
           nom: reponse.nom_boutique || 'Boutique',
           role: 'boutique',
           actif: true,
