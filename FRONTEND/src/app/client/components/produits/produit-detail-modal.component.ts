@@ -237,13 +237,13 @@ import { SouhaitService } from '../../services/souhait.service';
       position: relative;
       display: flex; align-items: center; gap: 10px;
       padding: 10px 16px 10px 12px;
-      border-radius: 14px;
+      border-radius: 8px;
       border: 2px solid #e2e8f0;
       background: #f8fafc;
       cursor: pointer;
       min-width: 130px;
       text-align: left;
-      transition: border-color 0.2s, background 0.2s, transform 0.18s, box-shadow 0.2s;
+      transition: border-color 0.2s, background 0.2s, transform 0.18s;
       overflow: hidden;
     }
     .var-card::before {
@@ -254,13 +254,11 @@ import { SouhaitService } from '../../services/souhait.service';
     }
     .var-card:hover:not(.oos) {
       border-color: #93c5fd;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(54,96,169,0.14);
+      transform: translateY(-1px);
     }
     .var-card:hover:not(.oos)::before { opacity: 1; }
     .var-card.selected {
       border-color: #3660a9;
-      box-shadow: 0 6px 20px rgba(54,96,169,0.22);
     }
     .var-card.selected::before { opacity: 1; }
     .var-card.oos { opacity: 0.45; cursor: not-allowed; }
