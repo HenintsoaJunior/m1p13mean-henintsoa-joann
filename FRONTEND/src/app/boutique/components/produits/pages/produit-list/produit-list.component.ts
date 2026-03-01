@@ -32,6 +32,31 @@ export class ProduitListComponent implements OnInit {
   produits: Produit[] = [];
   filteredProduits: Produit[] = [];
   searchTerm = '';
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  pageSizeOptions = [5, 10, 25, 50];
+
+  get totalItems(): number { return this.filteredProduits.length; }
+  get totalPages(): number { return Math.ceil(this.totalItems / this.pageSize) || 1; }
+  get paginatedProduits(): Produit[] {
+    return this.filteredProduits.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+  }
+  get pages(): number[] {
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) { this.currentPage = page; }
+  }
+  onPageSizeChange(): void { this.currentPage = 1; }
   filterStatut = '';
   showCategorieModal = false;
   showProduitModal = false;
@@ -200,6 +225,7 @@ export class ProduitListComponent implements OnInit {
   }
 
   applyFilters() {
+    this.currentPage = 1;
     if (!Array.isArray(this.produits)) {
       this.filteredProduits = [];
       return;

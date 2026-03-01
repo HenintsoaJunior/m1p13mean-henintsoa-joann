@@ -1,4 +1,8 @@
-<aside class="modern-sidebar" [class.sidebar-collapsed]="isCollapsed" [class.sidebar-open]="isSidebarOpen">
+<aside
+  class="modern-sidebar"
+  [class.sidebar-collapsed]="isCollapsed"
+  [class.sidebar-open]="isSidebarOpen"
+>
   <!-- Header sans toggle -->
   <div class="sidebar-header">
     <div class="brand-section">
@@ -55,20 +59,6 @@
       </a>
 
       <a
-        routerLink="/boutique/stock"
-        routerLinkActive="active"
-        class="nav-item"
-        [attr.title]="isCollapsed ? 'Gestion des stocks' : null"
-        (click)="closeSidebar()"
-      >
-        <div class="nav-icon">
-          <i class="fas fa-boxes"></i>
-        </div>
-        <span class="nav-text" *ngIf="!isCollapsed">Stocks</span>
-        <div class="nav-indicator" *ngIf="currentRoute.startsWith('/boutique/stock')"></div>
-      </a>
-
-      <a
         routerLink="/boutique/commandes"
         routerLinkActive="active"
         class="nav-item"
@@ -83,34 +73,36 @@
       </a>
 
       <a
-        routerLink="/boutique/profil"
+        routerLink="/boutique/stock"
         routerLinkActive="active"
         class="nav-item"
-        [attr.title]="isCollapsed ? 'Mon Profil' : null"
+        [attr.title]="isCollapsed ? 'Gestion des stocks' : null"
         (click)="closeSidebar()"
       >
         <div class="nav-icon">
-          <i class="fas fa-user"></i>
+          <i class="fas fa-boxes"></i>
         </div>
-        <span class="nav-text" *ngIf="!isCollapsed">Mon Profil</span>
-        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/profil'"></div>
+        <span class="nav-text" *ngIf="!isCollapsed">Stocks</span>
+        <div class="nav-indicator" *ngIf="currentRoute.startsWith('/boutique/stock')"></div>
       </a>
     </div>
 
     <div class="nav-section">
-      <p class="section-title" *ngIf="!isCollapsed">ANALYTIQUES</p>
+      <p class="section-title" *ngIf="!isCollapsed">Boutique</p>
 
       <a
         routerLink="/boutique/statistiques"
         routerLinkActive="active"
         class="nav-item"
-        [attr.title]="isCollapsed ? 'Statistiques' : null"
+        [attr.title]="isCollapsed ? 'Mon Boutique' : null"
         (click)="closeSidebar()"
       >
         <div class="nav-icon">
-          <i class="fas fa-chart-bar"></i>
+          <i class="fas fa-store"></i>
         </div>
-        <span class="nav-text" *ngIf="!isCollapsed">Statistiques</span>
+
+        <span class="nav-text" *ngIf="!isCollapsed">Mon Boutique</span>
+
         <div class="nav-indicator" *ngIf="currentRoute === '/boutique/statistiques'"></div>
       </a>
     </div>
