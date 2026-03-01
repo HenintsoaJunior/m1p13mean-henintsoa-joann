@@ -67,10 +67,9 @@ class ReponseService {
           await BoutiqueModel.create({
             appel_offre_id: reponse.appel_offre_id,
             contact: {
-              nom: reponse.nom_boutique,
+              nom: 'Boutique Propriétaire',
               email: accountEmail,
-              telephone: reponse.telephone_boutique || '',
-              adresse: reponse.adresse_boutique || '',
+              telephone: '',
             },
             statut: 'en_attente',
           });
@@ -90,8 +89,8 @@ class ReponseService {
         const nouvelUtilisateur = await Utilisateur.create({
           email: accountEmail,
           mot_de_passe: securePass,
-          prenom: 'Boutique',
-          nom: 'Propriétaire',
+          prenom: '',
+          nom: reponse.nom_boutique || 'Boutique',
           role: 'boutique',
           actif: true,
         });
