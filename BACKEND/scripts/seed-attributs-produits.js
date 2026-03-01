@@ -3,7 +3,7 @@
  * Crée les types d'unités, couleurs, tailles et marques par défaut
  */
 
-require("dotenv").config();
+require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 const mongoose = require("mongoose");
 const TypeUnite = require("../models/boutique/TypeUnite");
 const Couleur = require("../models/boutique/Couleur");
