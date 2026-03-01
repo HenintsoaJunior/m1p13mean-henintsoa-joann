@@ -36,6 +36,8 @@ export class StockMouvementsComponent implements OnInit {
   showModal = false;
   selectedProduit: any = null;
   currentPage = 1;
+  pageSize = 15;
+  pageSizeOptions = [10, 15, 25, 50];
   filterType = '';
   filterProduit = '';
 
@@ -65,7 +67,7 @@ export class StockMouvementsComponent implements OnInit {
     this.isLoading = true;
     this.mouvementService.getMouvements({
       page: this.currentPage,
-      limite: 15,
+      limite: this.pageSize,
       type: this.filterType || undefined,
       idProduit: this.filterProduit || undefined,
     }).subscribe({
@@ -157,6 +159,21 @@ export class StockMouvementsComponent implements OnInit {
     this.chargerMouvements();
   }
 
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.chargerMouvements();
+    }
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.chargerMouvements();
+  }
+
+  get totalItems(): number { return this.pagination.total || 0; }
+  get totalPages(): number { return this.pagination.pages || 1; }
+
   getStatEntrees(): number {
     return this.stats.find(s => s._id === 'entree')?.totalQuantite ?? 0;
   }
@@ -184,6 +201,12 @@ export class StockMouvementsComponent implements OnInit {
 
   get pages(): number[] {
     if (!this.pagination.pages) return [];
-    return Array.from({ length: this.pagination.pages }, (_, i) => i + 1);
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
   }
 }
