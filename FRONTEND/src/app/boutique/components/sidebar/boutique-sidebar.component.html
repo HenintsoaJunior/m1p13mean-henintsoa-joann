@@ -91,7 +91,7 @@
       <p class="section-title" *ngIf="!isCollapsed">Boutique</p>
 
       <a
-        routerLink="/boutique/statistiques"
+        routerLink="/boutique/mon-boutique"
         routerLinkActive="active"
         class="nav-item"
         [attr.title]="isCollapsed ? 'Mon Boutique' : null"
@@ -103,25 +103,7 @@
 
         <span class="nav-text" *ngIf="!isCollapsed">Mon Boutique</span>
 
-        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/statistiques'"></div>
-      </a>
-    </div>
-
-    <div class="nav-section">
-      <p class="section-title" *ngIf="!isCollapsed">SYSTÈME</p>
-
-      <a
-        routerLink="/boutique/parametres"
-        routerLinkActive="active"
-        class="nav-item"
-        [attr.title]="isCollapsed ? 'Paramètres' : null"
-        (click)="closeSidebar()"
-      >
-        <div class="nav-icon">
-          <i class="fas fa-cog"></i>
-        </div>
-        <span class="nav-text" *ngIf="!isCollapsed">Paramètres</span>
-        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/parametres'"></div>
+        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/mon-boutique'"></div>
       </a>
     </div>
   </nav>

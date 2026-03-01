@@ -39,6 +39,7 @@ import { CategorieListComponent } from './boutique/components/categories/pages/c
 import { AppelsOffreListComponent } from './admin/components/appels-offre/pages/appels-offre-list/appels-offre-list.component';
 import { ReponsesComponent } from './admin/components/appels-offre/pages/reponses/reponses.component';
 import { ListBoutiquesComponent } from './admin/components/boutiques/pages/list-boutiques/list-boutiques.component';
+import { MonBoutiqueComponent } from './boutique/pages/mon-boutique/mon-boutique.component';
 
 // Client components - Appels d'offre
 import { AppelsOffreClientComponent } from './client/components/appels-offre/appels-offre-client.component';
@@ -101,6 +102,7 @@ export const routes: Routes = [
       { path: 'stock', component: StockMouvementsComponent },
       { path: 'commandes', component: CommandeListComponent },
       { path: 'categories', component: CategorieListComponent },
+      { path: 'mon-boutique', component: MonBoutiqueComponent },
     ],
   },
   {

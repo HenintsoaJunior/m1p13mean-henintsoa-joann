@@ -18,6 +18,9 @@ router.use("/mouvements-stock", require("./mouvements-stock"));
 // Gestion des commandes
 router.use("/commandes", require("./commandes"));
 
+// Mon Boutique (infos + localisation)
+router.use("/mon-boutique", require("./mon-boutique"));
+
 router.get("/", (req, res) => {
   res.json({ message: "Espace boutique - API disponible" });
 });
