@@ -1,28 +1,16 @@
 <div class="appels-offre-page">
-  <div class="page-header">
-    <h1>Appels d'offres</h1>
-    <p>Découvrez les appels d'offres disponibles et soumettez votre candidature</p>
-  </div>
-
-  <!-- Search and Filters -->
-  <div class="filters-section">
-    <div class="filters-container">
-      <div class="filters-header">
-        <i class="fa-solid fa-filter"></i>
-        <span>Filtres</span>
-      </div>
-      <div class="filters-content">
-        <div class="search-box">
-          <input
-            type="text"
-            placeholder="Rechercher (description, emplacement, code)..."
-            [(ngModel)]="searchTerm"
-            class="search-input"
-          />
-          <i class="fas fa-search"></i>
-        </div>
-      </div>
-    </div>
+  <!-- Search bar -->
+  <div class="search-bar">
+    <i class="fas fa-search"></i>
+    <input
+      type="text"
+      placeholder="Rechercher par description, emplacement, code..."
+      [(ngModel)]="searchTerm"
+      class="search-input"
+    />
+    <span *ngIf="searchTerm" class="clear-search" (click)="searchTerm = ''">
+      <i class="fas fa-times"></i>
+    </span>
   </div>
 
   <!-- Loading state -->
@@ -33,52 +21,51 @@
     </div>
   </div>
 
-  <!-- Appels d'offres list -->
-  <div *ngIf="!loading && filteredAppels.length > 0" class="appels-list">
+  <!-- Appels d'offres grid -->
+  <div *ngIf="!loading && filteredAppels.length > 0" class="appels-grid">
     <div *ngFor="let appel of filteredAppels" class="appel-card" (click)="openModal(appel)">
-      <div class="appel-header">
-        <h3 class="appel-description">{{ appel.description }}</h3>
-        <span class="appel-status" [ngClass]="'status-' + appel.statut">
-          {{ appel.statut | uppercase }}
-        </span>
+      <!-- Card header -->
+      <div class="card-header">
+        <div class="card-title-row">
+          <span class="appel-status" [ngClass]="'status-' + appel.statut">
+            {{ appel.statut | uppercase }}
+          </span>
+          <h3 class="appel-description">{{ appel.description }}</h3>
+        </div>
       </div>
-      
-      <div class="appel-details">
-        <div class="detail-item" *ngIf="appel.emplacement">
-          <i class="fas fa-map-marker-alt"></i>
-          <div>
-            <label>Emplacement</label>
-            <p>{{ appel.emplacement.nom }} ({{ appel.emplacement.code }})</p>
+
+      <!-- Card body: info grid -->
+      <div class="card-body">
+        <div class="info-row" *ngIf="appel.emplacement">
+          <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="info-content">
+            <span class="info-label">Emplacement</span>
+            <span class="info-value"
+              >{{ appel.emplacement.nom }}
+              <span class="code-badge">{{ appel.emplacement.code }}</span></span
+            >
           </div>
         </div>
-        
-        <div class="detail-item" *ngIf="appel.emplacement?.surface_m2">
-          <i class="fas fa-ruler"></i>
-          <div>
-            <label>Surface</label>
-            <p>{{ appel.emplacement?.surface_m2 }} m²</p>
+
+        <div class="info-chips">
+          <div class="chip" *ngIf="appel.emplacement?.surface_m2">
+            <i class="fas fa-ruler-combined"></i>
+            {{ appel.emplacement?.surface_m2 }} m²
           </div>
-        </div>
-        
-        <div class="detail-item" *ngIf="appel.emplacement?.loyer_mensuel">
-          <i class="fas fa-money-bill-wave"></i>
-          <div>
-            <label>Loyer mensuel</label>
-            <p>{{ appel.emplacement?.loyer_mensuel | number:'1.2-2' }} Ar</p>
+          <div class="chip chip-money" *ngIf="appel.emplacement?.loyer_mensuel">
+            <i class="fas fa-coins"></i>
+            {{ appel.emplacement?.loyer_mensuel | number: '1.0-0' }} MGA/mois
           </div>
-        </div>
-        
-        <div class="detail-item" *ngIf="appel.date_deadline">
-          <i class="fas fa-calendar"></i>
-          <div>
-            <label>Deadline</label>
-            <p>{{ appel.date_deadline | date:'shortDate' }}</p>
+          <div class="chip chip-deadline" *ngIf="appel.date_deadline">
+            <i class="fas fa-calendar-alt"></i>
+            {{ appel.date_deadline | date: 'dd/MM/yyyy' }}
           </div>
         </div>
       </div>
 
-      <div class="appel-action">
-        <button class="btn-submit-response" (click)="openModal(appel); $event.stopPropagation()">
+      <!-- Card footer -->
+      <div class="card-footer">
+        <button class="btn-respond" (click)="openModal(appel); $event.stopPropagation()">
           <i class="fas fa-paper-plane"></i>
           Soumettre une réponse
         </button>
@@ -86,79 +73,80 @@
     </div>
   </div>
 
-  <!-- Empty state -->
+  <!-- Empty states -->
   <div *ngIf="!loading && appelsOffre.length === 0" class="empty-state">
-    <i class="fas fa-inbox"></i>
-    <p>Aucun appel d'offre disponible pour le moment</p>
+    <div class="empty-icon"><i class="fas fa-inbox"></i></div>
+    <h3>Aucun appel d'offre</h3>
+    <p>Aucun appel d'offre n'est disponible pour le moment. Revenez plus tard.</p>
   </div>
 
-  <!-- Modal for submitting response -->
-  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()"></div>
-  <div class="modal-container" *ngIf="showModal">
-    <div class="modal-header">
-      <h3>Répondre à l'appel d'offre</h3>
-      <button class="modal-close" (click)="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <app-response-form-client
-        [appel]="selectedAppel"
-        (submitted)="closeModal()"
-      ></app-response-form-client>
-    </div>
-  </div>
-
-  <!-- No results from search -->
-  <div *ngIf="!loading && appelsOffre.length > 0 && filteredAppels.length === 0" class="empty-state">
-    <i class="fas fa-search"></i>
-    <p>Aucun résultat ne correspond à votre recherche</p>
+  <div
+    *ngIf="!loading && appelsOffre.length > 0 && filteredAppels.length === 0"
+    class="empty-state"
+  >
+    <div class="empty-icon"><i class="fas fa-search"></i></div>
+    <h3>Aucun résultat</h3>
+    <p>
+      Aucun appel d'offre ne correspond à "<strong>{{ searchTerm }}</strong
+      >"
+    </p>
   </div>
 
   <!-- Pagination -->
   <div class="pagination-container" *ngIf="totalPages > 1 && !loading">
-    <div class="pagination-info">
-      <span>Affichage page {{ currentPage }} sur {{ totalPages }} ({{ totalItems }} résultats)</span>
-    </div>
-
+    <span class="pagination-info"
+      >Page {{ currentPage }} / {{ totalPages }} — {{ totalItems }} résultats</span
+    >
     <div class="pagination">
-      <button 
-        (click)="goToPage(currentPage - 1)" 
-        [disabled]="currentPage === 1"
-        class="pagination-btn"
-      >
+      <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" class="pg-btn">
         <i class="fas fa-chevron-left"></i>
       </button>
-
-      <button 
+      <button
         *ngFor="let page of getPaginationItems()"
         (click)="goToPage(page)"
         [class.active]="page === currentPage"
-        class="pagination-btn"
+        class="pg-btn"
       >
         {{ page }}
       </button>
-
-      <button 
+      <button
         (click)="goToPage(currentPage + 1)"
         [disabled]="currentPage === totalPages"
-        class="pagination-btn"
+        class="pg-btn"
       >
         <i class="fas fa-chevron-right"></i>
       </button>
     </div>
-
-    <div class="pagination-size-selector">
-      <label for="pageSize">Résultats par page:</label>
-      <select 
-        id="pageSize"
-        [value]="pageSize"
-        (change)="onPageSizeChange($event)"
-        class="size-select"
-      >
+    <div class="page-size">
+      <label>Par page:</label>
+      <select [value]="pageSize" (change)="onPageSizeChange($event)" class="size-select">
         <option value="5">5</option>
         <option value="10">10</option>
         <option value="20">20</option>
-        <option value="50">50</option>
       </select>
     </div>
+  </div>
+</div>
+
+<!-- Modal overlay -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()"></div>
+
+<!-- Modal -->
+<div class="modal-container" *ngIf="showModal">
+  <div class="modal-header">
+    <div class="modal-title">
+      <div class="modal-title-icon"><i class="fas fa-paper-plane"></i></div>
+      <div>
+        <h3>Soumettre une réponse</h3>
+        <p *ngIf="selectedAppel">{{ selectedAppel.description }}</p>
+      </div>
+    </div>
+    <button class="modal-close" (click)="closeModal()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="modal-body">
+    <app-response-form-client
+      [appel]="selectedAppel"
+      (submitted)="closeModal()"
+    ></app-response-form-client>
   </div>
 </div>

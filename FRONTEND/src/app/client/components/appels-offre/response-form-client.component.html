@@ -1,190 +1,106 @@
-<div class="response-form-page">
-  <!-- Back button -->
-  <button class="back-btn" (click)="goBack()">
-    <i class="fas fa-chevron-left"></i> Retour
-  </button>
-
-  <!-- Loading state -->
-  <div *ngIf="loading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Chargement de l'appel d'offre...</p>
-  </div>
-
-  <div *ngIf="!loading">
-    <!-- Appel details -->
-    <div *ngIf="appel" class="appel-details-section">
-      <div class="appel-header">
-        <h1>{{ appel.description }}</h1>
-        <span class="appel-status" [ngClass]="'status-' + appel.statut">
-          {{ appel.statut | uppercase }}
-        </span>
-      </div>
-
-      <div class="appel-info-grid">
-        <div class="info-card" *ngIf="appel.emplacement">
-          <i class="fas fa-map-marker-alt"></i>
-          <div>
-            <label>Emplacement</label>
-            <p>{{ appel.emplacement.nom }} ({{ appel.emplacement.code }})</p>
-          </div>
-        </div>
-
-        <div class="info-card" *ngIf="appel.emplacement?.surface_m2">
-          <i class="fas fa-ruler"></i>
-          <div>
-            <label>Surface</label>
-            <p>{{ appel.emplacement?.surface_m2 }} m²</p>
-          </div>
-        </div>
-
-        <div class="info-card" *ngIf="appel.emplacement?.loyer_mensuel">
-          <i class="fas fa-money-bill-wave"></i>
-          <div>
-            <label>Loyer mensuel</label>
-            <p>{{ appel.emplacement?.loyer_mensuel | number:'1.2-2' }} Ar</p>
-          </div>
-        </div>
-
-        <div class="info-card" *ngIf="appel.date_deadline">
-          <i class="fas fa-calendar"></i>
-          <div>
-            <label>Deadline</label>
-            <p>{{ appel.date_deadline | date:'longDate' }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Response form -->
-    <div class="form-section">
-      <h2>Soumettre votre réponse</h2>
-      <p class="form-description">Veuillez remplir tous les champs pour soumettre votre candidature</p>
-
-      <form class="response-form" (ngSubmit)="submit()">
-        <!-- Email field -->
-        <div class="form-group">
-          <label for="email" class="form-label">
-            <span class="required">*</span>
-            Adresse e-mail
-          </label>
-          <input
-            type="email"
-            id="email"
-            [(ngModel)]="emailProposeur"
-            name="emailProposeur"
-            placeholder="votre.email@exemple.com"
-            class="form-input"
-            required
-          />
-          <small class="form-hint">Nous utiliserons cet email pour vous contacter</small>
-        </div>
-
-        <!-- Nom Boutique field -->
-        <div class="form-group">
-          <label for="nomBoutique" class="form-label">
-            <span class="required">*</span>
-            Nom de la boutique
-          </label>
-          <input
-            type="text"
-            id="nomBoutique"
-            [(ngModel)]="nomBoutique"
-            name="nomBoutique"
-            placeholder="Ex: Boutique ABC"
-            class="form-input"
-            required
-          />
-          <small class="form-hint">Entrez le nom de votre boutique</small>
-        </div>
-
-        <!-- Telephone field -->
-        <div class="form-group">
-          <label for="telephone" class="form-label">
-            Téléphone
-          </label>
-          <input
-            type="tel"
-            id="telephone"
-            [(ngModel)]="telephoneBoutique"
-            name="telephoneBoutique"
-            placeholder="+261 XX XX XX XX"
-            class="form-input"
-          />
-          <small class="form-hint">Numéro de téléphone de la boutique</small>
-        </div>
-
-        <!-- Adresse field -->
-        <div class="form-group">
-          <label for="adresse" class="form-label">
-            Adresse
-          </label>
-          <input
-            type="text"
-            id="adresse"
-            [(ngModel)]="adresseBoutique"
-            name="adresseBoutique"
-            placeholder="Ex: 123 Rue de la Paix, Antananarivo"
-            class="form-input"
-          />
-          <small class="form-hint">Adresse complète de la boutique</small>
-        </div>
-
-        <!-- Montant field -->
-        <div class="form-group">
-          <label for="montant" class="form-label">
-            <span class="required">*</span>
-            Montant proposé (Ar)
-          </label>
-          <input
-            type="number"
-            id="montant"
-            [(ngModel)]="montant"
-            name="montant"
-            placeholder="0"
-            class="form-input"
-            min="0"
-            step="0.01"
-            required
-          />
-          <small class="form-hint">Entrez le montant en Ariary</small>
-        </div>
-
-        <!-- Message field -->
-        <div class="form-group">
-          <label for="message" class="form-label">
-            <span class="required">*</span>
-            Message / Proposition
-          </label>
-          <textarea
-            id="message"
-            [(ngModel)]="message"
-            name="message"
-            placeholder="Décrivez votre proposition, vos qualifications, etc..."
-            class="form-textarea"
-            rows="6"
-            required
-          ></textarea>
-          <small class="form-hint">{{ message.length }}/500 caractères</small>
-        </div>
-
-        <!-- Form actions -->
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="goBack()">
-            Annuler
-          </button>
-          <button type="submit" class="btn btn-primary" [disabled]="submitting">
-            <span *ngIf="submitting">
-              <i class="fas fa-spinner fa-spin"></i>
-              Envoi en cours...
-            </span>
-            <span *ngIf="!submitting">
-              <i class="fas fa-paper-plane"></i>
-              Soumettre la réponse
-            </span>
-          </button>
-        </div>
-      </form>
-    </div>
-
+<!-- Loading state -->
+<div *ngIf="loading" class="loading-container">
+  <div class="loading-spinner">
+    <div class="spinner-ring"></div>
+    <span>Chargement en cours...</span>
   </div>
 </div>
+
+<ng-container *ngIf="!loading">
+  <!-- Appel info banner (compact) -->
+  <div *ngIf="appel" class="appel-info-banner">
+    <div class="banner-grid">
+      <div class="banner-item" *ngIf="appel.emplacement">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>{{ appel.emplacement.nom }} ({{ appel.emplacement.code }})</span>
+      </div>
+      <div class="banner-item" *ngIf="appel.emplacement?.surface_m2">
+        <i class="fas fa-ruler-combined"></i>
+        <span>{{ appel.emplacement?.surface_m2 }} m²</span>
+      </div>
+      <div class="banner-item" *ngIf="appel.emplacement?.loyer_mensuel">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>{{ appel.emplacement?.loyer_mensuel | number:'1.0-0' }} MGA/mois</span>
+      </div>
+      <div class="banner-item" *ngIf="appel.date_deadline">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Deadline: {{ appel.date_deadline | date:'dd/MM/yyyy' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Response form -->
+  <form class="response-form" (ngSubmit)="submit()">
+    <!-- Row 1: Email + Nom boutique -->
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label"><span class="required">*</span> Adresse e-mail</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope"></i>
+          <input type="email" [(ngModel)]="emailProposeur" name="emailProposeur"
+            placeholder="votre.email@exemple.com" class="form-input" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label"><span class="required">*</span> Nom de la boutique</label>
+        <div class="input-wrapper">
+          <i class="fas fa-store"></i>
+          <input type="text" [(ngModel)]="nomBoutique" name="nomBoutique"
+            placeholder="Nom de votre boutique" class="form-input" required />
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Téléphone + Adresse -->
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Téléphone</label>
+        <div class="input-wrapper">
+          <i class="fas fa-phone"></i>
+          <input type="tel" [(ngModel)]="telephoneBoutique" name="telephoneBoutique"
+            placeholder="+261 XX XX XX XX" class="form-input" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adresse</label>
+        <div class="input-wrapper">
+          <i class="fas fa-location-dot"></i>
+          <input type="text" [(ngModel)]="adresseBoutique" name="adresseBoutique"
+            placeholder="Adresse de la boutique" class="form-input" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Montant (full width) -->
+    <div class="form-group form-group-full">
+      <label class="form-label"><span class="required">*</span> Montant proposé (MGA)</label>
+      <div class="input-wrapper">
+        <i class="fas fa-coins"></i>
+        <input type="number" [(ngModel)]="montant" name="montant"
+          placeholder="Ex: 500000" class="form-input" min="0" required />
+        <span class="input-suffix">MGA</span>
+      </div>
+    </div>
+
+    <!-- Row 4: Message (full width) -->
+    <div class="form-group form-group-full">
+      <label class="form-label"><span class="required">*</span> Message / Proposition</label>
+      <textarea [(ngModel)]="message" name="message"
+        placeholder="Décrivez votre projet, vos qualifications, vos atouts..."
+        class="form-textarea" rows="5" required></textarea>
+      <span class="char-count">{{ message.length }} caractères</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="submitted.emit()">
+        Annuler
+      </button>
+      <button type="submit" class="btn-submit" [disabled]="submitting">
+        <div class="spinner-ring sm" *ngIf="submitting"></div>
+        <i class="fas fa-paper-plane" *ngIf="!submitting"></i>
+        <span>{{ submitting ? 'Envoi en cours...' : 'Soumettre la réponse' }}</span>
+      </button>
+    </div>
+  </form>
+</ng-container>
