@@ -290,7 +290,7 @@
             </div>
             <div>
               <h3 class="panel-title">Attributs du produit</h3>
-              <p class="panel-subtitle">Couleurs, tailles et marque pour enrichir les filtres</p>
+              <p class="panel-subtitle">Couleurs et unités pour enrichir les filtres</p>
             </div>
           </div>
 
@@ -338,23 +338,6 @@
                     <span>Tailles, volumes, poids, conditionnements...</span>
                   </div>
                 </div>
-
-                <!-- Option Marque -->
-                <div class="option-card" [class.active]="produitOptions.avecMarque">
-                  <label class="option-toggle">
-                    <input 
-                      type="checkbox" 
-                      [(ngModel)]="produitOptions.avecMarque"
-                      [ngModelOptions]="{ standalone: true }"
-                    />
-                    <span class="option-slider"></span>
-                  </label>
-                  <div class="option-icon">🏷️</div>
-                  <div class="option-label">
-                    <strong>Marque</strong>
-                    <span>Préciser la marque du produit</span>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -366,10 +349,10 @@
               </h4>
               <div class="color-picker-block" formGroupName="attributs">
                 <div class="color-presets">
-                  @if (colorPresets.length === 0) {
+                  @if (colorPresetsAvailable.length === 0) {
                     <small class="form-hint">Aucune couleur disponible</small>
                   } @else {
-                    @for (c of colorPresets; track c.hex) {
+                    @for (c of colorPresetsAvailable; track c.hex) {
                       <div
                         class="color-swatch"
                         [class.selected]="isSingleColorSelected(c.hex)"
@@ -439,10 +422,10 @@
               </div>
 
               <div class="size-presets">
-                @if (tailles.length === 0) {
+                @if (taillesAvailable.length === 0) {
                   <small class="form-hint">Aucune unité disponible</small>
                 } @else {
-                  @for (taille of tailles; track taille._id) {
+                  @for (taille of taillesAvailable; track taille._id) {
                     <div
                       class="size-tag"
                       [class.selected]="isSingleSizeSelected(taille.label || taille.valeur)"
@@ -543,16 +526,16 @@
                           />
                         </td>
                         <td>
-                          <div class="stock-input-group">
-                            <button type="button" class="stock-btn-small" (click)="updateSingleStock(-1)">−</button>
+                          <div class="stock-stepper-mini">
+                            <button type="button" class="stock-btn-mini" (click)="updateSingleStock(-1)">−</button>
                             <input
                               type="number"
-                              class="stock-input-small"
+                              class="stock-input-mini"
                               [(ngModel)]="singleSelectedStock"
                               [ngModelOptions]="{ standalone: true }"
                               min="0"
                             />
-                            <button type="button" class="stock-btn-small" (click)="updateSingleStock(1)">+</button>
+                            <button type="button" class="stock-btn-mini" (click)="updateSingleStock(1)">+</button>
                           </div>
                         </td>
                         <td>
@@ -624,16 +607,16 @@
                           />
                         </td>
                         <td>
-                          <div class="stock-input-group">
-                            <button type="button" class="stock-btn-small" (click)="decrementVarianteStock(i)">−</button>
+                          <div class="stock-stepper-mini">
+                            <button type="button" class="stock-btn-mini" (click)="decrementVarianteStock(i)">−</button>
                             <input
                               type="number"
-                              class="stock-input-small"
+                              class="stock-input-mini"
                               [value]="variante.quantite"
                               (input)="updateVarianteStock(i, $any($event.target).value)"
                               min="0"
                             />
-                            <button type="button" class="stock-btn-small" (click)="incrementVarianteStock(i)">+</button>
+                            <button type="button" class="stock-btn-mini" (click)="incrementVarianteStock(i)">+</button>
                           </div>
                         </td>
                         <td>
@@ -663,110 +646,6 @@
                 </div>
               }
             </div>
-
-            <!-- MARQUE (conditionnel) -->
-            @if (produitOptions.avecMarque) {
-            <div class="attribute-section">
-              <h4 class="attribute-title">
-                <i class="fas fa-tag"></i> Marque
-              </h4>
-              <p class="attribute-description">Sélectionnez la marque de votre produit</p>
-
-              <!-- Barre de recherche -->
-              <div class="marque-search-container">
-                <div class="marque-search-box">
-                  <i class="fas fa-search"></i>
-                  <input
-                    type="text"
-                    class="marque-search-input"
-                    placeholder="Rechercher une marque (Nike, Adidas, Apple...)"
-                    [(ngModel)]="marqueSearchQuery"
-                    [ngModelOptions]="{ standalone: true }"
-                    (input)="filterMarques()"
-                  />
-                </div>
-              </div>
-
-              <!-- Grille des marques -->
-              <div class="marque-grid">
-                @for (marque of filteredMarques; track marque._id) {
-                <div
-                  class="marque-card"
-                  [class.selected]="selectedMarqueId === marque._id"
-                  (click)="selectMarque(marque._id!)"
-                >
-                  <div class="marque-card-content">
-                    <div class="marque-card-icon">
-                      @if (marque.logo) {
-                        <img [src]="marque.logo" [alt]="marque.nom" />
-                      } @else {
-                        <i class="fas fa-tag"></i>
-                      }
-                    </div>
-                    <div class="marque-card-info">
-                      <span class="marque-card-name">{{ marque.nom }}</span>
-                    </div>
-                  </div>
-                  <div class="marque-card-check" [class.visible]="selectedMarqueId === marque._id">
-                    <i class="fas fa-check-circle"></i>
-                  </div>
-                </div>
-                } @empty {
-                <div class="marque-empty">
-                  <i class="fas fa-search"></i>
-                  <p>Aucune marque trouvée</p>
-                </div>
-                }
-              </div>
-
-              <!-- Marque sélectionnée (badge) -->
-              @if (selectedMarqueId) {
-              <div class="selected-marque-badge">
-                <i class="fas fa-check"></i>
-                <span>Marque sélectionnée : {{ getSelectedMarqueName() }}</span>
-                <button type="button" class="btn-remove" (click)="clearMarque()">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-              }
-
-              <!-- Option pour ajouter une nouvelle marque -->
-              <div class="marque-add-section">
-                <button
-                  type="button"
-                  class="btn btn-secondary btn-sm"
-                  (click)="showNewMarqueField = !showNewMarqueField"
-                >
-                  <i class="fas fa-plus"></i>
-                  {{ showNewMarqueField ? 'Annuler' : 'Ajouter une nouvelle marque' }}
-                </button>
-
-                @if (showNewMarqueField) {
-                <div class="new-marque-form">
-                  <label class="form-label">Nom de la nouvelle marque</label>
-                  <div class="input-group">
-                    <input
-                      type="text"
-                      class="form-input"
-                      [(ngModel)]="newMarqueNom"
-                      [ngModelOptions]="{ standalone: true }"
-                      placeholder="Ex : Nike, Adidas, Samsung..."
-                      (keyup.enter)="createNewMarque()"
-                    />
-                    <button
-                      type="button"
-                      class="btn btn-primary"
-                      (click)="createNewMarque()"
-                      [disabled]="!newMarqueNom.trim()"
-                    >
-                      <i class="fas fa-plus"></i> Créer
-                    </button>
-                  </div>
-                </div>
-                }
-              </div>
-            </div>
-            }
           </div>
         </div>
       </div>
@@ -823,15 +702,6 @@
                   <span>Type</span>
                   <span class="summary-val">
                     {{ getTypeUniteLabel() }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="summary-block accent-purple" *ngIf="produitOptions.avecMarque && selectedMarqueId">
-                <div class="summary-block-title"><i class="fas fa-tag"></i> Marque</div>
-                <div class="summary-row">
-                  <span class="summary-val">
-                    {{ getSelectedMarqueName() }}
                   </span>
                 </div>
               </div>

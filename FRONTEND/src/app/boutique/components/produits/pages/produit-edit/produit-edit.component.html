@@ -281,77 +281,8 @@
         </div>
       </div>
 
-      <!-- ========== STEP 2 : PRIX, STOCK & STATUT ========== -->
+      <!-- ========== STEP 2 : ATTRIBUTS ========== -->
       <div class="step-panel" [class.active]="currentStep === 2">
-        <div class="panel-container">
-          <div class="panel-header">
-            <div class="panel-icon">
-              <i class="fas fa-tags"></i>
-            </div>
-            <div>
-              <h3 class="panel-title">Prix & Stock</h3>
-              <p class="panel-subtitle">Définissez le tarif et la disponibilité du produit</p>
-            </div>
-          </div>
-
-          <div class="panel-content">
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">Prix de vente <span class="req">*</span></label>
-                <div class="price-block" formGroupName="prix">
-                  <select class="currency-select" formControlName="devise">
-                    <option value="EUR">EUR €</option>
-                    <option value="USD">USD $</option>
-                    <option value="GBP">GBP £</option>
-                    <option value="MGA">MGA Ar</option>
-                  </select>
-                  <input
-                    type="number"
-                    class="price-input"
-                    formControlName="montant"
-                    placeholder="0.00"
-                    min="0"
-                    step="0.01"
-                  />
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Quantité en stock <span class="req">*</span></label>
-                <div class="stock-stepper" formGroupName="stock">
-                  <button type="button" class="stock-btn" (click)="adjustStock(-1)">−</button>
-                  <input type="number" class="stock-input" formControlName="quantite" min="0" />
-                  <button type="button" class="stock-btn" (click)="adjustStock(1)">+</button>
-                </div>
-              </div>
-
-              <div class="form-group full">
-                <label class="form-label">Statut du produit</label>
-                <div class="status-grid">
-                  @for (s of statusOptions; track s.value) {
-                    <div
-                      class="status-card"
-                      [class]="'status-card selected-' + s.value"
-                      [class.active]="selectedStatus === s.value"
-                      (click)="selectStatus(s.value)"
-                    >
-                      <div class="status-dot" [class]="'dot-' + s.value"></div>
-                      <div class="status-content">
-                        <div class="status-label">{{ s.label }}</div>
-                        <div class="status-sub">{{ s.sub }}</div>
-                      </div>
-                      <div class="status-check" [class]="'check-' + s.value">✓</div>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ========== STEP 3 : ATTRIBUTS ========== -->
-      <div class="step-panel" [class.active]="currentStep === 3">
         <div class="panel-container">
           <div class="panel-header">
             <div class="panel-icon">
@@ -359,7 +290,7 @@
             </div>
             <div>
               <h3 class="panel-title">Attributs du produit</h3>
-              <p class="panel-subtitle">Couleurs, tailles et marque pour enrichir les filtres</p>
+              <p class="panel-subtitle">Couleurs et unités pour enrichir les filtres</p>
             </div>
           </div>
 
@@ -407,23 +338,6 @@
                     <span>Tailles, volumes, poids, conditionnements...</span>
                   </div>
                 </div>
-
-                <!-- Option Marque -->
-                <div class="option-card" [class.active]="produitOptions.avecMarque">
-                  <label class="option-toggle">
-                    <input 
-                      type="checkbox" 
-                      [(ngModel)]="produitOptions.avecMarque"
-                      [ngModelOptions]="{ standalone: true }"
-                    />
-                    <span class="option-slider"></span>
-                  </label>
-                  <div class="option-icon">🏷️</div>
-                  <div class="option-label">
-                    <strong>Marque</strong>
-                    <span>Préciser la marque du produit</span>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -435,10 +349,10 @@
               </h4>
               <div class="color-picker-block" formGroupName="attributs">
                 <div class="color-presets">
-                  @if (colorPresets.length === 0) {
+                  @if (colorPresetsAvailable.length === 0) {
                     <small class="form-hint">Aucune couleur disponible</small>
                   } @else {
-                    @for (c of colorPresets; track c.hex) {
+                    @for (c of colorPresetsAvailable; track c.hex) {
                       <div
                         class="color-swatch"
                         [class.selected]="isSingleColorSelected(c.hex)"
@@ -508,10 +422,10 @@
               </div>
 
               <div class="size-presets">
-                @if (tailles.length === 0) {
+                @if (taillesAvailable.length === 0) {
                   <small class="form-hint">Aucune unité disponible</small>
                 } @else {
-                  @for (taille of tailles; track taille._id) {
+                  @for (taille of taillesAvailable; track taille._id) {
                     <div
                       class="size-tag"
                       [class.selected]="isSingleSizeSelected(taille.label || taille.valeur)"
@@ -554,287 +468,190 @@
             <div class="attribute-section">
               <div class="variantes-header">
                 <h4 class="attribute-title">
-                  <i class="fas fa-boxes"></i> Gestion des stocks par variante
+                  <i class="fas fa-boxes"></i> Variantes du produit
                 </h4>
-                <label class="toggle-switch">
-                  <input
-                    type="checkbox"
-                    [checked]="useVariantesMode"
-                    (change)="toggleVariantesMode()"
-                  />
-                  <span class="toggle-slider"></span>
-                </label>
+                <p class="variantes-description">
+                  Sélectionnez une couleur et/ou une unité, puis cliquez sur "+" pour ajouter la variante.
+                  Chaque variante a son propre prix et son propre stock.
+                </p>
               </div>
 
-              @if (useVariantesMode) {
-                <div class="variantes-info">
-                  @if (stockExceeded) {
-                    <p class="variantes-error">
-                      ⚠️ Attention : Le total des variantes ({{ getTotalStock() }}) dépasse le stock
-                      global ({{ produitForm.get('stock.quantite')?.value }}).
-                      <br />
-                      <strong
-                        >Stock restant disponible :
-                        {{ getAvailableStockForVariantes() }} unités</strong
-                      >
-                    </p>
-                  } @else {
-                    <p class="variantes-stock-available">
-                      ✓ Stock disponible :
-                      <strong>{{ getAvailableStockForVariantes() }} unités</strong> sur
-                      {{ produitForm.get('stock.quantite')?.value }}
-                      @if (variantes.length > 0) {
-                        <span class="stock-detail">
-                          ({{ getTotalStock() }} unités déjà allouées à {{ variantes.length }} variante(s))
-                        </span>
-                      }
-                    </p>
-                  }
-                </div>
-
-                <!-- Tableau des variantes (affiché si des variantes existent OU si couleur+taille sélectionnées) -->
-                @if (variantes.length > 0 || (singleSelectedColor && singleSelectedSize)) {
-                  <div class="variantes-table-wrapper">
-                    <table class="variantes-table">
-                      <thead>
-                        <tr>
-                          @if (produitOptions.avecCouleur) {
-                            <th>Couleur</th>
-                          }
-                          @if (produitOptions.avecUnite) {
-                            <th>Unité</th>
-                          }
-                          <th>Stock</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <!-- Ligne d'ajout de nouvelle variante -->
-                        <tr class="variantes-add-row">
-                          @if (produitOptions.avecCouleur) {
-                            <td class="variante-couleur">
-                              @if (singleSelectedColor) {
-                                <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
-                                {{ singleSelectedColor.name }}
-                              } @else {
-                                <span class="text-muted">—</span>
-                              }
-                            </td>
-                          }
-                          @if (produitOptions.avecUnite) {
-                            <td class="variante-taille">
-                              @if (singleSelectedSize) {
-                                <span class="size-badge">{{ singleSelectedSize }}</span>
-                              } @else {
-                                <span class="text-muted">—</span>
-                              }
-                            </td>
-                          }
-                          <td class="variante-stock">
-                            @if ((produitOptions.avecCouleur && singleSelectedColor) || (produitOptions.avecUnite && singleSelectedSize)) {
-                              <div class="stock-stepper-mini">
-                                <button type="button" class="stock-btn-mini" (click)="updateSingleStock(-1)">−</button>
-                                <input
-                                  type="number"
-                                  class="stock-input-mini"
-                                  [value]="singleSelectedStock"
-                                  (input)="onStockInputChange(+($any($event.target).value || 0))"
-                                  min="0"
-                                />
-                                <button type="button" class="stock-btn-mini" (click)="updateSingleStock(1)">+</button>
-                              </div>
-                            } @else {
-                              <span class="text-muted">Sélectionnez une option</span>
-                            }
-                          </td>
-                          <td class="variante-actions">
-                            <button
-                              type="button"
-                              class="btn btn-success btn-icon btn-sm"
-                              (click)="addVarianteManually()"
-                              [disabled]="(produitOptions.avecCouleur && !singleSelectedColor) || (produitOptions.avecUnite && !singleSelectedSize) || stockExceeded"
-                              title="Ajouter cette variante"
-                            >
-                              <i class="fas fa-plus"></i>
-                            </button>
-                          </td>
-                        </tr>
-
-                        <!-- Variantes existantes -->
-                        @for (variante of variantes; track variante; let i = $index) {
-                          <tr class="variantes-row">
-                            @if (produitOptions.avecCouleur && variante.couleur) {
-                              <td class="variante-couleur">
-                                <span class="color-dot" [style.background]="variante.couleurHex || '#ccc'"></span>
-                                {{ variante.couleur }}
-                              </td>
-                            }
-                            @if (produitOptions.avecUnite && variante.unite) {
-                              <td class="variante-taille">
-                                <span class="size-badge">{{ variante.unite }}</span>
-                              </td>
-                            }
-                            <td class="variante-stock">
-                              <div class="stock-stepper-mini">
-                                <button
-                                  type="button"
-                                  class="stock-btn-mini"
-                                  (click)="decrementVarianteStock(i)"
-                                >
-                                  −
-                                </button>
-                                <input
-                                  type="number"
-                                  class="stock-input-mini"
-                                  [value]="variante.quantite"
-                                  (input)="
-                                    updateVarianteQuantite(i, +($any($event.target).value || 0))
-                                  "
-                                  min="0"
-                                />
-                                <button
-                                  type="button"
-                                  class="stock-btn-mini"
-                                  (click)="updateVarianteQuantite(i, variante.quantite + 1)"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </td>
-                            <td class="variante-actions">
-                              <button
-                                type="button"
-                                class="btn btn-icon btn-sm"
-                                (click)="removeVariante(i)"
-                                title="Supprimer cette variante"
-                              >
-                                <i class="fas fa-trash"></i>
-                              </button>
-                            </td>
-                          </tr>
+              <!-- Ligne d'ajout de nouvelle variante (prévisualisation) -->
+              @if (singleSelectedColor || singleSelectedSize) {
+                <div class="variantes-preview-wrapper">
+                  <table class="variantes-table">
+                    <thead>
+                      <tr>
+                        @if (produitOptions.avecCouleur) {
+                          <th>Couleur</th>
                         }
-                      </tbody>
-                    </table>
-                  </div>
-
-                  @if (variantes.length > 0) {
-                    <div class="variantes-total">
-                      <strong>Stock total : </strong> {{ getTotalStock() }} unités
-                    </div>
-                  }
-                }
-              }
-            </div>
-
-            <!-- MARQUE (conditionnel) -->
-            @if (produitOptions.avecMarque) {
-            <div class="attribute-section">
-              <h4 class="attribute-title">
-                <i class="fas fa-tag"></i> Marque
-              </h4>
-              <p class="attribute-description">Sélectionnez la marque de votre produit</p>
-
-              <!-- Barre de recherche -->
-              <div class="marque-search-container">
-                <div class="marque-search-box">
-                  <i class="fas fa-search"></i>
-                  <input
-                    type="text"
-                    class="marque-search-input"
-                    placeholder="Rechercher une marque (Nike, Adidas, Apple...)"
-                    [(ngModel)]="marqueSearchQuery"
-                    [ngModelOptions]="{ standalone: true }"
-                    (input)="filterMarques()"
-                  />
+                        @if (produitOptions.avecUnite) {
+                          <th>Unité</th>
+                        }
+                        <th>Prix (€)</th>
+                        <th>Stock</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="variantes-add-row">
+                        @if (produitOptions.avecCouleur) {
+                          <td class="variante-couleur">
+                            @if (singleSelectedColor) {
+                              <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
+                              {{ singleSelectedColor.name }}
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                        }
+                        @if (produitOptions.avecUnite) {
+                          <td class="variante-taille">
+                            @if (singleSelectedSize) {
+                              <span class="size-badge">{{ singleSelectedSize }}</span>
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                        }
+                        <td>
+                          <input
+                            type="number"
+                            class="form-input-small"
+                            [(ngModel)]="singleSelectedPrix"
+                            [ngModelOptions]="{ standalone: true }"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                          />
+                        </td>
+                        <td>
+                          <div class="stock-stepper-mini">
+                            <button type="button" class="stock-btn-mini" (click)="updateSingleStock(-1)">−</button>
+                            <input
+                              type="number"
+                              class="stock-input-mini"
+                              [(ngModel)]="singleSelectedStock"
+                              [ngModelOptions]="{ standalone: true }"
+                              min="0"
+                            />
+                            <button type="button" class="stock-btn-mini" (click)="updateSingleStock(1)">+</button>
+                          </div>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            class="btn btn-success btn-icon btn-sm"
+                            (click)="addVarianteManually()"
+                            title="Ajouter cette variante"
+                          >
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-              </div>
+              }
 
-              <!-- Grille des marques -->
-              <div class="marque-grid">
-                @for (marque of filteredMarques; track marque._id) {
-                <div
-                  class="marque-card"
-                  [class.selected]="selectedMarqueId === marque._id"
-                  (click)="selectMarque(marque._id!)"
-                >
-                  <div class="marque-card-content">
-                    <div class="marque-card-icon">
-                      @if (marque.logo) {
-                        <img [src]="marque.logo" [alt]="marque.nom" />
-                      } @else {
-                        <i class="fas fa-tag"></i>
+              <!-- Tableau des variantes générées -->
+              @if (variantes.length > 0) {
+                <div class="variantes-table-wrapper">
+                  <table class="variantes-table">
+                    <thead>
+                      <tr>
+                        @if (produitOptions.avecCouleur) {
+                          <th>Couleur</th>
+                        }
+                        @if (produitOptions.avecUnite) {
+                          <th>Unité</th>
+                        }
+                        <th>Prix (€)</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (variante of variantes; track variante; let i = $index) {
+                      <tr>
+                        @if (produitOptions.avecCouleur) {
+                          <td>
+                            @if (variante.couleur) {
+                              <span class="variante-couleur">
+                                <span class="color-dot" [style.background]="variante.couleurHex"></span>
+                                {{ variante.couleur }}
+                              </span>
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                        }
+                        @if (produitOptions.avecUnite) {
+                          <td>
+                            @if (variante.unite) {
+                              <span class="variante-unite">{{ variante.unite }}</span>
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                        }
+                        <td>
+                          <input
+                            type="number"
+                            class="form-input-small"
+                            [value]="variante.prix"
+                            (input)="updateVariantePrix(i, $any($event.target).value)"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                          />
+                        </td>
+                        <td>
+                          <div class="stock-stepper-mini">
+                            <button type="button" class="stock-btn-mini" (click)="decrementVarianteStock(i)">−</button>
+                            <input
+                              type="number"
+                              class="stock-input-mini"
+                              [value]="variante.quantite"
+                              (input)="updateVarianteStock(i, $any($event.target).value)"
+                              min="0"
+                            />
+                            <button type="button" class="stock-btn-mini" (click)="incrementVarianteStock(i)">+</button>
+                          </div>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            class="btn-icon btn-danger"
+                            (click)="removeVariante(i)"
+                            title="Supprimer la variante"
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </td>
+                      </tr>
                       }
-                    </div>
-                    <div class="marque-card-info">
-                      <span class="marque-card-name">{{ marque.nom }}</span>
-                    </div>
-                  </div>
-                  <div class="marque-card-check" [class.visible]="selectedMarqueId === marque._id">
-                    <i class="fas fa-check-circle"></i>
-                  </div>
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td [attr.colspan]="produitOptions.avecCouleur && produitOptions.avecUnite ? '4' : '3'" class="total-label">
+                          <strong>Total stock :</strong>
+                        </td>
+                        <td class="total-value">
+                          <strong>{{ getTotalStock() }} unités</strong>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
-                } @empty {
-                <div class="marque-empty">
-                  <i class="fas fa-search"></i>
-                  <p>Aucune marque trouvée</p>
-                </div>
-                }
-              </div>
-
-              <!-- Marque sélectionnée (badge) -->
-              @if (selectedMarqueId) {
-              <div class="selected-marque-badge">
-                <i class="fas fa-check"></i>
-                <span>Marque sélectionnée : {{ getSelectedMarqueName() }}</span>
-                <button type="button" class="btn-remove" (click)="clearMarque()">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
               }
-
-              <!-- Option pour ajouter une nouvelle marque -->
-              <div class="marque-add-section">
-                <button
-                  type="button"
-                  class="btn btn-secondary btn-sm"
-                  (click)="showNewMarqueField = !showNewMarqueField"
-                >
-                  <i class="fas fa-plus"></i>
-                  {{ showNewMarqueField ? 'Annuler' : 'Ajouter une nouvelle marque' }}
-                </button>
-
-                @if (showNewMarqueField) {
-                <div class="new-marque-form">
-                  <label class="form-label">Nom de la nouvelle marque</label>
-                  <div class="input-group">
-                    <input
-                      type="text"
-                      class="form-input"
-                      [(ngModel)]="newMarqueNom"
-                      [ngModelOptions]="{ standalone: true }"
-                      placeholder="Ex : Nike, Adidas, Samsung..."
-                      (keyup.enter)="createNewMarque()"
-                    />
-                    <button
-                      type="button"
-                      class="btn btn-primary"
-                      (click)="createNewMarque()"
-                      [disabled]="!newMarqueNom.trim()"
-                    >
-                      <i class="fas fa-plus"></i> Créer
-                    </button>
-                  </div>
-                </div>
-                }
-              </div>
             </div>
-            }
           </div>
         </div>
       </div>
 
-      <!-- ========== STEP 4 : RÉCAPITULATIF ========== -->
-      <div class="step-panel" [class.active]="currentStep === 4">
+      <!-- ========== STEP 3 : RÉCAPITULATIF ========== -->
+      <div class="step-panel" [class.active]="currentStep === 3">
         <div class="panel-container">
           <div class="panel-header">
             <div class="panel-icon">
@@ -842,7 +659,7 @@
             </div>
             <div>
               <h3 class="panel-title">Récapitulatif</h3>
-              <p class="panel-subtitle">Vérifiez les informations avant de créer le produit</p>
+              <p class="panel-subtitle">Vérifiez les informations avant de mettre à jour le produit</p>
             </div>
           </div>
 
@@ -858,30 +675,15 @@
                   <span>Slug</span>
                   <span class="summary-val mono">{{ produitForm.get('slug')?.value || '—' }}</span>
                 </div>
+                <div class="summary-row" style="display: block">
+                  <span>Description</span>
+                  <span class="summary-val" style="display: block; margin-top: 8px; white-space: pre-wrap; line-height: 1.5">
+                    {{ produitForm.get('description')?.value || 'Aucune description' }}
+                  </span>
+                </div>
               </div>
 
               <div class="summary-block accent-amber">
-                <div class="summary-block-title"><i class="fas fa-tags"></i> Prix & Stock</div>
-                <div class="summary-row">
-                  <span>Montant</span>
-                  <span class="summary-val">
-                    {{ produitForm.get('prix.montant')?.value }}
-                    {{ produitForm.get('prix.devise')?.value }}
-                  </span>
-                </div>
-                <div class="summary-row">
-                  <span>Stock</span>
-                  @if (useVariantesMode && variantes.length > 0) {
-                    <span class="summary-val">
-                      {{ getTotalStock() }} unités ({{ variantes.length }} variantes)
-                    </span>
-                  } @else {
-                    <span class="summary-val">{{ produitForm.get('stock.quantite')?.value }}</span>
-                  }
-                </div>
-              </div>
-
-              <div class="summary-block accent-green">
                 <div class="summary-block-title"><i class="fas fa-layer-group"></i> Catégories</div>
                 <div class="summary-row">
                   <span class="summary-val">
@@ -894,65 +696,95 @@
                 </div>
               </div>
 
-              <div class="summary-block accent-gray">
-                <div class="summary-block-title"><i class="fas fa-palette"></i> Attributs</div>
+              <div class="summary-block accent-blue">
+                <div class="summary-block-title"><i class="fas fa-sliders-h"></i> Type d'unité</div>
                 <div class="summary-row">
-                  <span>Couleurs</span>
-                  @if (selectedColors.length > 0) {
-                    <span class="summary-val">{{ getSelectedColorsNames() }}</span>
-                  } @else {
-                    <span class="summary-val">—</span>
-                  }
+                  <span>Type</span>
+                  <span class="summary-val">
+                    {{ getTypeUniteLabel() }}
+                  </span>
                 </div>
-                <div class="summary-row">
-                  <span>Tailles</span>
-                  <span class="summary-val">{{
-                    selectedSizes.length > 0 ? selectedSizes.join(', ') : '—'
-                  }}</span>
+              </div>
+
+              <div class="summary-block accent-green" style="grid-column: 1 / -1">
+                <div class="summary-block-title">
+                  <i class="fas fa-boxes"></i> Variantes ({{ variantes.length }})
                 </div>
-                <div class="summary-row">
-                  <span>Marque</span>
-                  @if (selectedMarqueId && marques.length > 0) {
-                    @for (m of marques; track m._id) {
-                      @if (m._id === selectedMarqueId) {
-                        <span class="summary-val">{{ m.nom }}</span>
-                      }
-                    }
-                  } @else {
-                    <span class="summary-val">—</span>
-                  }
-                </div>
-                @if (useVariantesMode && variantes.length > 0) {
-                  <div class="summary-row" style="display: block; margin-top: 12px">
-                    <span
-                      style="
-                        font-size: 13px;
-                        color: var(--color-gray-400);
-                        margin-bottom: 8px;
-                        display: block;
-                      "
-                    >
-                      Variantes configurées :
+                @if (variantes.length === 0) {
+                  <div class="summary-row">
+                    <span class="summary-val" style="color: var(--color-gray-400)">
+                      Aucune variante configurée — Une variante par défaut sera créée
                     </span>
+                  </div>
+                } @else {
+                  <div class="variantes-summary-list">
                     @for (v of variantes; track v; let i = $index) {
-                      <div class="variante-summary-chip">
-                        <span
-                          class="color-dot-mini"
-                          [style.background]="v.couleurHex || '#ccc'"
-                        ></span>
-                        <span>{{ v.couleur || '—' }}</span>
-                        <span class="size-badge-mini">{{ v.unite || 'Unité unique' }}</span>
-                        <span class="stock-badge-mini">{{ v.quantite }} un.</span>
+                      <div class="variante-summary-card">
+                        <div class="variante-summary-header">
+                          <div class="variante-summary-identity">
+                            @if (v.couleurHex) {
+                              <span class="color-dot-small" [style.background]="v.couleurHex"></span>
+                            }
+                            <span class="variante-name">
+                              {{ v.couleur || 'Sans couleur' }}
+                              @if (v.unite) {
+                                <span class="variante-unite">• {{ v.unite }}</span>
+                              }
+                            </span>
+                          </div>
+                          <span class="variante-index">#{{ i + 1 }}</span>
+                        </div>
+                        <div class="variante-summary-details">
+                          <div class="variante-detail">
+                            <span class="variante-detail-label">
+                              <i class="fas fa-tag"></i> Prix
+                            </span>
+                            <span class="variante-detail-value">
+                              {{ v.prix | number:'1.2-2' }} €
+                            </span>
+                          </div>
+                          <div class="variante-detail">
+                            <span class="variante-detail-label">
+                              <i class="fas fa-box"></i> Stock
+                            </span>
+                            <span class="variante-detail-value">
+                              {{ v.quantite }} un.
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    @if (variantes.length > 0) {
+                      <div class="variante-summary-total">
+                        <span class="total-label">
+                          <i class="fas fa-calculator"></i> Stock total
+                        </span>
+                        <span class="total-value">
+                          {{ getTotalStock() }} unités
+                        </span>
                       </div>
                     }
                   </div>
                 }
               </div>
+
+              @if (imagePreviews.length > 0) {
+                <div class="summary-block accent-gray">
+                  <div class="summary-block-title"><i class="fas fa-images"></i> Images</div>
+                  <div class="image-previews-summary">
+                    @for (preview of imagePreviews; track preview; let i = $index) {
+                      <div class="image-preview-thumb">
+                        <img [src]="preview" alt="Image {{ i + 1 }}" />
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
             </div>
 
             <div class="summary-notice">
-              ℹ️ En cliquant sur <strong>« Créer le produit »</strong>, celui-ci sera immédiatement
-              publié selon le statut défini.
+              ℹ️ En cliquant sur <strong>« Mettre à jour »</strong>, les modifications seront immédiatement
+              appliquées selon le statut défini.
             </div>
           </div>
         </div>

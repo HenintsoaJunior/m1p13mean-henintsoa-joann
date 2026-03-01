@@ -1885,14 +1885,16 @@
 
 .stock-stepper-mini {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   border: 1.5px solid var(--border-primary);
   width: fit-content;
   min-width: 160px;
+  height: 40px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 
   &:focus-within {
     border-color: var(--sidebar-primary);
-    box-shadow: 0 0 0 2px rgba(54, 96, 169, 0.1);
+    box-shadow: 0 0 0 3px rgba(54, 96, 169, 0.12);
   }
 }
 
@@ -1901,21 +1903,29 @@
   border: none;
   background: var(--bg-tertiary);
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 300;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 
   &:hover {
-    background: var(--color-gray-200);
+    background: var(--sidebar-primary);
+    color: #fff;
+  }
+
+  &:active {
+    background: var(--color-primary-dark, #2b4fb0);
+    color: #fff;
   }
 }
 
 .stock-input-mini {
-  width: 80px;
+  flex: 1;
+  min-width: 60px;
   border: none;
   text-align: center;
   font-size: 15px;
@@ -1924,6 +1934,7 @@
   color: var(--text-primary);
   outline: none;
   background: transparent;
+  padding: 0 4px;
 }
 
 .variante-actions {
@@ -1960,42 +1971,150 @@
   color: var(--text-secondary);
 }
 
-// Summary variantes chips
-.variante-summary-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  font-size: 11px;
-  margin-right: 6px;
-  margin-bottom: 6px;
+// Summary variantes - Nouveau style avec cartes
+.variantes-summary-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
 }
 
-.color-dot-mini {
-  width: 10px;
-  height: 10px;
+.variante-summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--sidebar-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.variante-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.variante-summary-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.color-dot-small {
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 1px solid var(--border-primary);
   flex-shrink: 0;
 }
 
-.size-badge-mini {
-  padding: 2px 6px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  font-size: 10px;
+.variante-name {
+  font-size: 13px;
   font-weight: 600;
-  font-family: var(--font-mono);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.stock-badge-mini {
-  padding: 2px 6px;
-  background: rgba(5, 150, 105, 0.1);
-  color: var(--color-success);
-  font-size: 10px;
+.variante-unite {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.variante-index {
+  font-size: 11px;
   font-weight: 700;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.variante-summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variante-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.variante-detail-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  i {
+    font-size: 10px;
+  }
+}
+
+.variante-detail-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.variante-summary-total {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.total-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.total-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-success);
+}
+
+// Image previews summary
+.image-previews-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.image-preview-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border-primary);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 // ------------------------------------------------
