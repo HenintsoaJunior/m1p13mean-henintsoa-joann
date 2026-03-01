@@ -45,6 +45,9 @@ import { MonBoutiqueComponent } from './boutique/pages/mon-boutique/mon-boutique
 import { AppelsOffreClientComponent } from './client/components/appels-offre/appels-offre-client.component';
 import { ResponseFormClientComponent } from './client/components/appels-offre/response-form-client.component';
 
+// Client components - Produits
+import { ClientProduitListComponent } from './client/components/produits/produit-list.component';
+
 export const routes: Routes = [
   { path: '', component: LandingComponent }, // Default landing page
   {
@@ -117,6 +120,7 @@ export const routes: Routes = [
       }, // Client home page (accessible to all)
       { path: 'appels', component: AppelsOffreClientComponent }, // List of open appels d'offre
       { path: 'appels/:id/reponse', component: ResponseFormClientComponent }, // Response form for an appel d'offre
+      { path: 'produits', component: ClientProduitListComponent }, // Product catalog
     ],
   },
   { path: '**', redirectTo: '/' }, // Redirect unknown routes to landing page

@@ -134,6 +134,34 @@ app.get("/api/public/appels-offre/:id", async (req, res) => {
   }
 });
 
+// Public products endpoint
+const Produit = require("./models/boutique/Produit");
+
+app.get("/api/public/produits", async (req, res) => {
+  try {
+    const { categorie, q, page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const filter = { statut: "actif" };
+    if (categorie) filter.idCategorie = categorie;
+    if (q) filter.nom = { $regex: q, $options: "i" };
+
+    const [produits, total] = await Promise.all([
+      Produit.find(filter)
+        .populate("idCategorie", "nom slug")
+        .populate("idBoutique", "contact.nom statut")
+        .sort({ dateCreation: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      Produit.countDocuments(filter)
+    ]);
+
+    res.json({ success: true, produits, total, page: parseInt(page), limit: parseInt(limit) });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ✅ IMPORTANT : Ne démarre le serveur qu'en local
 if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));

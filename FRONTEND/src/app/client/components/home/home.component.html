@@ -12,16 +12,18 @@
       </div>
 
       <div class="header-actions">
-        <div class="action-item action-heart">
+        <div class="action-item action-heart" (click)="selectTab('produits')" style="cursor:pointer; position:relative;">
           <i class="fas fa-heart"></i>
+          <span class="action-badge" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
           <span>Mes souhaits</span>
         </div>
         <div class="action-item action-user" (click)="onProfileClick()">
           <i class="fas fa-user"></i>
           <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
         </div>
-        <div class="action-item action-cart">
+        <div class="action-item action-cart" (click)="selectTab('produits')" style="cursor:pointer; position:relative;">
           <i class="fas fa-shopping-cart"></i>
+          <span class="action-badge" *ngIf="panierCount > 0">{{ panierCount }}</span>
           <span>Mon panier</span>
         </div>
       </div>
@@ -33,10 +35,10 @@
     <div class="tab-buttons">
       <button
         class="tab-btn"
-        [class.active]="activeTab === 'nouveautes'"
-        (click)="selectTab('nouveautes')"
+        [class.active]="activeTab === 'produits'"
+        (click)="selectTab('produits')"
       >
-        <i class="fas fa-star"></i> Nouveautés
+        <i class="fas fa-box"></i> Produits
       </button>
       <button
         class="tab-btn"
@@ -64,35 +66,26 @@
 
   <!-- Main content -->
   <main class="main-content">
-    <div *ngIf="activeTab === 'nouveautes'" class="welcome-section">
-      <h1>Bienvenue sur notre plateforme</h1>
-      <p>
-        Cette plateforme vous permet de découvrir et d'acheter une variété de produits de qualité.
-      </p>
-      <p>
-        Navigatez facilement à travers nos différentes catégories et trouvez exactement ce que vous
-        cherchez.
-      </p>
-    </div>
-
+    <app-produit-list *ngIf="activeTab === 'produits'"></app-produit-list>
+    <div *ngIf="activeTab === 'promotion'" class="welcome-section"></div>
     <app-appels-offre-client *ngIf="activeTab === 'appels'"></app-appels-offre-client>
-
-    <!-- additional tabs content could go here -->
   </main>
 
   <!-- Fixed footer with action items -->
   <footer class="fixed-footer">
     <div class="footer-actions">
-      <div class="footer-action-item">
+      <div class="footer-action-item" (click)="selectTab('produits')" style="cursor:pointer; position:relative;">
         <i class="fas fa-heart"></i>
+        <span class="action-badge" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
         <span>Mes souhaits</span>
       </div>
       <div class="footer-action-item" (click)="onProfileClick()">
         <i class="fas fa-user"></i>
         <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
       </div>
-      <div class="footer-action-item">
+      <div class="footer-action-item" (click)="selectTab('produits')" style="cursor:pointer; position:relative;">
         <i class="fas fa-shopping-cart"></i>
+        <span class="action-badge" *ngIf="panierCount > 0">{{ panierCount }}</span>
         <span>Mon panier</span>
       </div>
     </div>
