@@ -827,6 +827,15 @@
                 </div>
               </div>
 
+              <div class="summary-block accent-purple" *ngIf="produitOptions.avecMarque && selectedMarqueId">
+                <div class="summary-block-title"><i class="fas fa-tag"></i> Marque</div>
+                <div class="summary-row">
+                  <span class="summary-val">
+                    {{ getSelectedMarqueName() }}
+                  </span>
+                </div>
+              </div>
+
               <div class="summary-block accent-green" style="grid-column: 1 / -1">
                 <div class="summary-block-title">
                   <i class="fas fa-boxes"></i> Variantes ({{ variantes.length }})
