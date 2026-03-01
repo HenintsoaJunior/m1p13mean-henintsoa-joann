@@ -26,7 +26,7 @@
         <div class="search-box">
           <input
             type="text"
-            placeholder="Rechercher par nom, prénom ou email..."
+            placeholder="Rechercher par nom, email, téléphone ou adresse..."
             [(ngModel)]="filtreNom"
             (input)="onFilterChange()"
           />
@@ -63,9 +63,9 @@
         <thead>
           <tr>
             <th>Nom</th>
-            <th>Prénom</th>
             <th>Email</th>
             <th>Téléphone</th>
+            <th>Adresse</th>
             <th>Statut</th>
             <th>Action</th>
           </tr>
@@ -74,9 +74,9 @@
           @for (boutique of filteredBoutiques; track boutique._id) {
             <tr>
               <td>{{ boutique.contact?.nom || '-' }}</td>
-              <td>{{ boutique.contact?.prenom || '-' }}</td>
               <td>{{ boutique.contact?.email || '-' }}</td>
               <td>{{ boutique.contact?.telephone || '-' }}</td>
+              <td>{{ boutique.contact?.adresse || '-' }}</td>
               <td>
                 <span class="statut-badge statut-{{ boutique.statut }}">
                   {{ getStatutLabel(boutique.statut) }}

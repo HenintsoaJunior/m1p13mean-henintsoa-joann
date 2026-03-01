@@ -10,16 +10,48 @@
       <div *ngIf="loading">Chargement...</div>
       <ul>
         <li *ngFor="let r of reponses">
-          <div class="meta">
-              <strong>{{ r.montant_propose ? (r.montant_propose | number:'1.0-0') + ' €' : '—' }}</strong>
-              <span class="statut">{{ r.statut }}</span>
-              <small>{{ r.cree_le | date:'short' }}</small>
-              <div *ngIf="r.email_proposeur" class="email">{{ r.email_proposeur }}</div>
+          <!-- Boutique Info -->
+          <div class="boutique-info">
+            <div class="info-header">
+              <strong class="nom-boutique">{{ r.nom_boutique || 'Non spécifié' }}</strong>
+              <span class="statut" [ngClass]="'status-' + r.statut">{{ r.statut | uppercase }}</span>
             </div>
+            <div class="info-details">
+              <div class="detail-item" *ngIf="r.email_proposeur">
+                <i class="fas fa-envelope"></i>
+                <span>{{ r.email_proposeur }}</span>
+              </div>
+              <div class="detail-item" *ngIf="r.telephone_boutique">
+                <i class="fas fa-phone"></i>
+                <span>{{ r.telephone_boutique }}</span>
+              </div>
+              <div class="detail-item" *ngIf="r.adresse_boutique">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ r.adresse_boutique }}</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-money-bill-wave"></i>
+                <strong>{{ r.montant_propose ? (r.montant_propose | number:'1.0-0') + ' Ar' : '—' }}</strong>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-calendar"></i>
+                <small>{{ r.cree_le | date:'short' }}</small>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Message -->
           <p class="msg">{{ r.message }}</p>
+          
+          <!-- Actions -->
           <div class="actions">
-            <button *ngIf="r.statut === 'propose'" (click)="accept(r._id)">Accepter</button>
-            <button *ngIf="r.statut === 'propose'" (click)="refuse(r._id)">Refuser</button>
+            <button *ngIf="r.statut === 'propose'" class="btn btn-success" (click)="accept(r._id)">
+              <i class="fas fa-check"></i> Accepter
+            </button>
+            <button *ngIf="r.statut === 'propose'" class="btn btn-danger" (click)="refuse(r._id)">
+              <i class="fas fa-times"></i> Refuser
+            </button>
+            <span *ngIf="r.statut !== 'propose'" class="status-badge">{{ r.statut === 'accepte' ? '✓ Acceptée' : '✗ Refusée' }}</span>
           </div>
         </li>
       </ul>

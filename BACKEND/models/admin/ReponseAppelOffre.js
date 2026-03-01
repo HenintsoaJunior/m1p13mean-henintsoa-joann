@@ -20,6 +20,16 @@ const reponseSchema = new mongoose.Schema({
     required: true,
     match: [/^\S+@\S+\.\S+$/, 'Email invalide'],
   },
+  nom_boutique: {
+    type: String,
+    required: true,
+  },
+  telephone_boutique: {
+    type: String,
+  },
+  adresse_boutique: {
+    type: String,
+  },
   message: { type: String, trim: true, maxlength: 1000 },
   statut: {
     type: String,
