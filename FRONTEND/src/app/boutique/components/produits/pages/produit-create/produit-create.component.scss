@@ -1940,14 +1940,16 @@
 
 .stock-stepper-mini {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   border: 1.5px solid var(--border-primary);
   width: fit-content;
   min-width: 160px;
+  height: 40px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 
   &:focus-within {
     border-color: var(--sidebar-primary);
-    box-shadow: 0 0 0 2px rgba(54, 96, 169, 0.1);
+    box-shadow: 0 0 0 3px rgba(54, 96, 169, 0.12);
   }
 }
 
@@ -1956,21 +1958,29 @@
   border: none;
   background: var(--bg-tertiary);
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 300;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 
   &:hover {
-    background: var(--color-gray-200);
+    background: var(--sidebar-primary);
+    color: #fff;
+  }
+
+  &:active {
+    background: var(--color-primary-dark, #2b4fb0);
+    color: #fff;
   }
 }
 
 .stock-input-mini {
-  width: 80px;
+  flex: 1;
+  min-width: 60px;
   border: none;
   text-align: center;
   font-size: 15px;
@@ -1979,6 +1989,7 @@
   color: var(--text-primary);
   outline: none;
   background: transparent;
+  padding: 0 4px;
 }
 
 .variante-actions {

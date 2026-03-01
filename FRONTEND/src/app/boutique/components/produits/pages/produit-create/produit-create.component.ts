@@ -18,8 +18,7 @@ import { ToastService } from '../../../../../services/toast.service';
 import { TypeUniteService } from '../../services/type-unite.service';
 import { CouleurService } from '../../services/couleur.service';
 import { TailleService } from '../../services/taille.service';
-import { MarqueService } from '../../services/marque.service';
-import { TypeUnite, Couleur, Taille, Marque } from '../../models/boutique.models';
+import { TypeUnite, Couleur, Taille } from '../../models/boutique.models';
 
 // ------------------------------------------------
 // INTERFACES LOCALES
@@ -65,7 +64,6 @@ export interface ColorSelection {
 export interface ProduitOptions {
   avecCouleur: boolean;
   avecUnite: boolean;
-  avecMarque: boolean;
 }
 
 // ------------------------------------------------
@@ -104,15 +102,7 @@ export class ProduitCreateComponent implements OnInit {
   typesUnites: TypeUnite[] = [];
   couleurs: Couleur[] = [];
   tailles: Taille[] = [];
-  marques: Marque[] = [];
   selectedTypeUniteId: string | null = null;
-  selectedMarqueId: string | null = null;
-  
-  // ── Nouvelle marque ─────────────────────────────────
-  showNewMarqueField = false;
-  newMarqueNom = '';
-  marqueSearchQuery = '';
-  filteredMarques: Marque[] = [];
 
   // ── Formulaires ──────────────────────────────
   produitForm!: FormGroup;
@@ -163,7 +153,6 @@ export class ProduitCreateComponent implements OnInit {
   produitOptions: ProduitOptions = {
     avecCouleur: false,
     avecUnite: true,
-    avecMarque: false,
   };
 
   // ── Variantes (combinaisons couleur + taille + stock) ──────────────────────────────────
@@ -185,7 +174,6 @@ export class ProduitCreateComponent implements OnInit {
     private typeUniteService: TypeUniteService,
     private couleurService: CouleurService,
     private tailleService: TailleService,
-    private marqueService: MarqueService,
   ) {
     this.produitForm = this.formBuilder.group({
       idCategorie: ['', [Validators.required]],
@@ -219,7 +207,6 @@ export class ProduitCreateComponent implements OnInit {
     this.loadCategoriesTree();
     this.loadTypesUnites();
     this.loadCouleurs();
-    this.loadMarques();
   }
 
   loadTypesUnites() {
@@ -292,44 +279,6 @@ export class ProduitCreateComponent implements OnInit {
       this.liquidPresets = [];
       this.weightPresets = [];
     }
-  }
-
-  loadMarques() {
-    this.marqueService.getAllMarques(true).subscribe({
-      next: (data) => {
-        this.marques = data.marques;
-        this.filteredMarques = this.marques; // Initialiser les marques filtrées
-      },
-      error: () => {
-        this.toastService.showError('Erreur lors du chargement des marques');
-      },
-    });
-  }
-
-  filterMarques() {
-    const query = this.marqueSearchQuery.toLowerCase().trim();
-    if (!query) {
-      this.filteredMarques = this.marques;
-    } else {
-      this.filteredMarques = this.marques.filter(m =>
-        m.nom.toLowerCase().includes(query)
-      );
-    }
-  }
-
-  selectMarque(marqueId: string) {
-    this.selectedMarqueId = marqueId;
-    this.onMarqueChange();
-  }
-
-  getSelectedMarqueName(): string {
-    const marque = this.marques.find(m => m._id === this.selectedMarqueId);
-    return marque ? marque.nom : 'Inconnue';
-  }
-
-  clearMarque() {
-    this.selectedMarqueId = null;
-    this.onMarqueChange();
   }
 
   @HostListener('document:click', ['$event'])
@@ -569,38 +518,6 @@ export class ProduitCreateComponent implements OnInit {
     return typeUnite?.label || '—';
   }
 
-  // ── Marque ─────────────────────────────────
-  onMarqueChange() {
-    // La marque n'est plus utilisée dans le modèle Produit
-  }
-
-  createNewMarque() {
-    if (!this.newMarqueNom.trim()) {
-      this.toastService.showError('Veuillez entrer un nom de marque');
-      return;
-    }
-
-    const slug = this.newMarqueNom
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    this.marqueService.createMarque({ nom: this.newMarqueNom.trim(), slug }).subscribe({
-      next: (data) => {
-        this.selectedMarqueId = data.marque._id!;
-        this.loadMarques();
-        this.newMarqueNom = '';
-        this.showNewMarqueField = false;
-        this.toastService.showSuccess('Marque créée avec succès');
-      },
-      error: () => {
-        this.toastService.showError('Erreur lors de la création de la marque');
-      },
-    });
-  }
-
   // ── Couleurs ─────────────────────────────────
   isColorSelected(hex: string): boolean {
     return this.selectedColors.some((c) => c.hex === hex);
@@ -645,6 +562,17 @@ export class ProduitCreateComponent implements OnInit {
     // Pour le picker, on sélectionne la couleur
     const colorName = this.colorPresets.find((c) => c.hex === value)?.name || 'Personnalisée';
     this.selectSingleColor(value, colorName);
+  }
+
+  // Couleurs/unités non encore utilisées dans les variantes
+  get colorPresetsAvailable(): ColorPreset[] {
+    const usedColors = new Set(this.variantes.map(v => v.couleur));
+    return this.colorPresets.filter(c => !usedColors.has(c.name));
+  }
+
+  get taillesAvailable(): Taille[] {
+    const usedUnites = new Set(this.variantes.map(v => v.unite));
+    return this.tailles.filter(t => !usedUnites.has(t.label || t.valeur));
   }
 
   // Méthodes pour la sélection unique (mode variantes)
