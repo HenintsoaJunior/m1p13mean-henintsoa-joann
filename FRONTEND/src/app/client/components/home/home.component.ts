@@ -31,12 +31,6 @@ export class HomeComponent {
     return user?.nom || user?.prenom || user?.email || 'Utilisateur';
   }
 
-  isClient(): boolean {
-    const user = this.authService.getCurrentUser();
-    // Show "Devenir vendeur" button only if user exists and is not an admin or boutique
-    return user ? user.role !== 'admin' && user.role !== 'boutique' : false;
-  }
-
   onProfileClick() {
     if (this.isLoggedIn) {
       this.showLogoutPopup = true;
