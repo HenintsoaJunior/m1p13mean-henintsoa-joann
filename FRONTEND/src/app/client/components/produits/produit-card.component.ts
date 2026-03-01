@@ -163,7 +163,7 @@ export class ProduitCardComponent {
     return this.selectedVariante?.prix.montant ?? Math.min(...this.produit.variantes.map(v => v.prix.montant));
   }
 
-  get devise(): string { return this.produit.variantes?.[0]?.prix?.devise || 'Ar'; }
+  get devise(): string { return this.produit.variantes?.[0]?.prix?.devise || 'MGA'; }
 
   get enStock(): boolean {
     if (!this.produit.variantes?.length) return false;
