@@ -23,6 +23,8 @@ export class ListUtilisateurComponent implements OnInit {
     { key: 'actif', label: 'Statut' }
   ];
 
+  isLoading = false;
+
   // Filtres
   filtreNom: string = '';
   filtreEmail: string = '';
@@ -43,17 +45,24 @@ export class ListUtilisateurComponent implements OnInit {
   }
 
   loadUtilisateurs(): void {
-    this.utilisateurService.getUtilisateurs(this.currentPage, this.pageSize).subscribe((response: any) => {
-      if (response && response.utilisateurs) {
-        this.utilisateurs = response.utilisateurs;
-        this.totalItems = response.pagination?.total || 0;
-        this.totalPages = response.pagination?.pages || 0;
-      } else if (Array.isArray(response)) {
-        this.utilisateurs = response;
-        this.totalItems = response.length;
-        this.totalPages = 1;
+    this.isLoading = true;
+    this.utilisateurService.getUtilisateurs(this.currentPage, this.pageSize).subscribe({
+      next: (response: any) => {
+        if (response && response.utilisateurs) {
+          this.utilisateurs = response.utilisateurs;
+          this.totalItems = response.pagination?.total || 0;
+          this.totalPages = response.pagination?.pages || 0;
+        } else if (Array.isArray(response)) {
+          this.utilisateurs = response;
+          this.totalItems = response.length;
+          this.totalPages = 1;
+        }
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
       }
-      this.applyFilters();
     });
   }
 

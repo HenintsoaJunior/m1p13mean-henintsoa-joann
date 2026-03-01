@@ -11,10 +11,13 @@ import { CentresService } from '../../services/centres.service';
   styleUrls: ['./centres-list.component.scss']
 })
 export class CentresListComponent implements OnInit {
+  isLoading = false;
   centresCount = 0;
   batimentsCount = 0;
   etagesCount = 0;
   emplacementsCount = 0;
+
+  private loadingCount = 0;
 
   constructor(private centresService: CentresService) {}
 
@@ -22,21 +25,35 @@ export class CentresListComponent implements OnInit {
     this.loadCounts();
   }
 
+  private onRequestDone(): void {
+    this.loadingCount--;
+    if (this.loadingCount === 0) {
+      this.isLoading = false;
+    }
+  }
+
   loadCounts() {
-    this.centresService.getAllCentres().subscribe(centres => {
-      this.centresCount = centres.length;
+    this.isLoading = true;
+    this.loadingCount = 4;
+
+    this.centresService.getAllCentres().subscribe({
+      next: (centres) => { this.centresCount = centres.length; this.onRequestDone(); },
+      error: () => { this.onRequestDone(); }
     });
 
-    this.centresService.getBatiments().subscribe(batiments => {
-      this.batimentsCount = batiments.length;
+    this.centresService.getBatiments().subscribe({
+      next: (batiments) => { this.batimentsCount = batiments.length; this.onRequestDone(); },
+      error: () => { this.onRequestDone(); }
     });
 
-    this.centresService.getEtages().subscribe(etages => {
-      this.etagesCount = etages.length;
+    this.centresService.getEtages().subscribe({
+      next: (etages) => { this.etagesCount = etages.length; this.onRequestDone(); },
+      error: () => { this.onRequestDone(); }
     });
 
-    this.centresService.getEmplacements().subscribe(emplacements => {
-      this.emplacementsCount = emplacements.length;
+    this.centresService.getEmplacements().subscribe({
+      next: (emplacements) => { this.emplacementsCount = emplacements.length; this.onRequestDone(); },
+      error: () => { this.onRequestDone(); }
     });
   }
 }
