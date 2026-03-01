@@ -1,13 +1,119 @@
 .reponses-page { padding: 1rem; }
-.reponses-page h2 { margin-bottom: 0.5rem; }
+.reponses-page h2 { margin-bottom: 1.5rem; }
 .create { border: 1px solid #eee; padding: 0.75rem; margin-bottom: 1rem; }
 .create label { display:block; margin-top:0.5rem; }
 .create input, .create textarea { width:100%; padding:0.5rem; margin-top:0.25rem }
 .create button { margin-top:0.5rem }
 .list ul { list-style:none; padding:0 }
-.list li { border-bottom:1px solid #f0f0f0; padding:0.5rem 0 }
-.meta { display:flex; gap:1rem; align-items:center }
+.list li { 
+  border: 1px solid #e0e0e0; 
+  border-radius: 8px;
+  padding: 1rem; 
+  margin-bottom: 1rem;
+  background: #fafafa;
+  transition: box-shadow 0.2s;
+}
+.list li:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-.meta .email { font-size: 0.85rem; color: #555; }
-.meta .statut { background:#eef; color:#036; padding:2px 6px; border-radius:4px }
-.actions button { margin-right:0.5rem }
+.boutique-info {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.nom-boutique {
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.statut {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-propose { background: #fff3cd; color: #856404; }
+.status-accepte { background: #d4edda; color: #155724; }
+.status-refuse { background: #f8d7da; color: #721c24; }
+
+.info-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.detail-item i {
+  color: #666;
+  width: 18px;
+  text-align: center;
+}
+
+.detail-item strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.msg { 
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-left: 3px solid #007bff;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.actions { 
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.actions button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.btn-success:hover { background: #218838; }
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover { background: #c82333; }
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
