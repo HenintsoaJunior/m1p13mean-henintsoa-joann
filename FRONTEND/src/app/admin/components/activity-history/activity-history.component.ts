@@ -14,6 +14,8 @@ export class ActivityHistoryComponent implements OnInit {
   logs: LogEntry[] = [];
   filteredLogs: LogEntry[] = [];
 
+  isLoading = false;
+
   // Filtres
   filtreEntity: string = '';
   filtreAction: string = '';
@@ -36,6 +38,7 @@ export class ActivityHistoryComponent implements OnInit {
   }
 
   loadLogs(): void {
+    this.isLoading = true;
     this.logService.getLogs(this.currentPage, this.pageSize).subscribe({
       next: (response: any) => {
         let logsData: LogEntry[] = [];
@@ -66,9 +69,11 @@ export class ActivityHistoryComponent implements OnInit {
         }));
         
         this.applyFilters();
+        this.isLoading = false;
       },
       error: (error: any) => {
         console.error('Erreur chargement des logs:', error);
+        this.isLoading = false;
       }
     });
   }
