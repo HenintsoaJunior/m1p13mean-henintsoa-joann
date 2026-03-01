@@ -38,6 +38,7 @@ import { CategorieListComponent } from './boutique/components/categories/pages/c
 // Admin components - Appels d'offre
 import { AppelsOffreListComponent } from './admin/components/appels-offre/pages/appels-offre-list/appels-offre-list.component';
 import { ReponsesComponent } from './admin/components/appels-offre/pages/reponses/reponses.component';
+import { ListBoutiquesComponent } from './admin/components/boutiques/pages/list-boutiques/list-boutiques.component';
 
 // Client components - Appels d'offre
 import { AppelsOffreClientComponent } from './client/components/appels-offre/appels-offre-client.component';
@@ -79,6 +80,7 @@ export const routes: Routes = [
       { path: 'centres/emplacements-crud', component: EmplacementsCrudComponent },
       { path: 'centres', component: CentresListComponent },
       { path: 'utilisateurs', component: ListUtilisateurComponent },
+      { path: 'boutiques', component: ListBoutiquesComponent },
       { path: 'activity-history', component: ActivityHistoryComponent },
       { path: 'appels', component: AppelsOffreListComponent },
       { path: 'appels/:id/reponses', component: ReponsesComponent },
