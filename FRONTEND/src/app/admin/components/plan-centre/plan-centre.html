@@ -1,6 +1,13 @@
 <div class="plan-centre-container">
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Chargement en cours...</span>
+    </div>
+  </div>
+
   <!-- Liste des centres -->
-  <div class="centres-list-view" *ngIf="showCentresList">
+  <div class="centres-list-view" *ngIf="!isLoading && showCentresList">
     <div class="centres-list-header">
       <h1 class="centres-list-title">Nos Centres Commerciaux</h1>
       <p class="centres-list-subtitle">Sélectionnez un centre pour voir les détails</p>
@@ -42,7 +49,7 @@
   </div>
 
   <!-- Détails du centre (vue existante) -->
-  <div class="centre-details-view" *ngIf="!showCentresList && selectedCentre">
+  <div class="centre-details-view" *ngIf="!isLoading && !showCentresList && selectedCentre">
     <!-- Header compact avec infos du centre -->
   <div class="centre-header" *ngIf="selectedCentre">
     <div class="centre-title-section">
@@ -305,7 +312,7 @@
   </div>
 
   <!-- Statistiques rapides -->
-  <div class="stats-section">
+  <div class="stats-section" *ngIf="!isLoading">
     <h3 class="section-title">Aperçu rapide</h3>
     <div class="stats-grid">
       <div class="stat-card">

@@ -24,6 +24,7 @@ export class CentreCrudComponent implements OnInit {
   searchTerm = '';
   showModal = false;
   editingCentre: Centre | null = null;
+  isLoading = false;
   isSubmitting = false;
   centreForm: FormGroup;
   imagePreview: string | null = null;
@@ -62,6 +63,7 @@ export class CentreCrudComponent implements OnInit {
   }
 
   loadCentres() {
+    this.isLoading = true;
     this.centresService.getCentres(this.currentPage, this.pageSize).subscribe((response: any) => {
       if (response && response.success && response.data) {
         const data = response.data;
@@ -78,6 +80,9 @@ export class CentreCrudComponent implements OnInit {
       if (this.searchTerm) {
         this.filterCentres();
       }
+      this.isLoading = false;
+    }, () => {
+      this.isLoading = false;
     });
   }
 
