@@ -90,8 +90,8 @@ async function createAdmin() {
 
     // Créer l'admin par défaut
     const adminData = {
-      email: "test@test.com",
-      mot_de_passe: "Admin123!",
+      email: "admin@gmail.com",
+      mot_de_passe: "admin1234",
       prenom: "Super",
       nom: "Admin",
       telephone: "+261 34 00 000 00",
@@ -104,7 +104,7 @@ async function createAdmin() {
     console.log("✅ Utilisateur admin créé avec succès!");
     console.log("\n--- Informations de connexion ---");
     console.log(`Email: ${admin.email}`);
-    console.log(`Mot de passe: Admin123!`);
+    console.log(`Mot de passe: admin1234`);
     console.log("----------------------------------\n");
 
     await mongoose.disconnect();
