@@ -172,7 +172,7 @@ export class ProduitEditComponent implements OnInit {
       slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
       description: [''],
       prix: this.formBuilder.group({
-        devise: ['EUR', [Validators.required]],
+        devise: ['MGA', [Validators.required]],
         montant: [0, [Validators.required, Validators.min(0)]],
       }),
       stock: this.formBuilder.group({
@@ -289,7 +289,7 @@ export class ProduitEditComponent implements OnInit {
     // Gérer le prix
     if (produit.prix) {
       patchValue.prix = {
-        devise: produit.prix.devise || 'EUR',
+        devise: produit.prix.devise || 'MGA',
         montant: produit.prix.montant || 0,
       };
     }
@@ -1181,7 +1181,7 @@ export class ProduitEditComponent implements OnInit {
         unite: v.unite || '',
         typeUnitePrincipal: this.selectedTypeUniteId,
         prix: {
-          devise: 'EUR',
+          devise: 'MGA',
           montant: v.prix || 0,
         },
         stock: {

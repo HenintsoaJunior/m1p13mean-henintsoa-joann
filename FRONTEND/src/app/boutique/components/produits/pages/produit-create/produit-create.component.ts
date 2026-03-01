@@ -182,7 +182,7 @@ export class ProduitCreateComponent implements OnInit {
       description: [''],
       // Prix et stock sont maintenant dans les variantes, mais gardés pour initialisation
       prix: this.formBuilder.group({
-        devise: ['EUR', [Validators.required]],
+        devise: ['MGA', [Validators.required]],
         montant: [0, [Validators.required, Validators.min(0)]],
       }),
       stock: this.formBuilder.group({
@@ -960,7 +960,7 @@ export class ProduitCreateComponent implements OnInit {
           unite: v.unite || '',
           typeUnitePrincipal: this.selectedTypeUniteId,
           prix: {
-            devise: 'EUR',
+            devise: 'MGA',
             montant: v.prix || 0,
           },
           stock: {
@@ -975,7 +975,7 @@ export class ProduitCreateComponent implements OnInit {
           unite: '',
           typeUnitePrincipal: this.selectedTypeUniteId,
           prix: {
-            devise: 'EUR',
+            devise: 'MGA',
             montant: this.produitForm.get('prix.montant')?.value || 0,
           },
           stock: {
