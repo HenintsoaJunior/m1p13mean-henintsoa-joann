@@ -43,6 +43,15 @@
     </div>
   </div>
 
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Chargement en cours...</span>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
   <app-table
     [columns]="columns"
     [data]="filteredUtilisateurs"
@@ -78,6 +87,7 @@
       </button>
     </div>
   </div>
+  </ng-container>
 </div>
 
 <ng-template #actions let-utilisateur>
