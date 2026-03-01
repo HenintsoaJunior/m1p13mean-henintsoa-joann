@@ -21,6 +21,8 @@ router.use("/commandes", require("./commandes"));
 // Mon Boutique (infos + localisation)
 router.use("/mon-boutique", require("./mon-boutique"));
 
+router.use("/dashboard", require("./dashboard"));
+
 router.get("/", (req, res) => {
   res.json({ message: "Espace boutique - API disponible" });
 });
