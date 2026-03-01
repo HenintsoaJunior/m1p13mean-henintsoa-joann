@@ -11,10 +11,6 @@ const boutiqueSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
-    prenom: {
-      type: String,
-      required: true,
-    },
     telephone: String,
     email: {
       type: String,

@@ -33,13 +33,13 @@ router.get("/", authentification, async (req, res) => {
 });
 
 // PUT /api/boutique/mon-boutique/profil
-// Met à jour les infos du vendeur (nom, prenom, telephone) dans Utilisateur ET Boutique.contact
+// Met à jour les infos du vendeur (nom, telephone) dans Utilisateur ET Boutique.contact
 router.put("/profil", authentification, async (req, res) => {
   try {
-    const { nom, prenom, telephone } = req.body;
+    const { nom, telephone } = req.body;
 
-    if (!nom || !prenom) {
-      return res.status(400).json({ success: false, message: "Le nom et le prénom sont requis." });
+    if (!nom) {
+      return res.status(400).json({ success: false, message: "Le nom est requis." });
     }
 
     // 1. Mettre à jour l'Utilisateur
@@ -48,12 +48,11 @@ router.put("/profil", authentification, async (req, res) => {
       return res.status(404).json({ success: false, message: "Utilisateur introuvable." });
     }
     utilisateur.nom = nom.trim();
-    utilisateur.prenom = prenom.trim();
     if (telephone !== undefined) utilisateur.telephone = telephone.trim();
     await utilisateur.save();
 
-    // 2. Mettre à jour le contact de la Boutique
-    const updateContact = { "contact.nom": nom.trim(), "contact.prenom": prenom.trim() };
+    // 2. Mettre à jour le contact de la Boutique (pas de prenom sur la boutique)
+    const updateContact = { "contact.nom": nom.trim() };
     if (telephone !== undefined) updateContact["contact.telephone"] = telephone.trim();
 
     await Boutique.findOneAndUpdate(

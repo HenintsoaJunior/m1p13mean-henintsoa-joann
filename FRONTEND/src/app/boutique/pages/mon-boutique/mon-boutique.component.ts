@@ -19,7 +19,7 @@ export class MonBoutiqueComponent implements OnInit {
   erreur: string | null = null;
 
   // Profile form
-  profilForm = { nom: '', prenom: '', telephone: '' };
+  profilForm = { nom: '', telephone: '' };
   profilEnCours = false;
   profilSucces: string | null = null;
   profilErreur: string | null = null;
@@ -50,7 +50,6 @@ export class MonBoutiqueComponent implements OnInit {
       next: (res) => {
         this.boutique = res.data;
         this.profilForm.nom = res.data?.contact?.nom || '';
-        this.profilForm.prenom = res.data?.contact?.prenom || '';
         this.profilForm.telephone = res.data?.contact?.telephone || '';
         this.isLoading = false;
       },
@@ -68,7 +67,6 @@ export class MonBoutiqueComponent implements OnInit {
 
     this.http.put<any>(`${environment.apiUrl}/api/boutique/mon-boutique/profil`, {
       nom: this.profilForm.nom,
-      prenom: this.profilForm.prenom,
       telephone: this.profilForm.telephone,
     }, { headers: this.getHeaders() }).subscribe({
       next: () => {
