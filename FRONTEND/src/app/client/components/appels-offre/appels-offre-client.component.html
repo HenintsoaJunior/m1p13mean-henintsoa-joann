@@ -26,9 +26,11 @@
   </div>
 
   <!-- Loading state -->
-  <div *ngIf="loading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Chargement des appels d'offres...</p>
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner">
+      <div class="spinner-ring"></div>
+      <span>Chargement en cours...</span>
+    </div>
   </div>
 
   <!-- Appels d'offres list -->
