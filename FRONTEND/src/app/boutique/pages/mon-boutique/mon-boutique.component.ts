@@ -66,19 +66,20 @@ export class MonBoutiqueComponent implements OnInit {
     this.profilSucces = null;
     this.profilErreur = null;
 
-    this.http.put<any>(`${environment.apiUrl}/auth/profil`, {
+    this.http.put<any>(`${environment.apiUrl}/api/boutique/mon-boutique/profil`, {
       nom: this.profilForm.nom,
       prenom: this.profilForm.prenom,
       telephone: this.profilForm.telephone,
     }, { headers: this.getHeaders() }).subscribe({
       next: () => {
         this.profilEnCours = false;
-        this.profilSucces = 'Profil mis à jour. Vous allez être déconnecté…';
-        setTimeout(() => this.deconnecter(), 2000);
+        this.profilSucces = 'Informations mises à jour avec succès.';
+        // Recharger les données affichées
+        this.charger();
       },
       error: (err) => {
         this.profilEnCours = false;
-        this.profilErreur = err.error?.erreur || err.error?.message || 'Erreur lors de la mise à jour.';
+        this.profilErreur = err.error?.message || err.error?.erreur || 'Erreur lors de la mise à jour.';
       },
     });
   }
