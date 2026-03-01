@@ -122,7 +122,8 @@ export class AppelsOffreListComponent implements OnInit {
   loadEmplacements() {
     this.centresService.getEmplacements().subscribe({
       next: (emplacements: Emplacement[]) => {
-        this.emplacements = emplacements;
+        // Filtrer pour garder seulement les emplacements disponibles (statut 'libre')
+        this.emplacements = emplacements.filter(emp => emp.statut === 'libre');
       },
       error: (err: any) => console.error('Erreur chargement emplacements:', err),
     });
@@ -155,6 +156,14 @@ export class AppelsOffreListComponent implements OnInit {
       this.toastService.showError('ID introuvable');
       return;
     }
+
+    // Vérifier si l'appel d'offre est attribué
+    const appel = this.appels.find(a => a._id === id);
+    if (appel && appel.statut === 'attribue') {
+      this.toastService.showError('Impossible de supprimer un appel d\'offre déjà attribué');
+      return;
+    }
+
     this.appelsService.deleteAppel(id).subscribe({
       next: () => {
         this.toastService.showSuccess('Appel d\'offre supprimé avec succès');
