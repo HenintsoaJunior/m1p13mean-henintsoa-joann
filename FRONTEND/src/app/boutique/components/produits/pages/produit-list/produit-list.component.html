@@ -21,7 +21,12 @@
           <option value="rupture_stock">Rupture de stock</option>
           <option value="archive">Archivé</option>
         </select>
-        <button class="btn btn-danger" (click)="resetFilters()">Effacer</button>
+        <button
+          class="btn btn-danger"
+          (click)="searchTerm = ''; filterStatut = ''; filterProduits()"
+        >
+          Effacer
+        </button>
       </div>
     </div>
   </div>
