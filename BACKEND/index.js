@@ -43,6 +43,10 @@ const centreController = require("./controllers/admin/CentreController");
 app.get("/api/public/centres", centreController.getAllCentres);
 app.get("/api/public/centres/:id/plan", centreController.getCentreWithPlan);
 
+// Route publique pour l'arbre des catégories
+const categorieController = require("./controllers/boutique/CategorieController");
+app.get("/api/public/categories/arbre", (req, res) => categorieController.obtenirArbreCategories(req, res));
+
 // Routes publiques pour les appels d'offre (clients peuvent voir les appels ouverts)
 const AppelOffre = require("./models/admin/AppelOffre");
 const Emplacement = require("./models/admin/Emplacement");

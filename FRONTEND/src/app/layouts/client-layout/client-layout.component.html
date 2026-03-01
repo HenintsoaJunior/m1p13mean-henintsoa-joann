@@ -1,11 +1,36 @@
 <div class="client-layout">
   <div class="sidebar">
     <div class="sidebar-content">
+      <!-- Home icon -->
       <a href="/client/accueil" class="sidebar-item active">
         <img src="/assets/img/HOME.svg" alt="Home" class="icon" />
       </a>
+
+      <!-- Divider -->
+      <div class="sidebar-divider"></div>
+
+      <!-- Categories label -->
+      <div class="sidebar-section-label">
+        <i class="fas fa-th-large"></i>
+        Catégories
+      </div>
+
+      <!-- Category tree — composant récursif -->
+      <div class="category-tree">
+        <app-category-node
+          *ngFor="let cat of categoriesTree; let i = index"
+          [cat]="cat"
+          [level]="0"
+          [defaultExpanded]="true"
+        ></app-category-node>
+
+        <div *ngIf="categoriesTree.length === 0" class="no-categories">
+          <i class="fas fa-spinner fa-spin"></i>
+        </div>
+      </div>
     </div>
   </div>
+
   <div class="main-content">
     <router-outlet />
   </div>
