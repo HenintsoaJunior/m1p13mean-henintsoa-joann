@@ -11,31 +11,28 @@ import { CategorieTree } from '../../services/categorie.service';
       <div
         class="category-item"
         [class.expanded]="expanded"
+        [class.has-children]="cat.children && cat.children.length > 0"
         [class.root-item]="level === 0"
-        [class.leaf-item]="!cat.children || cat.children.length === 0"
-        [style.padding-left.px]="12 + level * 16"
         (click)="toggle()"
       >
-        <!-- Folder / leaf icon -->
-        <span class="cat-icon">
-          <i *ngIf="cat.children && cat.children.length > 0"
-             class="fas"
-             [class.fa-folder-open]="expanded"
-             [class.fa-folder]="!expanded"></i>
-          <i *ngIf="!cat.children || cat.children.length === 0"
-             class="fas fa-tag"></i>
+        <!-- Dot indicator for sub-items -->
+        <span *ngIf="level > 0" class="dot-indicator"></span>
+
+        <!-- Icon for root items -->
+        <span *ngIf="level === 0" class="cat-icon">
+          <i class="fas fa-layer-group"></i>
         </span>
 
         <!-- Name -->
         <span class="category-name" [title]="cat.nom">{{ cat.nom }}</span>
 
-        <!-- Chevron -->
-        <span *ngIf="cat.children && cat.children.length > 0" class="chevron">
-          <i class="fas" [class.fa-chevron-down]="expanded" [class.fa-chevron-right]="!expanded"></i>
+        <!-- Chevron for items with children -->
+        <span *ngIf="cat.children && cat.children.length > 0" class="chevron" [class.open]="expanded">
+          <i class="fas fa-chevron-down"></i>
         </span>
       </div>
 
-      <!-- Children -->
+      <!-- Children with animated container -->
       <div *ngIf="expanded && cat.children && cat.children.length > 0" class="category-children">
         <app-category-node
           *ngFor="let child of cat.children"
@@ -46,6 +43,11 @@ import { CategorieTree } from '../../services/categorie.service';
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+    }
+
     .category-node {
       width: 100%;
     }
@@ -54,56 +56,44 @@ import { CategorieTree } from '../../services/categorie.service';
       display: flex;
       align-items: center;
       gap: 8px;
-      padding-top: 8px;
-      padding-bottom: 8px;
-      padding-right: 12px;
+      padding: 7px 10px 7px 12px;
       border-radius: 8px;
       cursor: pointer;
       font-size: 13px;
-      color: #495057;
-      transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+      font-weight: 400;
+      color: #4b5563;
+      transition: background 0.15s ease, color 0.15s ease;
       user-select: none;
-      position: relative;
+      line-height: 1.4;
+      margin-bottom: 1px;
     }
 
-    /* Root level */
+    /* Root level items — stronger */
     .category-item.root-item {
-      font-weight: 700;
-      font-size: 13px;
-      color: #212529;
-      letter-spacing: 0.01em;
-    }
-
-    /* Hover */
-    .category-item:hover {
-      background-color: #eef2fb;
-      color: #3660a9;
-    }
-
-    .category-item:hover .cat-icon i {
-      color: #3660a9;
-    }
-
-    /* Expanded state */
-    .category-item.expanded {
-      background-color: #e6edfa;
-      color: #3660a9;
       font-weight: 600;
+      font-size: 13.5px;
+      color: #1f2937;
+      padding-left: 10px;
     }
 
-    .category-item.expanded .cat-icon i {
+    .category-item.root-item.expanded {
+      color: #3660a9;
+      background-color: #eef2fb;
+    }
+
+    /* Hover state */
+    .category-item:hover {
+      background-color: #f3f4f6;
       color: #3660a9;
     }
 
-    /* Leaf item */
-    .category-item.leaf-item:hover {
-      background-color: #f5f7ff;
-      color: #3660a9;
+    .category-item.root-item:hover {
+      background-color: #eef2fb;
     }
 
-    /* Icon */
+    /* Root icon */
     .cat-icon {
-      width: 18px;
+      width: 20px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -111,19 +101,30 @@ import { CategorieTree } from '../../services/categorie.service';
     }
 
     .cat-icon i {
-      font-size: 12px;
-      color: #868e96;
+      font-size: 13px;
+      color: #9ca3af;
       transition: color 0.15s;
     }
 
-    .category-item.root-item .cat-icon i {
-      font-size: 13px;
+    .category-item.expanded .cat-icon i,
+    .category-item:hover .cat-icon i {
       color: #3660a9;
     }
 
-    .category-item.leaf-item .cat-icon i {
-      font-size: 10px;
-      color: #adb5bd;
+    /* Dot indicator for sub-items */
+    .dot-indicator {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: #d1d5db;
+      flex-shrink: 0;
+      margin-left: 4px;
+      transition: background-color 0.15s;
+    }
+
+    .category-item:hover .dot-indicator,
+    .category-item.expanded .dot-indicator {
+      background-color: #3660a9;
     }
 
     /* Name */
@@ -132,42 +133,30 @@ import { CategorieTree } from '../../services/categorie.service';
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      line-height: 1.3;
-    }
-
-    /* Badge */
-    .children-count {
-      font-size: 10px;
-      font-weight: 600;
-      background-color: #dee2e6;
-      color: #6c757d;
-      border-radius: 10px;
-      padding: 1px 6px;
-      min-width: 18px;
-      text-align: center;
-      transition: background-color 0.15s, color 0.15s;
-      flex-shrink: 0;
-    }
-
-    .category-item:hover .children-count,
-    .category-item.expanded .children-count {
-      background-color: #c5d3f0;
-      color: #3660a9;
     }
 
     /* Chevron */
     .chevron {
-      width: 12px;
+      width: 14px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: transform 0.2s ease;
+    }
+
+    .chevron.open {
+      transform: rotate(0deg);
+    }
+
+    .chevron:not(.open) {
+      transform: rotate(-90deg);
     }
 
     .chevron i {
       font-size: 9px;
-      color: #adb5bd;
-      transition: color 0.15s, transform 0.2s;
+      color: #9ca3af;
+      transition: color 0.15s;
     }
 
     .category-item:hover .chevron i,
@@ -177,11 +166,11 @@ import { CategorieTree } from '../../services/categorie.service';
 
     /* Children container */
     .category-children {
-      margin-left: 22px;
-      border-left: 2px solid #e9ecef;
-      padding-left: 2px;
+      margin-left: 16px;
+      padding-left: 8px;
+      border-left: 2px solid #e5e7eb;
       margin-top: 2px;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
   `]
 })
