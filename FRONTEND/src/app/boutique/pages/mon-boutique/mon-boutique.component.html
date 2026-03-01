@@ -282,6 +282,94 @@
       </div>
     }
 
+    <!-- ======= MODIFIER MON PROFIL ======= -->
+    <div class="edit-section-grid">
+
+      <!-- Modifier les informations -->
+      <div class="edit-card">
+        <div class="edit-card-header">
+          <i class="fas fa-user-edit"></i>
+          <h3>Modifier mes informations</h3>
+        </div>
+        <div class="edit-card-body">
+          <div class="form-note">
+            <i class="fas fa-lock"></i>
+            L'adresse email ne peut pas être modifiée.
+          </div>
+
+          <div class="form-group">
+            <label>Nom <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="profilForm.nom" placeholder="Votre nom" class="form-input" [disabled]="profilEnCours" />
+          </div>
+          <div class="form-group">
+            <label>Prénom <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="profilForm.prenom" placeholder="Votre prénom" class="form-input" [disabled]="profilEnCours" />
+          </div>
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input type="tel" [(ngModel)]="profilForm.telephone" placeholder="Ex: +261 34 00 000 00" class="form-input" [disabled]="profilEnCours" />
+          </div>
+
+          @if (profilSucces) {
+            <div class="alert alert-success"><i class="fas fa-check-circle"></i> {{ profilSucces }}</div>
+          }
+          @if (profilErreur) {
+            <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> {{ profilErreur }}</div>
+          }
+
+          <button class="btn-save" (click)="sauvegarderProfil()" [disabled]="profilEnCours || !profilForm.nom || !profilForm.prenom">
+            @if (profilEnCours) {
+              <i class="fas fa-spinner fa-spin"></i> Enregistrement…
+            } @else {
+              <i class="fas fa-save"></i> Enregistrer
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Changer le mot de passe -->
+      <div class="edit-card">
+        <div class="edit-card-header">
+          <i class="fas fa-key"></i>
+          <h3>Changer le mot de passe</h3>
+        </div>
+        <div class="edit-card-body">
+
+          <div class="form-group">
+            <label>Mot de passe actuel <span class="required">*</span></label>
+            <input type="password" [(ngModel)]="passwordForm.ancien_mot_de_passe" placeholder="••••••••" class="form-input" [disabled]="passwordEnCours" />
+          </div>
+          <div class="form-group">
+            <label>Nouveau mot de passe <span class="required">*</span></label>
+            <input type="password" [(ngModel)]="passwordForm.nouveau_mot_de_passe" placeholder="••••••••" class="form-input" [disabled]="passwordEnCours" />
+            <span class="input-hint">Minimum 6 caractères</span>
+          </div>
+          <div class="form-group">
+            <label>Confirmer le mot de passe <span class="required">*</span></label>
+            <input type="password" [(ngModel)]="passwordForm.confirmer_mot_de_passe" placeholder="••••••••" class="form-input" [disabled]="passwordEnCours" />
+          </div>
+
+          @if (passwordSucces) {
+            <div class="alert alert-success"><i class="fas fa-check-circle"></i> {{ passwordSucces }}</div>
+          }
+          @if (passwordErreur) {
+            <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> {{ passwordErreur }}</div>
+          }
+
+          <button class="btn-save btn-password"
+            (click)="changerMotDePasse()"
+            [disabled]="passwordEnCours || !passwordForm.ancien_mot_de_passe || !passwordForm.nouveau_mot_de_passe || !passwordForm.confirmer_mot_de_passe">
+            @if (passwordEnCours) {
+              <i class="fas fa-spinner fa-spin"></i> Changement…
+            } @else {
+              <i class="fas fa-lock"></i> Changer le mot de passe
+            }
+          </button>
+        </div>
+      </div>
+
+    </div>
+
   } @else {
     <div class="error-state">
       <i class="fas fa-store-slash"></i>

@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-mon-boutique',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './mon-boutique.component.html',
   styleUrls: ['./mon-boutique.component.scss'],
 })
@@ -15,19 +18,40 @@ export class MonBoutiqueComponent implements OnInit {
   isLoading = true;
   erreur: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  // Profile form
+  profilForm = { nom: '', prenom: '', telephone: '' };
+  profilEnCours = false;
+  profilSucces: string | null = null;
+  profilErreur: string | null = null;
+
+  // Password form
+  passwordForm = { ancien_mot_de_passe: '', nouveau_mot_de_passe: '', confirmer_mot_de_passe: '' };
+  passwordEnCours = false;
+  passwordSucces: string | null = null;
+  passwordErreur: string | null = null;
+
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private authService: AuthService,
+  ) {}
 
   ngOnInit(): void {
     this.charger();
   }
 
-  charger(): void {
+  private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('auth_token');
-    const headers = token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
+    return token ? new HttpHeaders().set('Authorization', `Bearer ${token}`) : new HttpHeaders();
+  }
 
-    this.http.get<any>(`${environment.apiUrl}/api/boutique/mon-boutique`, { headers }).subscribe({
+  charger(): void {
+    this.http.get<any>(`${environment.apiUrl}/api/boutique/mon-boutique`, { headers: this.getHeaders() }).subscribe({
       next: (res) => {
         this.boutique = res.data;
+        this.profilForm.nom = res.data?.contact?.nom || '';
+        this.profilForm.prenom = res.data?.contact?.prenom || '';
+        this.profilForm.telephone = res.data?.contact?.telephone || '';
         this.isLoading = false;
       },
       error: (err) => {
@@ -35,6 +59,60 @@ export class MonBoutiqueComponent implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  sauvegarderProfil(): void {
+    this.profilEnCours = true;
+    this.profilSucces = null;
+    this.profilErreur = null;
+
+    this.http.put<any>(`${environment.apiUrl}/auth/profil`, {
+      nom: this.profilForm.nom,
+      prenom: this.profilForm.prenom,
+      telephone: this.profilForm.telephone,
+    }, { headers: this.getHeaders() }).subscribe({
+      next: () => {
+        this.profilEnCours = false;
+        this.profilSucces = 'Profil mis à jour. Vous allez être déconnecté…';
+        setTimeout(() => this.deconnecter(), 2000);
+      },
+      error: (err) => {
+        this.profilEnCours = false;
+        this.profilErreur = err.error?.erreur || err.error?.message || 'Erreur lors de la mise à jour.';
+      },
+    });
+  }
+
+  changerMotDePasse(): void {
+    if (this.passwordForm.nouveau_mot_de_passe !== this.passwordForm.confirmer_mot_de_passe) {
+      this.passwordErreur = 'La confirmation du mot de passe ne correspond pas.';
+      return;
+    }
+
+    this.passwordEnCours = true;
+    this.passwordSucces = null;
+    this.passwordErreur = null;
+
+    this.http.put<any>(`${environment.apiUrl}/auth/changer-mot-de-passe`, {
+      ancien_mot_de_passe: this.passwordForm.ancien_mot_de_passe,
+      nouveau_mot_de_passe: this.passwordForm.nouveau_mot_de_passe,
+      confirmer_mot_de_passe: this.passwordForm.confirmer_mot_de_passe,
+    }, { headers: this.getHeaders() }).subscribe({
+      next: () => {
+        this.passwordEnCours = false;
+        this.passwordSucces = 'Mot de passe changé. Vous allez être déconnecté…';
+        setTimeout(() => this.deconnecter(), 2000);
+      },
+      error: (err) => {
+        this.passwordEnCours = false;
+        this.passwordErreur = err.error?.erreur || err.error?.message || 'Erreur lors du changement de mot de passe.';
+      },
+    });
+  }
+
+  private deconnecter(): void {
+    this.authService.logout();
+    this.router.navigate(['/boutique-login']);
   }
 
   get appelOffre(): any { return this.boutique?.appel_offre_id; }
