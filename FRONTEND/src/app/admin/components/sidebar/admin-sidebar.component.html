@@ -95,6 +95,20 @@
         <span class="nav-text" *ngIf="!isCollapsed">Boutiques</span>
         <div class="nav-indicator" *ngIf="currentRoute === '/admin/boutiques'"></div>
       </a>
+
+      <a
+        routerLink="/admin/appels"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Appels d\'offre' : null"
+        (click)="isMobileView && closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-bullhorn"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Appels d'offre</span>
+        <div class="nav-indicator" *ngIf="currentRoute.startsWith('/admin/appels')"></div>
+      </a>
     </div>
 
     <div class="nav-section">

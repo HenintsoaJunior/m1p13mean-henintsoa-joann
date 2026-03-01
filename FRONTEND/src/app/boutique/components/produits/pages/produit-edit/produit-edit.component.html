@@ -1,0 +1,895 @@
+<!-- ================================================
+     CONTAINER PRINCIPAL
+     ================================================ -->
+<div class="create-produit-container" *ngIf="!isLoading">
+  <!-- ================================================
+       FORM BODY (scrollable)
+       ================================================ -->
+  <div class="form-body-wrapper">
+    <!-- STEPPER -->
+    <div class="stepper-header">
+      <div class="stepper-inner">
+        @for (step of steps; track step.id) {
+          <div
+            class="step-item"
+            [class.active]="currentStep === step.id"
+            [class.completed]="currentStep > step.id"
+            (click)="goToStep(step.id)"
+          >
+            <div class="step-number">
+              @if (currentStep > step.id) {
+                ✓
+              } @else {
+                {{ step.id }}
+              }
+            </div>
+            <div class="step-info">
+              <div class="step-label">{{ step.label }}</div>
+            </div>
+          </div>
+          @if (!$last) {
+            <div class="step-sep">›</div>
+          }
+        }
+      </div>
+    </div>
+
+    <form [formGroup]="produitForm" (ngSubmit)="onSubmit()">
+      <!-- ========== STEP 1 : IDENTITÉ & CATÉGORIES ========== -->
+      <div class="step-panel" [class.active]="currentStep === 1">
+        <div class="step-1-grid">
+          <!-- Identité (gauche) -->
+          <div class="panel-container">
+            <div class="panel-header">
+              <div class="panel-icon">
+                <i class="fas fa-pen-to-square"></i>
+              </div>
+              <div>
+                <h3 class="panel-title">Identité du produit</h3>
+                <p class="panel-subtitle">Définissez le nom, le slug et la description</p>
+              </div>
+            </div>
+
+            <div class="panel-content">
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label class="form-label">Nom du produit <span class="req">*</span></label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    formControlName="nom"
+                    placeholder="Ex : Basket Nike Air Max 270"
+                    (blur)="generateSlug()"
+                    [class.invalid]="isInvalid('nom')"
+                  />
+                  @if (isInvalid('nom')) {
+                    <span class="error-msg">Le nom est requis</span>
+                  }
+                </div>
+
+                <div class="form-group full">
+                  <label class="form-label">Slug (URL) <span class="req">*</span></label>
+                  <div class="slug-field" [class.invalid]="isInvalid('slug')">
+                    <div class="slug-prefix">/boutique/</div>
+                    <input
+                      type="text"
+                      class="slug-input"
+                      formControlName="slug"
+                      placeholder="basket-nike-air-max-270"
+                    />
+                  </div>
+                  <span class="form-hint">✨ Généré automatiquement — modifiable</span>
+                  @if (isInvalid('slug')) {
+                    <span class="error-msg">Format invalide (minuscules et tirets uniquement)</span>
+                  }
+                </div>
+
+                <div class="form-group full">
+                  <label class="form-label">Description</label>
+                  <textarea
+                    class="form-textarea"
+                    formControlName="description"
+                    rows="3"
+                    placeholder="Décrivez votre produit en détail..."
+                    (input)="onDescriptionInput($event)"
+                  ></textarea>
+                  <span class="form-hint" style="justify-content: flex-end">
+                    <span style="color: var(--color-gray-400)"
+                      >{{ descriptionLength }} / 1000 car.</span
+                    >
+                  </span>
+                </div>
+
+                <!-- Images (dans Identité) -->
+                <div class="form-group full">
+                  <label class="form-label">Images du produit</label>
+                  <div class="image-drop-zone-small" (click)="fileInput.click()">
+                    <div class="image-drop-text-small">
+                      <strong>Parcourir</strong> ou glissez un fichier ici
+                      <br />
+                      <small>PNG, JPG, WEBP — 5 Mo max</small>
+                    </div>
+                    <input
+                      #fileInput
+                      type="file"
+                      style="display: none"
+                      multiple
+                      accept="image/*"
+                      (change)="handleFileUpload($event)"
+                    />
+                  </div>
+
+                  @if (imagePreviews.length > 0) {
+                    <div class="image-previews-small">
+                      @for (preview of imagePreviews; track preview; let i = $index) {
+                        <div class="image-preview-item-small">
+                          <img [src]="preview" alt="preview {{ i + 1 }}" />
+                          <button
+                            type="button"
+                            class="image-preview-remove-small"
+                            (click)="removePreview(i)"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <div class="image-urls-small">
+                    @for (img of produitForm.get('images')?.value; track img; let i = $index) {
+                      <div class="image-url-row-small">
+                        <input
+                          type="url"
+                          class="form-input-small"
+                          [value]="img"
+                          placeholder="https://exemple.com/image.jpg"
+                          (input)="updateImageUrl(i, $any($event.target).value)"
+                        />
+                        <button
+                          type="button"
+                          class="btn btn-danger btn-icon-small"
+                          (click)="removeImageUrl(i)"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    }
+                    <button type="button" class="btn btn-secondary btn-xs" (click)="addImageUrl()">
+                      + Ajouter URL
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Catégories (droite) -->
+          <div class="panel-container">
+            <div class="panel-header">
+              <div class="panel-icon">
+                <i class="fas fa-layer-group"></i>
+              </div>
+              <div>
+                <h3 class="panel-title">Catégories</h3>
+                <p class="panel-subtitle">Sélectionnez une ou plusieurs catégories</p>
+              </div>
+            </div>
+
+            <div class="panel-content">
+              <div class="category-panel">
+                <div class="category-search">
+                  <span class="category-search-icon">
+                    <i class="fas fa-search"></i>
+                  </span>
+                  <input
+                    type="text"
+                    class="category-search-input"
+                    placeholder="Rechercher une catégorie..."
+                    [(ngModel)]="categorySearchQuery"
+                    [ngModelOptions]="{ standalone: true }"
+                    (input)="filterCategories()"
+                  />
+                </div>
+
+                <div class="category-body">
+                  <div class="category-roots">
+                    @for (cat of filteredRoots; track cat._id) {
+                      <div
+                        class="category-root-item"
+                        [class.active]="activeRootId === cat._id"
+                        (click)="setActiveRoot(cat._id!)"
+                      >
+                        <span>📁</span>
+                        <span class="root-name">{{ cat.nom }}</span>
+                        @if (getSelectionCountForRoot(cat) > 0) {
+                          <span class="cat-badge">{{ getSelectionCountForRoot(cat) }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <div class="category-children">
+                    @if (activeRoot) {
+                      <div
+                        class="category-child-item"
+                        [class.selected]="isCategorySelected(activeRoot._id!)"
+                        (click)="toggleCategorySelection(activeRoot._id!)"
+                      >
+                        <span class="cat-icon">📁</span>
+                        <span style="flex: 1; font-style: italic"
+                          >Toute la catégorie "{{ activeRoot.nom }}"</span
+                        >
+                        <span class="cat-check">{{
+                          isCategorySelected(activeRoot._id!) ? '✓' : ''
+                        }}</span>
+                      </div>
+                      <div class="cat-separator"></div>
+
+                      @for (child of activeRoot.children; track child._id) {
+                        <div
+                          class="category-child-item"
+                          [class.selected]="isCategorySelected(child._id!)"
+                          (click)="toggleCategorySelection(child._id!)"
+                        >
+                          <span class="cat-icon">📂</span>
+                          <span style="flex: 1">{{ child.nom }}</span>
+                          <span class="cat-check">{{
+                            isCategorySelected(child._id!) ? '✓' : ''
+                          }}</span>
+                        </div>
+                      }
+                    }
+                    @if (!activeRoot) {
+                      <div class="cat-empty">Sélectionnez une catégorie racine</div>
+                    }
+                  </div>
+                </div>
+
+                <div class="category-tags">
+                  @if (selectedCategories.length === 0) {
+                    <span class="cat-tag-empty">Aucune catégorie sélectionnée</span>
+                  }
+                  @for (id of selectedCategories; track id) {
+                    <span class="cat-tag">
+                      {{ getCategoryName(id) }}
+                      <span class="cat-tag-remove" (click)="toggleCategorySelection(id)">×</span>
+                    </span>
+                  }
+                </div>
+
+                <div class="category-footer">
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    (click)="openCategorieModal()"
+                  >
+                    + Nouvelle catégorie
+                  </button>
+                </div>
+              </div>
+
+              @if (
+                produitForm.get('idCategorie')?.invalid && produitForm.get('idCategorie')?.touched
+              ) {
+                <span class="error-msg" style="margin-top: 8px; display: block"
+                  >Au moins une catégorie est requise</span
+                >
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== STEP 2 : ATTRIBUTS ========== -->
+      <div class="step-panel" [class.active]="currentStep === 2">
+        <div class="panel-container">
+          <div class="panel-header">
+            <div class="panel-icon">
+              <i class="fas fa-palette"></i>
+            </div>
+            <div>
+              <h3 class="panel-title">Attributs du produit</h3>
+              <p class="panel-subtitle">Couleurs et unités pour enrichir les filtres</p>
+            </div>
+          </div>
+
+          <div class="panel-content">
+            <!-- Options du produit -->
+            <div class="attribute-section">
+              <h4 class="attribute-title">
+                <i class="fas fa-sliders-h"></i> Options du produit
+              </h4>
+              <p class="attribute-description">
+                Personnalisez les attributs disponibles pour ce produit
+              </p>
+              
+              <div class="options-grid">
+                <!-- Option Couleur -->
+                <div class="option-card" [class.active]="produitOptions.avecCouleur">
+                  <label class="option-toggle">
+                    <input 
+                      type="checkbox" 
+                      [(ngModel)]="produitOptions.avecCouleur"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                    <span class="option-slider"></span>
+                  </label>
+                  <div class="option-icon">🎨</div>
+                  <div class="option-label">
+                    <strong>Couleurs</strong>
+                    <span>Disponible en plusieurs couleurs</span>
+                  </div>
+                </div>
+
+                <!-- Option Unités -->
+                <div class="option-card" [class.active]="produitOptions.avecUnite">
+                  <label class="option-toggle">
+                    <input 
+                      type="checkbox" 
+                      [(ngModel)]="produitOptions.avecUnite"
+                      [ngModelOptions]="{ standalone: true }"
+                    />
+                    <span class="option-slider"></span>
+                  </label>
+                  <div class="option-icon">📏</div>
+                  <div class="option-label">
+                    <strong>Unités / Variantes</strong>
+                    <span>Tailles, volumes, poids, conditionnements...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- COULEURS (conditionnel) -->
+            @if (produitOptions.avecCouleur) {
+            <div class="attribute-section">
+              <h4 class="attribute-title">
+                Couleurs disponibles <span class="attribute-hint">(sélection unique)</span>
+              </h4>
+              <div class="color-picker-block" formGroupName="attributs">
+                <div class="color-presets">
+                  @if (colorPresetsAvailable.length === 0) {
+                    <small class="form-hint">Aucune couleur disponible</small>
+                  } @else {
+                    @for (c of colorPresetsAvailable; track c.hex) {
+                      <div
+                        class="color-swatch"
+                        [class.selected]="isSingleColorSelected(c.hex)"
+                        [style.background]="c.display"
+                        [title]="c.name + ' - Cliquer pour sélectionner'"
+                        (click)="selectSingleColor(c.hex, c.name)"
+                      ></div>
+                    }
+                  }
+                </div>
+
+                <div class="color-custom-row">
+                  <input
+                    type="text"
+                    class="form-input color-text-input"
+                    placeholder="#000000 ou 'noir'"
+                    (blur)="updateColorFromText($any($event.target).value)"
+                  />
+                  <input
+                    type="color"
+                    class="color-native"
+                    value="#000000"
+                    (change)="updateColorFromPicker($any($event.target).value)"
+                    title="Ajouter une couleur personnalisée"
+                  />
+                </div>
+
+                @if (singleSelectedColor) {
+                  <div class="selected-colors-chips">
+                    <span class="color-chip">
+                      <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
+                      {{ singleSelectedColor.name }}
+                      <span class="color-chip-remove" (click)="clearSingleColor()">×</span>
+                    </span>
+                  </div>
+                } @else {
+                  <small class="form-hint">Sélectionnez une couleur</small>
+                }
+              </div>
+            </div>
+            }
+
+            <!-- UNITÉS (conditionnel) -->
+            @if (produitOptions.avecUnite) {
+            <div class="attribute-section">
+              <h4 class="attribute-title">
+                Unités / Variantes disponibles <span class="attribute-hint">(sélection unique)</span>
+              </h4>
+
+              <!-- Type d'unité -->
+              <div class="unite-type-selector">
+                <label class="unite-type-label">Type d'unité :</label>
+                @if (typesUnites.length === 0) {
+                  <small class="form-hint">Aucun type d'unité disponible</small>
+                } @else {
+                  <div class="unite-type-options">
+                    @for (type of typesUnites; track type._id) {
+                    <label class="unite-type-radio" [class.active]="selectedTypeUniteId === type._id">
+                      <input type="radio" name="uniteType" [value]="type._id" [(ngModel)]="selectedTypeUniteId" [ngModelOptions]="{ standalone: true }" (change)="onTypeUniteChange(type._id!)" />
+                      <span class="unite-type-icon">{{ type.icon || '📏' }}</span>
+                      <span class="unite-type-name">{{ type.label }}</span>
+                      <span class="unite-type-desc">{{ type.description }}</span>
+                    </label>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="size-presets">
+                @if (taillesAvailable.length === 0) {
+                  <small class="form-hint">Aucune unité disponible</small>
+                } @else {
+                  @for (taille of taillesAvailable; track taille._id) {
+                    <div
+                      class="size-tag"
+                      [class.selected]="isSingleSizeSelected(taille.label || taille.valeur)"
+                      (click)="selectSingleSize(taille.label || taille.valeur)"
+                    >
+                      {{ taille.label || taille.valeur }}
+                    </div>
+                  }
+                }
+              </div>
+
+              <div class="size-input-row">
+                <input
+                  type="text"
+                  class="form-input"
+                  [(ngModel)]="customSizeInput"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="Unité personnalisée (ex: 46, 75cl, 1kg, carton...)"
+                  (keyup.enter)="addCustomSizeSingle()"
+                />
+                <button type="button" class="btn btn-secondary" (click)="addCustomSizeSingle()">
+                  + Ajouter
+                </button>
+              </div>
+
+              @if (singleSelectedSize) {
+                <div class="size-chips">
+                  <span class="size-chip">
+                    {{ singleSelectedSize }}
+                    <span class="size-chip-remove" (click)="clearSingleSize()">×</span>
+                  </span>
+                </div>
+              } @else {
+                <small class="form-hint">Sélectionnez une unité</small>
+              }
+            </div>
+            }
+
+            <!-- VARIANTES PAR COULEUR/TAILLE -->
+            <div class="attribute-section">
+              <div class="variantes-header">
+                <h4 class="attribute-title">
+                  <i class="fas fa-boxes"></i> Variantes du produit
+                </h4>
+                <p class="variantes-description">
+                  Sélectionnez une couleur et/ou une unité, puis cliquez sur "+" pour ajouter la variante.
+                  Chaque variante a son propre prix et son propre stock.
+                </p>
+              </div>
+
+              <!-- Ligne d'ajout de nouvelle variante (prévisualisation) -->
+              @if (singleSelectedColor || singleSelectedSize) {
+                <div class="variantes-preview-wrapper">
+                  <table class="variantes-table">
+                    <thead>
+                      <tr>
+                        @if (produitOptions.avecCouleur) {
+                          <th>Couleur</th>
+                        }
+                        @if (produitOptions.avecUnite) {
+                          <th>Unité</th>
+                        }
+                        <th>Prix (€)</th>
+                        <th>Stock</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="variantes-add-row">
+                        @if (produitOptions.avecCouleur) {
+                          <td class="variante-couleur">
+                            @if (singleSelectedColor) {
+                              <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
+                              {{ singleSelectedColor.name }}
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                        }
+                        @if (produitOptions.avecUnite) {
+                          <td class="variante-taille">
+                            @if (singleSelectedSize) {
+                              <span class="size-badge">{{ singleSelectedSize }}</span>
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                        }
+                        <td>
+                          <input
+                            type="number"
+                            class="form-input-small"
+                            [(ngModel)]="singleSelectedPrix"
+                            [ngModelOptions]="{ standalone: true }"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                          />
+                        </td>
+                        <td>
+                          <div class="stock-stepper-mini">
+                            <button type="button" class="stock-btn-mini" (click)="updateSingleStock(-1)">−</button>
+                            <input
+                              type="number"
+                              class="stock-input-mini"
+                              [(ngModel)]="singleSelectedStock"
+                              [ngModelOptions]="{ standalone: true }"
+                              min="0"
+                            />
+                            <button type="button" class="stock-btn-mini" (click)="updateSingleStock(1)">+</button>
+                          </div>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            class="btn btn-success btn-icon btn-sm"
+                            (click)="addVarianteManually()"
+                            title="Ajouter cette variante"
+                          >
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              }
+
+              <!-- Tableau des variantes générées -->
+              @if (variantes.length > 0) {
+                <div class="variantes-table-wrapper">
+                  <table class="variantes-table">
+                    <thead>
+                      <tr>
+                        @if (produitOptions.avecCouleur) {
+                          <th>Couleur</th>
+                        }
+                        @if (produitOptions.avecUnite) {
+                          <th>Unité</th>
+                        }
+                        <th>Prix (€)</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (variante of variantes; track variante; let i = $index) {
+                      <tr>
+                        @if (produitOptions.avecCouleur) {
+                          <td>
+                            @if (variante.couleur) {
+                              <span class="variante-couleur">
+                                <span class="color-dot" [style.background]="variante.couleurHex"></span>
+                                {{ variante.couleur }}
+                              </span>
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                        }
+                        @if (produitOptions.avecUnite) {
+                          <td>
+                            @if (variante.unite) {
+                              <span class="variante-unite">{{ variante.unite }}</span>
+                            } @else {
+                              <span class="text-muted">—</span>
+                            }
+                          </td>
+                        }
+                        <td>
+                          <input
+                            type="number"
+                            class="form-input-small"
+                            [value]="variante.prix"
+                            (input)="updateVariantePrix(i, $any($event.target).value)"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                          />
+                        </td>
+                        <td>
+                          <div class="stock-stepper-mini">
+                            <button type="button" class="stock-btn-mini" (click)="decrementVarianteStock(i)">−</button>
+                            <input
+                              type="number"
+                              class="stock-input-mini"
+                              [value]="variante.quantite"
+                              (input)="updateVarianteStock(i, $any($event.target).value)"
+                              min="0"
+                            />
+                            <button type="button" class="stock-btn-mini" (click)="incrementVarianteStock(i)">+</button>
+                          </div>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            class="btn-icon btn-danger"
+                            (click)="removeVariante(i)"
+                            title="Supprimer la variante"
+                          >
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </td>
+                      </tr>
+                      }
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td [attr.colspan]="produitOptions.avecCouleur && produitOptions.avecUnite ? '4' : '3'" class="total-label">
+                          <strong>Total stock :</strong>
+                        </td>
+                        <td class="total-value">
+                          <strong>{{ getTotalStock() }} unités</strong>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== STEP 3 : RÉCAPITULATIF ========== -->
+      <div class="step-panel" [class.active]="currentStep === 3">
+        <div class="panel-container">
+          <div class="panel-header">
+            <div class="panel-icon">
+              <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div>
+              <h3 class="panel-title">Récapitulatif</h3>
+              <p class="panel-subtitle">Vérifiez les informations avant de mettre à jour le produit</p>
+            </div>
+          </div>
+
+          <div class="panel-content">
+            <div class="summary-grid">
+              <div class="summary-block">
+                <div class="summary-block-title"><i class="fas fa-pen-to-square"></i> Identité</div>
+                <div class="summary-row">
+                  <span>Nom</span>
+                  <span class="summary-val">{{ produitForm.get('nom')?.value || '—' }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Slug</span>
+                  <span class="summary-val mono">{{ produitForm.get('slug')?.value || '—' }}</span>
+                </div>
+                <div class="summary-row" style="display: block">
+                  <span>Description</span>
+                  <span class="summary-val" style="display: block; margin-top: 8px; white-space: pre-wrap; line-height: 1.5">
+                    {{ produitForm.get('description')?.value || 'Aucune description' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="summary-block accent-amber">
+                <div class="summary-block-title"><i class="fas fa-layer-group"></i> Catégories</div>
+                <div class="summary-row">
+                  <span class="summary-val">
+                    {{
+                      selectedCategories.length > 0
+                        ? selectedCategories.map(getCategoryName.bind(this)).join(', ')
+                        : 'Aucune'
+                    }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="summary-block accent-blue">
+                <div class="summary-block-title"><i class="fas fa-sliders-h"></i> Type d'unité</div>
+                <div class="summary-row">
+                  <span>Type</span>
+                  <span class="summary-val">
+                    {{ getTypeUniteLabel() }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="summary-block accent-green" style="grid-column: 1 / -1">
+                <div class="summary-block-title">
+                  <i class="fas fa-boxes"></i> Variantes ({{ variantes.length }})
+                </div>
+                @if (variantes.length === 0) {
+                  <div class="summary-row">
+                    <span class="summary-val" style="color: var(--color-gray-400)">
+                      Aucune variante configurée — Une variante par défaut sera créée
+                    </span>
+                  </div>
+                } @else {
+                  <div class="variantes-summary-list">
+                    @for (v of variantes; track v; let i = $index) {
+                      <div class="variante-summary-card">
+                        <div class="variante-summary-header">
+                          <div class="variante-summary-identity">
+                            @if (v.couleurHex) {
+                              <span class="color-dot-small" [style.background]="v.couleurHex"></span>
+                            }
+                            <span class="variante-name">
+                              {{ v.couleur || 'Sans couleur' }}
+                              @if (v.unite) {
+                                <span class="variante-unite">• {{ v.unite }}</span>
+                              }
+                            </span>
+                          </div>
+                          <span class="variante-index">#{{ i + 1 }}</span>
+                        </div>
+                        <div class="variante-summary-details">
+                          <div class="variante-detail">
+                            <span class="variante-detail-label">
+                              <i class="fas fa-tag"></i> Prix
+                            </span>
+                            <span class="variante-detail-value">
+                              {{ v.prix | number:'1.2-2' }} €
+                            </span>
+                          </div>
+                          <div class="variante-detail">
+                            <span class="variante-detail-label">
+                              <i class="fas fa-box"></i> Stock
+                            </span>
+                            <span class="variante-detail-value">
+                              {{ v.quantite }} un.
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                    @if (variantes.length > 0) {
+                      <div class="variante-summary-total">
+                        <span class="total-label">
+                          <i class="fas fa-calculator"></i> Stock total
+                        </span>
+                        <span class="total-value">
+                          {{ getTotalStock() }} unités
+                        </span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              @if (imagePreviews.length > 0) {
+                <div class="summary-block accent-gray">
+                  <div class="summary-block-title"><i class="fas fa-images"></i> Images</div>
+                  <div class="image-previews-summary">
+                    @for (preview of imagePreviews; track preview; let i = $index) {
+                      <div class="image-preview-thumb">
+                        <img [src]="preview" alt="Image {{ i + 1 }}" />
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="summary-notice">
+              ℹ️ En cliquant sur <strong>« Mettre à jour »</strong>, les modifications seront immédiatement
+              appliquées selon le statut défini.
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- ================================================
+         NAVIGATION FOOTER
+         ================================================ -->
+    <div class="form-nav">
+      <div class="nav-progress">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" [style.width.%]="progressPercent"></div>
+        </div>
+        <span class="progress-text">Étape {{ currentStep }} sur {{ steps.length }}</span>
+      </div>
+      <div class="nav-buttons">
+        @if (currentStep < steps.length) {
+          <button type="button" class="btn btn-primary" (click)="nextStep()">Suivant →</button>
+        }
+        @if (currentStep === steps.length) {
+          <button
+            type="submit"
+            class="btn btn-success"
+            [disabled]="produitForm.invalid || isSubmitting"
+            (click)="onSubmit()"
+          >
+            @if (isSubmitting) {
+              <span class="spinner"></span>
+            }
+            ✓ Mettre à jour
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================
+     MODAL : NOUVELLE CATÉGORIE
+     ================================================ -->
+@if (showCategorieModal) {
+  <div class="modal-overlay" (click)="closeCategorieModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Nouvelle Catégorie</h2>
+        <button class="btn-close" type="button" (click)="closeCategorieModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="categorieForm" (ngSubmit)="onCreateCategorieSubmit()">
+          <div class="form-group" style="margin-bottom: 16px">
+            <label class="form-label">Nom <span class="req">*</span></label>
+            <input
+              type="text"
+              class="form-input"
+              formControlName="nom"
+              placeholder="Ex: Chaussures"
+              (blur)="generateCategorieSlug()"
+            />
+            @if (categorieForm.get('nom')?.invalid && categorieForm.get('nom')?.touched) {
+              <span class="error-msg">Le nom est requis</span>
+            }
+          </div>
+          <div class="form-group" style="margin-bottom: 16px">
+            <label class="form-label">Slug <span class="req">*</span></label>
+            <input type="text" class="form-input" formControlName="slug" placeholder="chaussures" />
+            <span class="form-hint">Généré automatiquement</span>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px">
+            <label class="form-label">Catégorie parent</label>
+            <select class="form-input" formControlName="idCategorieParent">
+              <option value="">Aucune (catégorie racine)</option>
+              @for (item of getFlattenedCategories(); track item.cat._id) {
+                <option [value]="item.cat._id">
+                  {{ item.indent }}{{ item.level === 0 ? '📁' : '📂' }} {{ item.cat.nom }}
+                </option>
+              }
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 16px">
+            <label class="form-label">Description</label>
+            <textarea
+              class="form-textarea"
+              formControlName="description"
+              rows="3"
+              placeholder="Description de la catégorie..."
+            ></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeCategorieModal()">
+              Annuler
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="categorieForm.invalid || isCreatingCategorie"
+            >
+              @if (isCreatingCategorie) {
+                <span class="spinner"></span>
+              }
+              {{ isCreatingCategorie ? 'En cours...' : 'Créer' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

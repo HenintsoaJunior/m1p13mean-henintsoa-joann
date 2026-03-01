@@ -1,0 +1,538 @@
+<div class="page-container">
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card stat-total">
+      <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.totalCommandes || 0 }}</span>
+        <span class="stat-label">Total commandes</span>
+      </div>
+    </div>
+    <div class="stat-card stat-ca">
+      <div class="stat-icon"><i class="fas fa-coins"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ formatMontant(stats.caTotal) }}</span>
+        <span class="stat-label">CA Total</span>
+      </div>
+    </div>
+    <div class="stat-card stat-attente">
+      <div class="stat-icon"><i class="fas fa-clock"></i></div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stats.enAttente || 0 }}</span>
+        <span class="stat-label">En attente</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filters-header">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtres</span>
+      </div>
+      <div class="filters-content">
+        <div class="search-box">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Rechercher par client, référence..."
+            [(ngModel)]="filterClient"
+            (input)="appliquerFiltres()"
+          />
+        </div>
+        <div class="search-box">
+          <select class="form-control" [(ngModel)]="filterStatut" (change)="appliquerFiltres()">
+            <option value="">Tous les statuts</option>
+            @for (s of statuts; track s.value) {
+              <option [value]="s.value">{{ s.label }}</option>
+            }
+          </select>
+        </div>
+        <button class="btn btn-danger" (click)="effacerFiltres()">Effacer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Liste des Commandes</h3>
+      <button class="btn btn-primary" (click)="ouvrirCreateModal()">
+        <i class="fas fa-plus" style="color: white; margin-right: 8px"></i>
+        Nouvelle commande
+      </button>
+    </div>
+
+    @if (isLoading) {
+      <div class="empty-state">
+        <i class="fas fa-spinner fa-spin" style="font-size: 48px; color: #9ca3af"></i>
+        <p>Chargement...</p>
+      </div>
+    } @else if (commandesFiltrees.length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-shopping-cart" style="font-size: 64px; color: #ccc"></i>
+        <h3>Aucune commande trouvée</h3>
+        <p>Créez votre première commande</p>
+      </div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Référence</th>
+            <th>Client</th>
+            <th>Produits</th>
+            <th>Total</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (commande of commandesFiltrees; track commande._id) {
+            <tr class="table-row">
+              <td>
+                <strong>{{ commande.reference }}</strong>
+              </td>
+              <td>
+                <div>{{ commande.client?.nom }} {{ commande.client?.prenom }}</div>
+                @if (commande.client?.telephone) {
+                  <div style="font-size: 12px; color: #6b7280">{{ commande.client.telephone }}</div>
+                }
+              </td>
+              <td class="produits-cell" [title]="getProduitsResume(commande)">
+                {{ getProduitsResume(commande) | slice: 0 : 50
+                }}{{ getProduitsResume(commande).length > 50 ? '…' : '' }}
+              </td>
+              <td>
+                <strong>{{ formatMontant(commande.total) }}</strong>
+              </td>
+              <td>
+                <span class="statut-badge statut-{{ commande.statut }}">
+                  {{ getStatutLabel(commande.statut) }}
+                </span>
+              </td>
+              <td>{{ formatDate(commande.createdAt) }}</td>
+              <td>
+                @if (deleteConfirmId === commande._id) {
+                  <div class="delete-confirm">
+                    <span style="font-size: 12px; color: #dc2626">Confirmer ?</span>
+                    <button
+                      class="btn-icon btn-delete"
+                      (click)="confirmerSuppression(commande._id)"
+                      title="Confirmer"
+                    >
+                      <i class="fas fa-check" style="color: white"></i>
+                    </button>
+                    <button
+                      class="btn-icon btn-secondary-icon"
+                      (click)="annulerSuppression()"
+                      title="Annuler"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                } @else {
+                  <div class="action-buttons">
+                    <button
+                      class="btn-icon btn-view"
+                      (click)="voirDetail(commande)"
+                      title="Voir détail"
+                    >
+                      <i class="fas fa-eye" style="color: white"></i>
+                    </button>
+                    <button
+                      class="btn-icon btn-edit"
+                      (click)="ouvrirStatutModal(commande)"
+                      title="Changer statut"
+                    >
+                      <i class="fas fa-edit" style="color: white"></i>
+                    </button>
+                    @if (canDelete(commande)) {
+                      <button
+                        class="btn-icon btn-delete"
+                        (click)="demanderSuppression(commande._id)"
+                        title="Supprimer"
+                      >
+                        <i class="fas fa-trash" style="color: white"></i>
+                      </button>
+                    }
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- PAGINATION -->
+      <div class="pagination-container" *ngIf="totalPages >= 1">
+        <div class="pagination-info">
+          <span
+            >Affichage page {{ currentPage }} sur {{ totalPages }} ({{
+              totalItems
+            }}
+            résultats)</span
+          >
+          <select
+            class="page-size-select"
+            [(ngModel)]="pageSize"
+            (ngModelChange)="onPageSizeChange()"
+          >
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} par page</option>
+          </select>
+        </div>
+        <div class="pagination-controls" *ngIf="totalPages > 1">
+          <button
+            class="pagination-btn"
+            (click)="goToPage(1)"
+            [disabled]="currentPage === 1"
+            title="Première page"
+          >
+            <i class="fas fa-angle-double-left"></i>
+          </button>
+          <button
+            class="pagination-btn"
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            title="Page précédente"
+          >
+            <i class="fas fa-angle-left"></i>
+          </button>
+          @for (p of pages; track p) {
+            <button class="pagination-btn" [class.active]="p === currentPage" (click)="goToPage(p)">
+              {{ p }}
+            </button>
+          }
+          <button
+            class="pagination-btn"
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            title="Page suivante"
+          >
+            <i class="fas fa-angle-right"></i>
+          </button>
+          <button
+            class="pagination-btn"
+            (click)="goToPage(totalPages)"
+            [disabled]="currentPage === totalPages"
+            title="Dernière page"
+          >
+            <i class="fas fa-angle-double-right"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- MODAL CRÉATION -->
+@if (showCreateModal) {
+  <div class="modal-overlay" (click)="fermerCreateModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Nouvelle commande</h2>
+        <button class="btn-close" (click)="fermerCreateModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Infos client -->
+        <h4 class="section-title">Informations client</h4>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nom <span style="color: red">*</span></label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="form.client.nom"
+              placeholder="Nom"
+            />
+          </div>
+          <div class="form-group">
+            <label>Prénom</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="form.client.prenom"
+              placeholder="Prénom"
+            />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              class="form-control"
+              [(ngModel)]="form.client.email"
+              placeholder="Email"
+            />
+          </div>
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="form.client.telephone"
+              placeholder="Téléphone"
+            />
+          </div>
+          <div class="form-group form-full">
+            <label>Adresse</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="form.client.adresse"
+              placeholder="Adresse"
+            />
+          </div>
+        </div>
+
+        <!-- Lignes produits -->
+        <h4 class="section-title" style="margin-top: 20px">Produits</h4>
+        <div class="add-ligne-form">
+          <select
+            class="form-control"
+            [(ngModel)]="nouvelleLigne.idProduit"
+            (ngModelChange)="onProduitLigneChange($event)"
+          >
+            <option value="">-- Sélectionner un produit --</option>
+            @for (p of produits; track p._id) {
+              <option [value]="p._id">{{ p.nom }}</option>
+            }
+          </select>
+          @if (selectedProduitLigne?.variantes?.length > 1) {
+            <select
+              class="form-control"
+              [(ngModel)]="nouvelleLigne.idVariante"
+              (ngModelChange)="onVarianteLigneChange($event)"
+            >
+              <option value="">-- Variante --</option>
+              @for (v of selectedProduitLigne.variantes; track v._id) {
+                <option [value]="v._id">
+                  {{ v.couleur || '' }} {{ v.unite || '' }} ({{ v.prix?.montant }} Ar) — Stock :
+                  {{ v.stock?.quantite ?? 0 }}
+                </option>
+              }
+            </select>
+          }
+
+          <!-- Badge stock actuel -->
+          @if (selectedProduitLigne) {
+            @if (selectedProduitLigne?.variantes?.length > 1 && !nouvelleLigne.idVariante) {
+              <div class="stock-badge-ligne stock-badge-hint">
+                <i class="fas fa-info-circle"></i>
+                Sélectionnez une variante pour voir le stock
+              </div>
+            } @else {
+              <div
+                class="stock-badge-ligne"
+                [class.stock-badge-ok]="!stockInsuffisant"
+                [class.stock-badge-warn]="stockInsuffisant"
+              >
+                <i
+                  class="fas"
+                  [class.fa-check-circle]="!stockInsuffisant"
+                  [class.fa-exclamation-triangle]="stockInsuffisant"
+                ></i>
+                Stock : <strong>{{ stockLigneActuel }}</strong>
+                @if (stockInsuffisant) {
+                  <span>— insuffisant !</span>
+                }
+              </div>
+            }
+          }
+          <input
+            type="number"
+            class="form-control"
+            [(ngModel)]="nouvelleLigne.quantite"
+            min="1"
+            placeholder="Qté"
+            style="width: 80px"
+          />
+          <input
+            type="number"
+            class="form-control"
+            [(ngModel)]="nouvelleLigne.prixUnitaire"
+            min="0"
+            placeholder="Prix unit."
+            style="width: 120px"
+          />
+          <button
+            class="btn btn-primary"
+            (click)="ajouterLigne()"
+            [disabled]="
+              stockInsuffisant ||
+              !nouvelleLigne.idProduit ||
+              (selectedProduitLigne?.variantes?.length > 1 && !nouvelleLigne.idVariante)
+            "
+          >
+            <i class="fas fa-plus" style="color: white"></i>
+          </button>
+        </div>
+
+        @if (form.lignes.length > 0) {
+          <table class="lignes-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Couleur</th>
+                <th>Qté</th>
+                <th>Prix unit.</th>
+                <th>Sous-total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ligne of form.lignes; track $index) {
+                <tr>
+                  <td>{{ ligne.nomProduit }}</td>
+                  <td>{{ ligne.couleur || '-' }}</td>
+                  <td>{{ ligne.quantite }}</td>
+                  <td>{{ formatMontant(ligne.prixUnitaire) }}</td>
+                  <td>{{ formatMontant(ligne.prixUnitaire * ligne.quantite) }}</td>
+                  <td>
+                    <button class="btn-icon btn-delete btn-sm" (click)="supprimerLigne($index)">
+                      <i class="fas fa-times" style="color: white"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+              <tr class="ligne-total">
+                <td colspan="4" style="text-align: right; font-weight: 600">Total :</td>
+                <td colspan="2" style="font-weight: 700; color: #059669">
+                  {{ formatMontant(totalForm) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        }
+
+        <div class="form-group" style="margin-top: 16px">
+          <label>Notes</label>
+          <textarea
+            class="form-control"
+            [(ngModel)]="form.notes"
+            rows="2"
+            placeholder="Notes internes..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="fermerCreateModal()">Annuler</button>
+        <button class="btn btn-primary" (click)="soumettreCommande()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Enregistrement...' : 'Créer la commande' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL STATUT -->
+@if (showStatutModal) {
+  <div class="modal-overlay" (click)="fermerStatutModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Changer le statut</h2>
+        <button class="btn-close" (click)="fermerStatutModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Commande : <strong>{{ selectedCommande?.reference }}</strong>
+        </p>
+        <div class="form-group">
+          <label>Nouveau statut</label>
+          <select class="form-control" [(ngModel)]="nouveauStatut">
+            @for (s of statuts; track s.value) {
+              <option [value]="s.value">{{ s.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="fermerStatutModal()">Annuler</button>
+        <button class="btn btn-primary" (click)="sauvegarderStatut()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL DÉTAIL -->
+@if (showDetailModal && selectedCommande) {
+  <div class="modal-overlay" (click)="fermerDetailModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">Détail commande — {{ selectedCommande.reference }}</h2>
+        <button class="btn-close" (click)="fermerDetailModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-grid">
+          <div>
+            <h4 class="section-title">Client</h4>
+            <p>
+              <strong>Nom :</strong> {{ selectedCommande.client?.nom }}
+              {{ selectedCommande.client?.prenom }}
+            </p>
+            @if (selectedCommande.client?.email) {
+              <p><strong>Email :</strong> {{ selectedCommande.client.email }}</p>
+            }
+            @if (selectedCommande.client?.telephone) {
+              <p><strong>Tél :</strong> {{ selectedCommande.client.telephone }}</p>
+            }
+            @if (selectedCommande.client?.adresse) {
+              <p><strong>Adresse :</strong> {{ selectedCommande.client.adresse }}</p>
+            }
+          </div>
+          <div>
+            <h4 class="section-title">Commande</h4>
+            <p><strong>Référence :</strong> {{ selectedCommande.reference }}</p>
+            <p><strong>Date :</strong> {{ formatDate(selectedCommande.createdAt) }}</p>
+            <p>
+              <strong>Statut :</strong>
+              <span class="statut-badge statut-{{ selectedCommande.statut }}">{{
+                getStatutLabel(selectedCommande.statut)
+              }}</span>
+            </p>
+            @if (selectedCommande.notes) {
+              <p><strong>Notes :</strong> {{ selectedCommande.notes }}</p>
+            }
+          </div>
+        </div>
+
+        <h4 class="section-title" style="margin-top: 20px">Lignes de commande</h4>
+        <table class="lignes-table">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Couleur</th>
+              <th>Unité</th>
+              <th>Qté</th>
+              <th>Prix unit.</th>
+              <th>Sous-total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (ligne of selectedCommande.lignes; track $index) {
+              <tr>
+                <td>{{ ligne.nomProduit || ligne.idProduit?.nom || '-' }}</td>
+                <td>{{ ligne.couleur || '-' }}</td>
+                <td>{{ ligne.unite || '-' }}</td>
+                <td>{{ ligne.quantite }}</td>
+                <td>{{ formatMontant(ligne.prixUnitaire) }}</td>
+                <td>{{ formatMontant(ligne.sousTotal || ligne.prixUnitaire * ligne.quantite) }}</td>
+              </tr>
+            }
+            <tr class="ligne-total">
+              <td colspan="5" style="text-align: right; font-weight: 600">Total :</td>
+              <td style="font-weight: 700; color: #059669">
+                {{ formatMontant(selectedCommande.total) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="fermerDetailModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+}

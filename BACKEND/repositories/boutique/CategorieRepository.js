@@ -8,8 +8,6 @@ class CategorieRepository {
 
   /**
    * Créer une nouvelle catégorie
-   * @param {Object} donneesCategorie - Données de la catégorie
-   * @returns {Promise<Object>} Catégorie créée
    */
   async creer(donneesCategorie) {
     const categorie = new Categorie(donneesCategorie);
@@ -19,8 +17,6 @@ class CategorieRepository {
 
   /**
    * Trouver une catégorie par ID
-   * @param {string} id - ID de la catégorie
-   * @returns {Promise<Object|null>} Catégorie trouvée ou null
    */
   async trouverParId(id) {
     return await Categorie.findById(id);
@@ -28,8 +24,6 @@ class CategorieRepository {
 
   /**
    * Trouver une catégorie par slug
-   * @param {string} slug - Slug de la catégorie
-   * @returns {Promise<Object|null>} Catégorie trouvée ou null
    */
   async trouverParSlug(slug) {
     return await Categorie.findOne({ slug: slug.toLowerCase().trim() });
@@ -37,17 +31,20 @@ class CategorieRepository {
 
   /**
    * Trouver toutes les catégories d'une boutique
-   * @param {string} idBoutique - ID de la boutique
-   * @returns {Promise<Array>} Liste des catégories
    */
   async trouverParBoutique(idBoutique) {
     return await Categorie.find({ idBoutique }).sort({ nom: 1 });
   }
 
   /**
+   * Trouver toutes les catégories (global - toutes les boutiques)
+   */
+  async trouverToutes() {
+    return await Categorie.find({}).sort({ nom: 1 });
+  }
+
+  /**
    * Trouver les catégories enfants d'une catégorie parent
-   * @param {string} idCategorieParent - ID de la catégorie parent
-   * @returns {Promise<Array>} Liste des catégories enfants
    */
   async trouverEnfants(idCategorieParent) {
     return await Categorie.find({ idCategorieParent }).sort({ nom: 1 });
@@ -55,8 +52,6 @@ class CategorieRepository {
 
   /**
    * Mettre à jour une catégorie
-   * @param {Object} categorie - Instance de la catégorie
-   * @returns {Promise<Object>} Catégorie mise à jour
    */
   async mettreAJour(categorie) {
     await categorie.save();
@@ -65,8 +60,6 @@ class CategorieRepository {
 
   /**
    * Supprimer une catégorie
-   * @param {string} id - ID de la catégorie
-   * @returns {Promise<Object>} Catégorie supprimée
    */
   async supprimer(id) {
     return await Categorie.findByIdAndDelete(id);
@@ -74,9 +67,6 @@ class CategorieRepository {
 
   /**
    * Obtenir une liste paginée de catégories
-   * @param {Object} filtres - Filtres de recherche
-   * @param {Object} pagination - Options de pagination
-   * @returns {Promise<Object>} Résultat avec catégories et pagination
    */
   async obtenirListeAvecPagination(filtres = {}, pagination = {}) {
     const { page = 1, limite = 10 } = pagination;
@@ -111,13 +101,22 @@ class CategorieRepository {
 
   /**
    * Vérifier si un slug existe déjà pour une boutique
-   * @param {string} slug - Slug à vérifier
-   * @param {string} idBoutique - ID de la boutique
-   * @param {string} excludeId - ID à exclure de la vérification
-   * @returns {Promise<boolean>} True si le slug existe
    */
   async slugExiste(slug, idBoutique, excludeId = null) {
     const query = { slug: slug.toLowerCase().trim(), idBoutique };
+    if (excludeId) {
+      query._id = { $ne: excludeId };
+    }
+
+    const categorie = await Categorie.findOne(query);
+    return !!categorie;
+  }
+
+  /**
+   * Vérifier si un slug existe déjà (global - toutes les boutiques)
+   */
+  async slugExisteGlobal(slug, excludeId = null) {
+    const query = { slug: slug.toLowerCase().trim() };
     if (excludeId) {
       query._id = { $ne: excludeId };
     }

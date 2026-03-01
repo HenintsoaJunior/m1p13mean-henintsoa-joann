@@ -1,22 +1,48 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { ToastService } from '../../../services/toast.service';
+import { AppelsOffreClientComponent } from '../appels-offre/appels-offre-client.component';
+import { PanierService, PanierItem } from '../../services/panier.service';
+import { SouhaitService } from '../../services/souhait.service';
+import { ProduitClient } from '../../services/produit-client.service';
+import { ClientProduitListComponent } from '../produits/produit-list.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NgIf],
+  imports: [CommonModule, NgIf, AppelsOffreClientComponent, ClientProduitListComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
   private toastService = inject(ToastService);
+  panierService = inject(PanierService);
+  souhaitService = inject(SouhaitService);
 
   showLogoutPopup = false;
+  activeTab = 'produits';
+
+  // Right drawer
+  activeSidebar: 'panier' | 'souhait' | null = null;
+  panierItems: PanierItem[] = [];
+  souhaitItems: ProduitClient[] = [];
+
+  private subs = new Subscription();
+
+  ngOnInit(): void {
+    this.subs.add(this.panierService.items$.subscribe(items => this.panierItems = items));
+    this.subs.add(this.souhaitService.items$.subscribe(items => this.souhaitItems = items));
+  }
+
+  ngOnDestroy(): void { this.subs.unsubscribe(); }
+
+  openSidebar(type: 'panier' | 'souhait'): void { this.activeSidebar = type; }
+  closeSidebar(): void { this.activeSidebar = null; }
 
   get isLoggedIn(): boolean {
     return this.authService.isAuthenticated();
@@ -27,10 +53,35 @@ export class HomeComponent {
     return user?.nom || user?.prenom || user?.email || 'Utilisateur';
   }
 
-  isClient(): boolean {
-    const user = this.authService.getCurrentUser();
-    // Show "Devenir vendeur" button only if user exists and is not an admin or boutique
-    return user ? user.role !== 'admin' && user.role !== 'boutique' : false;
+  get panierCount(): number { return this.panierService.count; }
+  get souhaitCount(): number { return this.souhaitService.count; }
+
+  get panierTotal(): number {
+    return this.panierItems.reduce((total, item) => {
+      const variante = item.produit.variantes?.[item.varianteIndex];
+      const prix = variante?.prix?.montant ?? 0;
+      return total + prix * item.quantite;
+    }, 0);
+  }
+
+  getPrixVariante(item: PanierItem): number {
+    return item.produit.variantes?.[item.varianteIndex]?.prix?.montant ?? 0;
+  }
+
+  getLibelleVariante(item: PanierItem): string {
+    const v = item.produit.variantes?.[item.varianteIndex];
+    if (!v) return '';
+    return [v.couleur, v.unite].filter(Boolean).join(' / ');
+  }
+
+  getPrixMin(produit: ProduitClient): number {
+    if (!produit.variantes || produit.variantes.length === 0) return 0;
+    return Math.min(...produit.variantes.map(v => v.prix?.montant || 0));
+  }
+
+  ajouterSouhaitAuPanier(produit: ProduitClient): void {
+    this.panierService.ajouter(produit, 0);
+    this.souhaitService.basculer(produit);
   }
 
   onProfileClick() {
@@ -49,6 +100,10 @@ export class HomeComponent {
 
   closePopup() {
     this.showLogoutPopup = false;
+  }
+
+  selectTab(tabName: string): void {
+    this.activeTab = tabName;
   }
 
   getUserInitials(): string {

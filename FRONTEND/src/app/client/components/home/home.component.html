@@ -12,16 +12,18 @@
       </div>
 
       <div class="header-actions">
-        <div class="action-item action-heart">
+        <div class="action-item action-heart" (click)="openSidebar('souhait')" style="cursor:pointer; position:relative;">
           <i class="fas fa-heart"></i>
+          <span class="action-badge" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
           <span>Mes souhaits</span>
         </div>
         <div class="action-item action-user" (click)="onProfileClick()">
           <i class="fas fa-user"></i>
           <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
         </div>
-        <div class="action-item action-cart">
+        <div class="action-item action-cart" (click)="openSidebar('panier')" style="cursor:pointer; position:relative;">
           <i class="fas fa-shopping-cart"></i>
+          <span class="action-badge" *ngIf="panierCount > 0">{{ panierCount }}</span>
           <span>Mon panier</span>
         </div>
       </div>
@@ -31,54 +33,64 @@
   <!-- Tabs container -->
   <div class="tabs-container">
     <div class="tab-buttons">
-      <button class="tab-btn active">
-        <i class="fas fa-star"></i> Nouveautés
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'produits'"
+        (click)="selectTab('produits')"
+      >
+        <i class="fas fa-box"></i> Produits
       </button>
-      <button class="tab-btn">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'promotion'"
+        (click)="selectTab('promotion')"
+      >
         <i class="fas fa-tag"></i> Promotion
       </button>
-      <button class="tab-btn">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'contact'"
+        (click)="selectTab('contact')"
+      >
         <i class="fas fa-envelope"></i> Nous contacter
       </button>
-      <!-- Conditionally show "Devenir vendeur" button only for clients -->
-      <button class="tab-btn seller-btn" *ngIf="isClient()">
-        <i class="fas fa-store"></i> Devenir vendeur
+      <button
+        class="tab-btn seller-btn"
+        [class.active]="activeTab === 'appels'"
+        (click)="selectTab('appels')"
+      >
+        <i class="fas fa-bullhorn"></i> Appels d'offres
       </button>
     </div>
   </div>
 
   <!-- Main content -->
   <main class="main-content">
-    <div class="welcome-section">
-      <h1>Bienvenue sur notre plateforme</h1>
-      <p>
-        Cette plateforme vous permet de découvrir et d'acheter une variété de produits de qualité.
-      </p>
-      <p>
-        Navigatez facilement à travers nos différentes catégories et trouvez exactement ce que vous
-        cherchez.
-      </p>
-    </div>
+    <app-produit-list *ngIf="activeTab === 'produits'"></app-produit-list>
+    <div *ngIf="activeTab === 'promotion'" class="welcome-section"></div>
+    <app-appels-offre-client *ngIf="activeTab === 'appels'"></app-appels-offre-client>
   </main>
-  
+
   <!-- Fixed footer with action items -->
   <footer class="fixed-footer">
     <div class="footer-actions">
-      <div class="footer-action-item">
+      <div class="footer-action-item" (click)="openSidebar('souhait')" style="cursor:pointer; position:relative;">
         <i class="fas fa-heart"></i>
+        <span class="action-badge" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
         <span>Mes souhaits</span>
       </div>
       <div class="footer-action-item" (click)="onProfileClick()">
         <i class="fas fa-user"></i>
         <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
       </div>
-      <div class="footer-action-item">
+      <div class="footer-action-item" (click)="openSidebar('panier')" style="cursor:pointer; position:relative;">
         <i class="fas fa-shopping-cart"></i>
+        <span class="action-badge" *ngIf="panierCount > 0">{{ panierCount }}</span>
         <span>Mon panier</span>
       </div>
     </div>
   </footer>
-  
+
   <!-- Profile Popup -->
   <div class="popup-overlay" *ngIf="showLogoutPopup" (click)="closePopup()"></div>
   <div class="profile-popup" *ngIf="showLogoutPopup">
@@ -91,7 +103,7 @@
             <p>{{ getUserEmail() }}</p>
           </div>
           <button class="logout-icon" (click)="onLogout()">
-            <i class="fas fa-sign-out-alt" style="color: red;"></i>
+            <i class="fas fa-sign-out-alt" style="color: red"></i>
           </button>
         </div>
         <div class="user-orders">
@@ -115,4 +127,91 @@
       </ng-template>
     </div>
   </div>
+
+  <!-- Right Drawer Overlay -->
+  <div class="drawer-overlay" *ngIf="activeSidebar" (click)="closeSidebar()"></div>
+
+  <!-- Right Drawer: Mes Souhaits -->
+  <div class="right-drawer" [class.open]="activeSidebar === 'souhait'">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <i class="fas fa-heart" style="color:#e74c3c; margin-right:8px;"></i>
+        Mes souhaits
+        <span class="drawer-count" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
+      </div>
+      <button class="drawer-close" (click)="closeSidebar()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="drawer-body">
+      <div *ngIf="souhaitItems.length === 0" class="drawer-empty">
+        <i class="fas fa-heart-broken"></i>
+        <p>Votre liste de souhaits est vide</p>
+      </div>
+      <div *ngFor="let p of souhaitItems" class="drawer-item">
+        <div class="drawer-item-img">
+          <img *ngIf="p.images && p.images.length > 0; else noImgS" [src]="p.images[0]" [alt]="p.nom" />
+          <ng-template #noImgS><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div></ng-template>
+        </div>
+        <div class="drawer-item-info">
+          <div class="drawer-item-name">{{ p.nom }}</div>
+          <div class="drawer-item-price" *ngIf="getPrixMin(p) > 0">{{ getPrixMin(p) | number:'1.0-0' }} Ar</div>
+          <div class="drawer-item-actions">
+            <button class="btn-add-cart" (click)="ajouterSouhaitAuPanier(p)">
+              <i class="fas fa-shopping-cart"></i> Ajouter au panier
+            </button>
+          </div>
+        </div>
+        <button class="drawer-item-remove" (click)="souhaitService.basculer(p)" title="Retirer">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Drawer: Mon Panier -->
+  <div class="right-drawer" [class.open]="activeSidebar === 'panier'">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <i class="fas fa-shopping-cart" style="color:#3660a9; margin-right:8px;"></i>
+        Mon panier
+        <span class="drawer-count" *ngIf="panierCount > 0">{{ panierCount }}</span>
+      </div>
+      <button class="drawer-close" (click)="closeSidebar()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="drawer-body">
+      <div *ngIf="panierItems.length === 0" class="drawer-empty">
+        <i class="fas fa-shopping-basket"></i>
+        <p>Votre panier est vide</p>
+      </div>
+      <div *ngFor="let item of panierItems" class="drawer-item">
+        <div class="drawer-item-img">
+          <img *ngIf="item.produit.images && item.produit.images.length > 0; else noImgP"
+               [src]="item.produit.images[0]" [alt]="item.produit.nom" />
+          <ng-template #noImgP><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div></ng-template>
+        </div>
+        <div class="drawer-item-info">
+          <div class="drawer-item-name">{{ item.produit.nom }}</div>
+          <div class="drawer-item-variante" *ngIf="getLibelleVariante(item)">{{ getLibelleVariante(item) }}</div>
+          <div class="drawer-item-price" *ngIf="getPrixVariante(item) > 0">{{ getPrixVariante(item) | number:'1.0-0' }} Ar</div>
+          <div class="drawer-qty">
+            <button class="qty-btn" (click)="panierService.modifierQuantite(item.produit._id, item.varianteIndex, item.quantite - 1)">−</button>
+            <span class="qty-val">{{ item.quantite }}</span>
+            <button class="qty-btn" (click)="panierService.modifierQuantite(item.produit._id, item.varianteIndex, item.quantite + 1)">+</button>
+          </div>
+        </div>
+        <button class="drawer-item-remove" (click)="panierService.retirer(item.produit._id, item.varianteIndex)" title="Retirer">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      </div>
+    </div>
+    <div class="drawer-footer" *ngIf="panierItems.length > 0">
+      <div class="drawer-total">
+        <span>Total</span>
+        <strong>{{ panierTotal | number:'1.0-0' }} Ar</strong>
+      </div>
+      <button class="btn-checkout">
+        <i class="fas fa-credit-card"></i> Commander
+      </button>
+    </div>
+  </div>
+
 </div>

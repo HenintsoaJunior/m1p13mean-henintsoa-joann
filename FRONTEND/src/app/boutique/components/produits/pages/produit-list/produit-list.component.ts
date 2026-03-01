@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -9,8 +9,17 @@ import {
   Validators,
 } from '@angular/forms';
 import { ProduitService, Produit } from '../../services/produit.service';
-import { CategorieService, Categorie, CategorieTree } from '../../../categories/services/categorie.service';
+import {
+  CategorieService,
+  Categorie,
+  CategorieTree,
+  CategorieFormData,
+} from '../../../categories/services/categorie.service';
 import { ToastService } from '../../../../../services/toast.service';
+import { CouleurService } from '../../services/couleur.service';
+import { MarqueService } from '../../services/marque.service';
+import { TailleService } from '../../services/taille.service';
+import { Couleur, Marque, Taille } from '../../models/boutique.models';
 
 @Component({
   selector: 'app-produit-list',
@@ -23,39 +32,66 @@ export class ProduitListComponent implements OnInit {
   produits: Produit[] = [];
   filteredProduits: Produit[] = [];
   searchTerm = '';
+
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  pageSizeOptions = [5, 10, 25, 50];
+
+  get totalItems(): number { return this.filteredProduits.length; }
+  get totalPages(): number { return Math.ceil(this.totalItems / this.pageSize) || 1; }
+  get paginatedProduits(): Produit[] {
+    return this.filteredProduits.slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+  }
+  get pages(): number[] {
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) pages.push(i);
+    return pages;
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) { this.currentPage = page; }
+  }
+  onPageSizeChange(): void { this.currentPage = 1; }
   filterStatut = '';
-  showModal = false;
-  editingProduit: Produit | null = null;
-  isSubmitting = false;
-  produitForm: FormGroup;
+  showCategorieModal = false;
+  showProduitModal = false;
+  showDeleteConfirm = false;
+  selectedProduit: Produit | null = null;
+  produitASupprimer: Produit | null = null;
+  currentImageIndex = 0;
+  isCreatingCategorie = false;
+  isDeleting = false;
+  categorieForm: FormGroup;
   categories: Categorie[] = [];
   categoriesTree: CategorieTree[] = [];
+  flattenedCategories: { cat: CategorieTree; level: number; indent: string }[] = [];
+
+  // Données pour les attributs
+  couleurs: Couleur[] = [];
+  marques: Marque[] = [];
+  tailles: Taille[] = [];
 
   constructor(
     private produitService: ProduitService,
     private categorieService: CategorieService,
     private formBuilder: FormBuilder,
     private toastService: ToastService,
+    private router: Router,
+    private couleurService: CouleurService,
+    private marqueService: MarqueService,
+    private tailleService: TailleService,
   ) {
-    this.produitForm = this.formBuilder.group({
-      idCategorie: ['', [Validators.required]],
+    this.categorieForm = this.formBuilder.group({
       nom: ['', [Validators.required]],
       slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
       description: [''],
-      prix: this.formBuilder.group({
-        devise: ['EUR', [Validators.required]],
-        montant: [0, [Validators.required, Validators.min(0)]],
-      }),
-      stock: this.formBuilder.group({
-        quantite: [0, [Validators.required, Validators.min(0)]],
-      }),
-      images: [[]],
-      attributs: this.formBuilder.group({
-        couleur: [''],
-        taille: [[]],
-        marque: [''],
-      }),
-      statut: ['actif'],
+      idCategorieParent: [null],
+      urlImage: [''],
     });
   }
 
@@ -63,33 +99,77 @@ export class ProduitListComponent implements OnInit {
     this.loadProduits();
     this.loadCategories();
     this.loadCategoriesTree();
+    this.loadAttributsData();
+  }
+
+  loadAttributsData() {
+    // Charger les couleurs, marques et tailles pour l'affichage
+    this.couleurService.getAllCouleurs(true).subscribe({
+      next: (data) => {
+        this.couleurs = data.couleurs;
+      },
+      error: () => {},
+    });
+
+    this.marqueService.getAllMarques(true).subscribe({
+      next: (data) => {
+        this.marques = data.marques;
+      },
+      error: () => {},
+    });
+
+    this.tailleService.getAllTailles(true).subscribe({
+      next: (data) => {
+        this.tailles = data.tailles;
+      },
+      error: () => {},
+    });
   }
 
   loadCategoriesTree() {
     this.categorieService.getCategoriesTree().subscribe({
       next: (data: any) => {
+        console.log('🌳 Categories Tree API Response:', data);
         if (data && Array.isArray(data.arbre)) {
           this.categoriesTree = data.arbre;
+          console.log('✅ Categories tree loaded (from arbre):', this.categoriesTree);
         } else if (Array.isArray(data)) {
           this.categoriesTree = data;
+          console.log('✅ Categories tree loaded (direct array):', this.categoriesTree);
+        } else if (data && typeof data === 'object') {
+          // Le backend peut retourner un objet avec d'autres propriétés
+          this.categoriesTree = data.arbre || data.data || data.categories || [];
+          console.log('✅ Categories tree loaded (from object):', this.categoriesTree);
         } else {
           this.categoriesTree = [];
+          console.warn('⚠️ No categories tree data found');
         }
+        // Rafraîchir les catégories aplaties après chargement
+        this.refreshFlattenedCategories();
       },
-      error: () => {
+      error: (error) => {
+        console.error('❌ Error loading categories tree:', error);
         this.categoriesTree = [];
+        this.refreshFlattenedCategories();
       },
     });
   }
 
+  refreshFlattenedCategories() {
+    this.flattenedCategories = this.flattenCategories(this.categoriesTree);
+  }
+
   // Méthode utilitaire pour aplatir l'arbre des catégories
-  flattenCategories(tree: CategorieTree[], level: number = 0): { cat: CategorieTree, level: number, indent: string }[] {
-    let result: { cat: CategorieTree, level: number, indent: string }[] = [];
+  flattenCategories(
+    tree: CategorieTree[],
+    level: number = 0,
+  ): { cat: CategorieTree; level: number; indent: string }[] {
+    let result: { cat: CategorieTree; level: number; indent: string }[] = [];
     for (const cat of tree) {
       result.push({
         cat,
         level,
-        indent: '  '.repeat(level)
+        indent: '  '.repeat(level),
       });
       if (cat.children && cat.children.length > 0) {
         result = result.concat(this.flattenCategories(cat.children, level + 1));
@@ -98,8 +178,8 @@ export class ProduitListComponent implements OnInit {
     return result;
   }
 
-  getFlattenedCategories(): { cat: CategorieTree, level: number, indent: string }[] {
-    return this.flattenCategories(this.categoriesTree);
+  getFlattenedCategories(): { cat: CategorieTree; level: number; indent: string }[] {
+    return this.flattenedCategories;
   }
 
   loadProduits() {
@@ -145,6 +225,7 @@ export class ProduitListComponent implements OnInit {
   }
 
   applyFilters() {
+    this.currentPage = 1;
     if (!Array.isArray(this.produits)) {
       this.filteredProduits = [];
       return;
@@ -176,21 +257,41 @@ export class ProduitListComponent implements OnInit {
     this.applyFilters();
   }
 
-  openCreateModal() {
-    this.editingProduit = null;
-    this.produitForm.reset();
-    this.produitForm.patchValue({
-      prix: { devise: 'EUR', montant: 0 },
-      stock: { quantite: 0 },
-      statut: 'actif',
-      images: [],
-      attributs: { couleur: '', taille: [], marque: '' },
-    });
-    this.showModal = true;
+  onCreateCategorieSubmit() {
+    if (this.categorieForm.valid) {
+      this.isCreatingCategorie = true;
+      const categorieData: CategorieFormData = this.categorieForm.value;
+
+      this.categorieService.createCategorie(categorieData).subscribe({
+        next: () => {
+          this.loadCategoriesTree();
+          this.closeCategorieModal();
+          this.isCreatingCategorie = false;
+          this.toastService.showSuccess('Catégorie créée avec succès!');
+        },
+        error: () => {
+          this.isCreatingCategorie = false;
+          this.toastService.showError('Erreur lors de la création de la catégorie');
+        },
+      });
+    }
   }
 
-  generateSlug() {
-    const nom = this.produitForm.get('nom')?.value;
+  openCategorieModal() {
+    this.categorieForm.reset();
+    this.categorieForm.patchValue({
+      idCategorieParent: null,
+    });
+    this.showCategorieModal = true;
+  }
+
+  closeCategorieModal() {
+    this.showCategorieModal = false;
+    this.categorieForm.reset();
+  }
+
+  generateCategorieSlug() {
+    const nom = this.categorieForm.get('nom')?.value;
     if (nom) {
       const slug = nom
         .toLowerCase()
@@ -198,133 +299,132 @@ export class ProduitListComponent implements OnInit {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
-      this.produitForm.patchValue({ slug });
+      this.categorieForm.patchValue({ slug });
     }
   }
 
   editProduit(produit: Produit) {
-    this.editingProduit = produit;
-    this.produitForm.patchValue({
-      idCategorie:
-        typeof produit.idCategorie === 'string' ? produit.idCategorie : produit.idCategorie._id,
-      nom: produit.nom,
-      slug: produit.slug,
-      description: produit.description || '',
-      prix: produit.prix,
-      stock: produit.stock,
-      images: produit.images || [],
-      attributs: {
-        couleur: produit.attributs?.couleur || '',
-        taille: produit.attributs?.taille || [],
-        marque: produit.attributs?.marque || '',
+    this.closeProduitModal();
+    // Rediriger vers la page d'édition
+    this.router.navigate(['/boutique/produits/edit', produit._id]);
+  }
+
+  viewProduit(produit: Produit) {
+    this.selectedProduit = produit;
+    this.currentImageIndex = 0;
+    this.showProduitModal = true;
+  }
+
+  closeProduitModal() {
+    this.showProduitModal = false;
+    this.selectedProduit = null;
+    this.currentImageIndex = 0;
+  }
+
+  // Confirmation de suppression
+  confirmDeleteProduit(produit: Produit) {
+    this.produitASupprimer = produit;
+    this.showDeleteConfirm = true;
+  }
+
+  cancelDelete() {
+    this.showDeleteConfirm = false;
+    this.produitASupprimer = null;
+    this.isDeleting = false;
+  }
+
+  executeDelete() {
+    if (!this.produitASupprimer?._id) return;
+
+    this.isDeleting = true;
+    this.produitService.deleteProduit(this.produitASupprimer._id).subscribe({
+      next: () => {
+        this.loadProduits();
+        this.showDeleteConfirm = false;
+        this.closeProduitModal();
+        this.produitASupprimer = null;
+        this.isDeleting = false;
       },
-      statut: produit.statut,
+      error: () => {
+        this.toastService.showError('Erreur lors de la suppression du produit');
+        this.isDeleting = false;
+      },
     });
-    this.showModal = true;
   }
 
-  closeModal() {
-    this.showModal = false;
-    this.editingProduit = null;
-    this.produitForm.reset();
+  // Méthodes pour afficher les vrais noms des attributs
+  getCouleurName(couleurId: string): string {
+    const couleur = this.couleurs.find((c) => c._id === couleurId);
+    return couleur ? couleur.nom : couleurId;
   }
 
-  addTaille() {
-    const tailles = [...(this.produitForm.get('attributs.taille')?.value || [])];
-    tailles.push('');
-    this.produitForm.get('attributs.taille')?.setValue(tailles);
+  getCouleurHex(couleurId: string): string {
+    const couleur = this.couleurs.find((c) => c._id === couleurId);
+    return couleur ? couleur.codeHex : '#cccccc';
   }
 
-  removeTaille(index: number) {
-    const tailles = [...(this.produitForm.get('attributs.taille')?.value || [])];
-    tailles.splice(index, 1);
-    this.produitForm.get('attributs.taille')?.setValue(tailles);
+  getFirstCouleurHex(produit: Produit): string {
+    if (!produit.attributs?.couleurs?.length) return '#cccccc';
+    return this.getCouleurHex(produit.attributs.couleurs[0]);
   }
 
-  addImageUrl() {
-    const images = [...(this.produitForm.get('images')?.value || [])];
-    images.push('');
-    this.produitForm.get('images')?.setValue(images);
+  getMarqueName(marqueId: string): string {
+    const marque = this.marques.find((m) => m._id === marqueId);
+    return marque ? marque.nom : marqueId;
   }
 
-  removeImageUrl(index: number) {
-    const images = [...(this.produitForm.get('images')?.value || [])];
-    images.splice(index, 1);
-    this.produitForm.get('images')?.setValue(images);
+  getTailleName(tailleId: string): string {
+    const taille = this.tailles.find((t) => t._id === tailleId);
+    return taille ? taille.label || taille.valeur : tailleId;
   }
 
-  onSubmit() {
-    if (this.produitForm.valid) {
-      this.isSubmitting = true;
-      const produitData = this.produitForm.value;
+  getAttributsDisplay(produit: Produit): { couleurs?: string; tailles?: string; marque?: string } {
+    const result: { couleurs?: string; tailles?: string; marque?: string } = {};
 
-      if (this.editingProduit) {
-        this.produitService.updateProduit(this.editingProduit._id!, produitData).subscribe({
-          next: () => {
-            this.loadProduits();
-            this.closeModal();
-            this.isSubmitting = false;
-            this.toastService.showSuccess('Produit modifié avec succès!');
-          },
-          error: () => {
-            this.isSubmitting = false;
-            this.toastService.showError('Erreur lors de la modification du produit');
-          },
-        });
-      } else {
-        this.produitService.createProduit(produitData).subscribe({
-          next: () => {
-            this.loadProduits();
-            this.closeModal();
-            this.isSubmitting = false;
-            this.toastService.showSuccess('Produit créé avec succès!');
-          },
-          error: () => {
-            this.isSubmitting = false;
-            this.toastService.showError('Erreur lors de la création du produit');
-          },
-        });
-      }
+    if (produit.attributs?.couleurs && produit.attributs.couleurs.length > 0) {
+      result.couleurs = produit.attributs.couleurs.map((id) => this.getCouleurName(id)).join(', ');
+    }
+
+    if (produit.attributs?.tailles && produit.attributs.tailles.length > 0) {
+      result.tailles = produit.attributs.tailles.map((id) => this.getTailleName(id)).join(', ');
+    }
+
+    if (produit.attributs?.marque) {
+      const marqueId =
+        typeof produit.attributs.marque === 'string'
+          ? produit.attributs.marque
+          : produit.attributs.marque._id;
+      result.marque = this.getMarqueName(marqueId);
+    }
+
+    return result;
+  }
+
+  // Méthodes pour obtenir le prix et le stock depuis les variantes
+  getProduitPrix(produit: Produit): number {
+    if (produit.variantes && produit.variantes.length > 0) {
+      return produit.variantes[0].prix.montant || 0;
+    }
+    return 0;
+  }
+
+  getProduitStock(produit: Produit): number {
+    if (produit.variantes && produit.variantes.length > 0) {
+      return produit.variantes.reduce((total, v) => total + (v.stock.quantite || 0), 0);
+    }
+    return 0;
+  }
+
+  // Navigation des images
+  previousImage(): void {
+    if (this.currentImageIndex > 0) {
+      this.currentImageIndex--;
     }
   }
 
-  deleteProduit(id: string) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      this.produitService.deleteProduit(id).subscribe({
-        next: () => {
-          this.loadProduits();
-          this.toastService.showSuccess('Produit supprimé avec succès!');
-        },
-        error: () => {
-          this.toastService.showError('Erreur lors de la suppression du produit');
-        },
-      });
-    }
-  }
-
-  getStatutBadgeClass(statut: string): string {
-    switch (statut) {
-      case 'actif':
-        return 'statut-actif';
-      case 'rupture_stock':
-        return 'statut-rupture_stock';
-      case 'archive':
-        return 'statut-archive';
-      default:
-        return '';
-    }
-  }
-
-  getStatutLabel(statut: string): string {
-    switch (statut) {
-      case 'actif':
-        return 'Actif';
-      case 'rupture_stock':
-        return 'Rupture de stock';
-      case 'archive':
-        return 'Archivé';
-      default:
-        return statut;
+  nextImage(): void {
+    if (this.selectedProduit && this.currentImageIndex < this.selectedProduit.images!.length - 1) {
+      this.currentImageIndex++;
     }
   }
 }

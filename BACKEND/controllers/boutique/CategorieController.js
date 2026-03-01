@@ -6,19 +6,12 @@ class CategorieController {
   }
 
   /**
-   * Créer une nouvelle catégorie
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
+   * Créer une nouvelle catégorie (globale - sans boutique)
    */
   async creerCategorie(req, res) {
     try {
-      // Ajouter l'ID de la boutique depuis l'utilisateur authentifié
-      const donneesAvecBoutique = {
-        ...req.body,
-        idBoutique: req.utilisateur._id,
-      };
-
-      const resultat = await this.categorieService.creerCategorie(donneesAvecBoutique);
+      // Les catégories sont globales, pas de idBoutique
+      const resultat = await this.categorieService.creerCategorie(req.body);
       res.status(201).json(resultat);
     } catch (error) {
       console.error("Erreur lors de la création de la catégorie:", error);
@@ -30,8 +23,6 @@ class CategorieController {
 
   /**
    * Mettre à jour une catégorie
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
    */
   async mettreAJourCategorie(req, res) {
     try {
@@ -51,8 +42,6 @@ class CategorieController {
 
   /**
    * Supprimer une catégorie
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
    */
   async supprimerCategorie(req, res) {
     try {
@@ -69,8 +58,6 @@ class CategorieController {
 
   /**
    * Obtenir une catégorie par ID
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
    */
   async obtenirCategorieParId(req, res) {
     try {
@@ -86,8 +73,6 @@ class CategorieController {
 
   /**
    * Obtenir une catégorie par slug
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
    */
   async obtenirCategorieParSlug(req, res) {
     try {
@@ -102,14 +87,11 @@ class CategorieController {
   }
 
   /**
-   * Obtenir toutes les catégories d'une boutique
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
+   * Obtenir toutes les catégories (référentiel global - toutes les boutiques)
    */
   async obtenirCategoriesParBoutique(req, res) {
     try {
-      const idBoutique = req.utilisateur._id;
-      const categories = await this.categorieService.obtenirCategoriesParBoutique(idBoutique);
+      const categories = await this.categorieService.obtenirToutesCategories();
       res.json({ categories });
     } catch (error) {
       console.error("Erreur lors de la récupération des catégories:", error);
@@ -121,8 +103,6 @@ class CategorieController {
 
   /**
    * Obtenir les catégories enfants d'une catégorie parent
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
    */
   async obtenirCategoriesEnfants(req, res) {
     try {
@@ -137,14 +117,11 @@ class CategorieController {
   }
 
   /**
-   * Obtenir l'arbre complet des catégories d'une boutique
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
+   * Obtenir l'arbre complet des catégories (global)
    */
   async obtenirArbreCategories(req, res) {
     try {
-      const idBoutique = req.utilisateur._id;
-      const arbre = await this.categorieService.obtenirArbreCategories(idBoutique);
+      const arbre = await this.categorieService.obtenirArbreCategoriesGlobal();
       res.json({ arbre });
     } catch (error) {
       console.error("Erreur lors de la récupération de l'arbre des catégories:", error);
@@ -155,14 +132,11 @@ class CategorieController {
   }
 
   /**
-   * Obtenir les catégories avec leur hiérarchie (niveau et chemin)
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
+   * Obtenir les catégories avec leur hiérarchie (global)
    */
   async obtenirCategoriesAvecHierarchie(req, res) {
     try {
-      const idBoutique = req.utilisateur._id;
-      const categories = await this.categorieService.obtenirCategoriesAvecHierarchie(idBoutique);
+      const categories = await this.categorieService.obtenirCategoriesAvecHierarchieGlobal();
       res.json({ categories });
     } catch (error) {
       console.error("Erreur lors de la récupération des catégories avec hiérarchie:", error);
@@ -174,13 +148,10 @@ class CategorieController {
 
   /**
    * Obtenir une liste paginée de catégories
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
    */
   async obtenirListeCategories(req, res) {
     try {
       const filtres = {
-        idBoutique: req.utilisateur._id,
         idCategorieParent: req.query.idCategorieParent,
       };
 

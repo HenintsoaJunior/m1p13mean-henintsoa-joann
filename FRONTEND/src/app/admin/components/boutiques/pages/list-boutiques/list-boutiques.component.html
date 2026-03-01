@@ -1,0 +1,166 @@
+<div class="page-container">
+  <!-- Toast notification -->
+  @if (showToast) {
+    <div
+      class="toast-notification"
+      [class.toast-success]="toastType === 'success'"
+      [class.toast-error]="toastType === 'error'"
+    >
+      <i
+        class="fas"
+        [class.fa-check-circle]="toastType === 'success'"
+        [class.fa-exclamation-circle]="toastType === 'error'"
+      ></i>
+      {{ toastMessage }}
+    </div>
+  }
+
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filters-header">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtres</span>
+      </div>
+      <div class="filters-content">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher par nom, prénom ou email..."
+            [(ngModel)]="filtreNom"
+            (input)="onFilterChange()"
+          />
+        </div>
+        <select [(ngModel)]="filtreStatut" (ngModelChange)="onFilterChange()" class="form-control">
+          <option value="">Tous les statuts</option>
+          <option value="active">Active</option>
+          <option value="en_attente">En attente</option>
+          <option value="fermee">Fermée</option>
+        </select>
+        <button class="btn btn-danger" (click)="clearFilters()">Effacer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau -->
+  <div class="table-container">
+    <div class="table-header">
+      <h2 class="table-title">Liste des Boutiques</h2>
+    </div>
+
+    @if (isLoading) {
+      <div class="empty-state">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Chargement...</p>
+      </div>
+    } @else if (filteredBoutiques.length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-store-slash"></i>
+        <p>Aucune boutique trouvée.</p>
+      </div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Statut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (boutique of filteredBoutiques; track boutique._id) {
+            <tr>
+              <td>{{ boutique.contact?.nom || '-' }}</td>
+              <td>{{ boutique.contact?.prenom || '-' }}</td>
+              <td>{{ boutique.contact?.email || '-' }}</td>
+              <td>{{ boutique.contact?.telephone || '-' }}</td>
+              <td>
+                <span class="statut-badge statut-{{ boutique.statut }}">
+                  {{ getStatutLabel(boutique.statut) }}
+                </span>
+              </td>
+              <td>
+                @if (boutique.statut !== 'en_attente') {
+                  <label
+                    class="switch"
+                    [title]="boutique.statut === 'active' ? 'Désactiver' : 'Activer'"
+                  >
+                    <input
+                      type="checkbox"
+                      [checked]="boutique.statut === 'active'"
+                      (change)="onStatusChange(boutique, $event)"
+                    />
+                    <span class="slider round"></span>
+                  </label>
+                } @else {
+                  <span class="attente-label"><i class="fas fa-clock"></i> En attente</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="totalPages >= 1">
+      <div class="pagination-info">
+        <span
+          >Affichage page {{ currentPage }} sur {{ totalPages }} ({{ totalItems }} résultats)</span
+        >
+        <select
+          class="page-size-select"
+          [(ngModel)]="pageSize"
+          (ngModelChange)="onPageSizeChange()"
+        >
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} par page</option>
+        </select>
+      </div>
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button
+          class="pagination-btn"
+          (click)="goToPage(1)"
+          [disabled]="currentPage === 1"
+          title="Première page"
+        >
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button
+          class="pagination-btn"
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          title="Page précédente"
+        >
+          <i class="fas fa-angle-left"></i>
+        </button>
+        <button
+          *ngFor="let p of pages"
+          class="pagination-btn"
+          [class.active]="p === currentPage"
+          (click)="goToPage(p)"
+        >
+          {{ p }}
+        </button>
+        <button
+          class="pagination-btn"
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          title="Page suivante"
+        >
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button
+          class="pagination-btn"
+          (click)="goToPage(totalPages)"
+          [disabled]="currentPage === totalPages"
+          title="Dernière page"
+        >
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

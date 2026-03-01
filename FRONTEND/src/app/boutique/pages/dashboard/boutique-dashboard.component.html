@@ -1,48 +1,168 @@
-<div class="dashboard-container">
-  <div class="dashboard-header">
-    <h1>Tableau de bord Boutique</h1>
-    <p>Bienvenue sur votre espace de gestion</p>
+<div class="dashboard">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <h1><i class="fas fa-chart-line"></i> Tableau de bord</h1>
+      <p>Aperçu de votre activité commerciale</p>
+    </div>
+    <button class="btn-refresh" (click)="loadDashboard()" [disabled]="loading">
+      <i class="fas fa-sync-alt" [class.spinning]="loading"></i>
+      Actualiser
+    </button>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-box"></i>
+  <!-- Loading -->
+  @if (loading) {
+    <div class="dash-loading">
+      <div class="spinner"></div>
+      <span>Chargement des statistiques...</span>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error && !loading) {
+    <div class="dash-error">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ error }}
+    </div>
+  }
+
+  @if (data && !loading) {
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-icon"><i class="fas fa-shopping-cart"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ kpis.totalCommandes || 0 }}</div>
+          <div class="kpi-label">Total commandes</div>
+          <div class="kpi-sub">{{ kpis.commandesMois || 0 }} ce mois</div>
+        </div>
       </div>
-      <div class="stat-info">
-        <h3>0</h3>
-        <p>Produits</p>
+
+      <div class="kpi-card kpi-green">
+        <div class="kpi-icon"><i class="fas fa-coins"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ formatMontant(kpis.caTotal) }}</div>
+          <div class="kpi-label">Chiffre d'affaires</div>
+          <div class="kpi-sub">{{ formatMontant(kpis.caMois) }} ce mois</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ kpis.commandesEnAttente || 0 }}</div>
+          <div class="kpi-label">En attente</div>
+          <div class="kpi-sub">commandes à traiter</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-indigo">
+        <div class="kpi-icon"><i class="fas fa-box"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ kpis.totalProduits || 0 }}</div>
+          <div class="kpi-label">Produits</div>
+          <div class="kpi-sub">{{ kpis.produitsRuptureStock || 0 }} en rupture</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-teal">
+        <div class="kpi-icon"><i class="fas fa-warehouse"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ kpis.stockTotal || 0 }}</div>
+          <div class="kpi-label">Stock total</div>
+          <div class="kpi-sub">unités en inventaire</div>
+        </div>
       </div>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-shopping-cart"></i>
+    <!-- Row 1: CA + commandes (line) | Statuts (doughnut) -->
+    <div class="charts-row">
+      <div class="chart-card chart-large">
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-area"></i> Évolution sur 7 jours</h3>
+          <span class="chart-badge">CA & Commandes</span>
+        </div>
+        <div class="chart-body">
+          <canvas #caJoursCanvas></canvas>
+        </div>
       </div>
-      <div class="stat-info">
-        <h3>0</h3>
-        <p>Commandes</p>
+
+      <div class="chart-card chart-small">
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-pie"></i> Statuts commandes</h3>
+          <span class="chart-badge">Répartition</span>
+        </div>
+        <div class="chart-body chart-doughnut-body">
+          @if (!data.commandesParStatut || data.commandesParStatut.length === 0) {
+            <div class="empty-chart">
+              <i class="fas fa-inbox"></i>
+              <span>Aucune commande</span>
+            </div>
+          } @else {
+            <canvas #statutsCanvas></canvas>
+          }
+        </div>
       </div>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-eye"></i>
+    <!-- Row 2: Top produits (bar) | Mouvements stock (bar) -->
+    <div class="charts-row">
+      <div class="chart-card chart-small">
+        <div class="chart-header">
+          <h3><i class="fas fa-trophy"></i> Top 5 produits</h3>
+          <span class="chart-badge">Par quantité vendue</span>
+        </div>
+        <div class="chart-body">
+          @if (!data.topProduits || data.topProduits.length === 0) {
+            <div class="empty-chart">
+              <i class="fas fa-box-open"></i>
+              <span>Aucune vente enregistrée</span>
+            </div>
+          } @else {
+            <canvas #topProduitsCanvas></canvas>
+          }
+        </div>
       </div>
-      <div class="stat-info">
-        <h3>0</h3>
-        <p>Vues</p>
+
+      <div class="chart-card chart-large">
+        <div class="chart-header">
+          <h3><i class="fas fa-exchange-alt"></i> Mouvements de stock</h3>
+          <span class="chart-badge">30 derniers jours</span>
+        </div>
+        <div class="chart-body">
+          <canvas #mouvementsCanvas></canvas>
+        </div>
       </div>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="fas fa-dollar-sign"></i>
+    <!-- Statuts detail table -->
+    @if (data.commandesParStatut && data.commandesParStatut.length > 0) {
+      <div class="statuts-table-card">
+        <div class="chart-header">
+          <h3><i class="fas fa-list-alt"></i> Détail par statut</h3>
+        </div>
+        <div class="statuts-table">
+          <div class="st-row st-head">
+            <span>Statut</span>
+            <span>Commandes</span>
+            <span>Chiffre d'affaires</span>
+          </div>
+          @for (s of data.commandesParStatut; track s._id) {
+            <div class="st-row">
+              <span>
+                <span class="dot" [style.background]="statutColor(s._id)"></span>
+                {{ statutLabel(s._id) }}
+              </span>
+              <span class="st-count">{{ s.count }}</span>
+              <span class="st-ca">{{ formatMontant(s.ca) }}</span>
+            </div>
+          }
+        </div>
       </div>
-      <div class="stat-info">
-        <h3>0 Ar</h3>
-        <p>Revenus</p>
-      </div>
-    </div>
-  </div>
+    }
+
+  }
 </div>

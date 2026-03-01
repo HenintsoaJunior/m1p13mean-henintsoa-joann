@@ -29,46 +29,52 @@ const produitSchema = new mongoose.Schema(
       trim: true,
       maxlength: [2000, "La description ne peut pas dépasser 2000 caractères"],
     },
-    prix: {
-      devise: {
-        type: String,
-        required: [true, "La devise est requise"],
-        uppercase: true,
-        trim: true,
-        default: "EUR",
-      },
-      montant: {
-        type: Number,
-        required: [true, "Le montant est requis"],
-        min: [0, "Le montant ne peut pas être négatif"],
-      },
-    },
-    stock: {
-      quantite: {
-        type: Number,
-        required: [true, "La quantité est requise"],
-        min: [0, "La quantité ne peut pas être négative"],
-        default: 0,
-      },
-    },
     images: {
       type: [String],
       default: [],
     },
-    attributs: {
-      couleur: {
-        type: String,
-        trim: true,
+    variantes: [
+      {
+        couleur: {
+          type: String,
+          trim: true,
+        },
+        couleurHex: {
+          type: String,
+          trim: true,
+        },
+        unite: {
+          type: String,
+          trim: true,
+        },
+        typeUnitePrincipal: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "TypeUnite",
+        },
+        prix: {
+          devise: {
+            type: String,
+            uppercase: true,
+            trim: true,
+            default: "MGA",
+          },
+          montant: {
+            type: Number,
+            required: [true, "Le prix est requis"],
+            min: [0, "Le prix ne peut pas être négatif"],
+            default: 0,
+          },
+        },
+        stock: {
+          quantite: {
+            type: Number,
+            required: [true, "Le stock est requis"],
+            min: [0, "Le stock ne peut pas être négatif"],
+            default: 0,
+          },
+        },
       },
-      taille: {
-        type: [String],
-        default: [],
-      },
-      marque: {
-        type: String,
-        trim: true,
-      },
-    },
+    ],
     statut: {
       type: String,
       enum: {
@@ -77,40 +83,16 @@ const produitSchema = new mongoose.Schema(
       },
       default: "actif",
     },
-    dateCreation: {
-      type: Date,
-      default: Date.now,
-    },
-    dateMiseAJour: {
-      type: Date,
-      default: Date.now,
-    },
   },
   {
     timestamps: { createdAt: "dateCreation", updatedAt: "dateMiseAJour" },
-  }
+  },
 );
 
 // Index composé pour optimiser les recherches
 produitSchema.index({ idBoutique: 1, slug: 1 });
 produitSchema.index({ idCategorie: 1 });
 produitSchema.index({ statut: 1 });
-
-// Middleware pour mettre à jour dateMiseAJour
-produitSchema.pre("save", function (next) {
-  this.dateMiseAJour = Date.now();
-  next();
-});
-
-// Middleware pour mettre à jour le statut en fonction du stock
-produitSchema.pre("save", function (next) {
-  if (this.stock.quantite === 0 && this.statut !== "archive") {
-    this.statut = "rupture_stock";
-  } else if (this.stock.quantite > 0 && this.statut === "rupture_stock") {
-    this.statut = "actif";
-  }
-  next();
-});
 
 // Méthode pour obtenir les informations publiques
 produitSchema.methods.toJSON = function () {

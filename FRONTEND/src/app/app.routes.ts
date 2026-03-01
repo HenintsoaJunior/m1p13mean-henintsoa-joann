@@ -27,9 +27,26 @@ import { BoutiqueDashboardComponent } from './boutique/pages/dashboard/boutique-
 
 // Boutique components - Produits
 import { ProduitListComponent } from './boutique/components/produits/pages/produit-list/produit-list.component';
+import { ProduitCreateComponent } from './boutique/components/produits/pages/produit-create/produit-create.component';
+import { ProduitEditComponent } from './boutique/components/produits/pages/produit-edit/produit-edit.component';
+import { StockMouvementsComponent } from './boutique/components/produits/pages/stock-mouvements/stock-mouvements.component';
+import { CommandeListComponent } from './boutique/components/commandes/commande-list.component';
 
 // Boutique components - Categories
 import { CategorieListComponent } from './boutique/components/categories/pages/categorie-list/categorie-list.component';
+
+// Admin components - Appels d'offre
+import { AppelsOffreListComponent } from './admin/components/appels-offre/pages/appels-offre-list/appels-offre-list.component';
+import { ReponsesComponent } from './admin/components/appels-offre/pages/reponses/reponses.component';
+import { ListBoutiquesComponent } from './admin/components/boutiques/pages/list-boutiques/list-boutiques.component';
+import { MonBoutiqueComponent } from './boutique/pages/mon-boutique/mon-boutique.component';
+
+// Client components - Appels d'offre
+import { AppelsOffreClientComponent } from './client/components/appels-offre/appels-offre-client.component';
+import { ResponseFormClientComponent } from './client/components/appels-offre/response-form-client.component';
+
+// Client components - Produits
+import { ClientProduitListComponent } from './client/components/produits/produit-list.component';
 
 export const routes: Routes = [
   { path: '', component: LandingComponent }, // Default landing page
@@ -67,7 +84,10 @@ export const routes: Routes = [
       { path: 'centres/emplacements-crud', component: EmplacementsCrudComponent },
       { path: 'centres', component: CentresListComponent },
       { path: 'utilisateurs', component: ListUtilisateurComponent },
+      { path: 'boutiques', component: ListBoutiquesComponent },
       { path: 'activity-history', component: ActivityHistoryComponent },
+      { path: 'appels', component: AppelsOffreListComponent },
+      { path: 'appels/:id/reponses', component: ReponsesComponent },
     ],
   },
   // Add routes for boutique and client dashboards
@@ -78,8 +98,14 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: BoutiqueDashboardComponent },
+      { path: 'appels/:id/reponses', component: ReponsesComponent },
       { path: 'produits', component: ProduitListComponent },
+      { path: 'produits/nouveau', component: ProduitCreateComponent },
+      { path: 'produits/edit/:id', component: ProduitEditComponent },
+      { path: 'stock', component: StockMouvementsComponent },
+      { path: 'commandes', component: CommandeListComponent },
       { path: 'categories', component: CategorieListComponent },
+      { path: 'mon-boutique', component: MonBoutiqueComponent },
     ],
   },
   {
@@ -92,6 +118,9 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./client/components/home/home.component').then((m) => m.HomeComponent),
       }, // Client home page (accessible to all)
+      { path: 'appels', component: AppelsOffreClientComponent }, // List of open appels d'offre
+      { path: 'appels/:id/reponse', component: ResponseFormClientComponent }, // Response form for an appel d'offre
+      { path: 'produits', component: ClientProduitListComponent }, // Product catalog
     ],
   },
   { path: '**', redirectTo: '/' }, // Redirect unknown routes to landing page

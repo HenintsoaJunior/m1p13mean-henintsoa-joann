@@ -21,7 +21,12 @@
           <option value="rupture_stock">Rupture de stock</option>
           <option value="archive">Archivé</option>
         </select>
-        <button class="btn btn-danger" (click)="resetFilters()">Effacer</button>
+        <button
+          class="btn btn-danger"
+          (click)="searchTerm = ''; filterStatut = ''; filterProduits()"
+        >
+          Effacer
+        </button>
       </div>
     </div>
   </div>
@@ -30,7 +35,7 @@
   <div class="table-container">
     <div class="table-header">
       <h3 class="table-title">Liste des Produits</h3>
-      <button class="btn btn-primary" (click)="openCreateModal()">
+      <button class="btn btn-primary" [routerLink]="['/boutique/produits/nouveau']">
         <i class="fas fa-plus" style="color: white; margin-right: 8px"></i>
         Nouveau Produit
       </button>
@@ -41,7 +46,6 @@
         <tr>
           <th>Produit</th>
           <th>Catégorie</th>
-          <th>Prix</th>
           <th>Stock</th>
           <th>Statut</th>
           <th>Actions</th>
@@ -57,12 +61,17 @@
             </td>
           </tr>
         } @else {
-          @for (produit of filteredProduits; track produit._id) {
-            <tr class="table-row">
+          @for (produit of paginatedProduits; track produit._id) {
+            <tr class="table-row" (click)="viewProduit(produit)" style="cursor: pointer">
               <td>
                 <div class="produit-info">
                   @if (produit.images && produit.images.length > 0) {
-                    <img [src]="produit.images[0]" [alt]="produit.nom" class="produit-image" />
+                    <div class="produit-image-gallery">
+                      <img [src]="produit.images[0]" [alt]="produit.nom" class="produit-image" />
+                      @if (produit.images.length > 1) {
+                        <div class="image-count-badge">+{{ produit.images.length - 1 }}</div>
+                      }
+                    </div>
                   }
                   <div>
                     <div class="produit-name">{{ produit.nom }}</div>
@@ -80,30 +89,33 @@
                 </span>
               </td>
               <td>
-                <span class="produit-prix">
-                  {{ produit.prix.montant | number: '1.2-2' }} {{ produit.prix.devise }}
+                <span class="produit-stock" [class.stock-critique]="getProduitStock(produit) === 0">
+                  {{ getProduitStock(produit) }}
                 </span>
               </td>
               <td>
-                <span class="produit-stock" [class.stock-critique]="produit.stock.quantite === 0">
-                  {{ produit.stock.quantite }}
-                </span>
-              </td>
-              <td>
-                <span class="statut-badge" [ngClass]="getStatutBadgeClass(produit.statut)">
-                  {{ getStatutLabel(produit.statut) }}
+                <span class="statut-badge" [ngClass]="{
+                  'statut-actif': produit.statut === 'actif',
+                  'statut-rupture_stock': produit.statut === 'rupture_stock',
+                  'statut-archive': produit.statut === 'archive'
+                }">
+                  {{
+                    produit.statut === 'actif' ? 'Actif' :
+                    produit.statut === 'rupture_stock' ? 'Rupture de stock' :
+                    produit.statut === 'archive' ? 'Archivé' :
+                    produit.statut
+                  }}
                 </span>
               </td>
               <td>
                 <div class="action-buttons">
-                  <button (click)="editProduit(produit)" class="btn-icon btn-edit" title="Modifier">
+                  <button (click)="viewProduit(produit); $event.stopPropagation();" class="btn-icon btn-view" title="Voir détails">
+                    <i class="fas fa-eye" style="color: white"></i>
+                  </button>
+                  <button (click)="editProduit(produit); $event.stopPropagation();" class="btn-icon btn-edit" title="Modifier">
                     <i class="fas fa-edit" style="color: white"></i>
                   </button>
-                  <button
-                    (click)="deleteProduit(produit._id!)"
-                    class="btn-icon btn-delete"
-                    title="Supprimer"
-                  >
+                  <button (click)="confirmDeleteProduit(produit); $event.stopPropagation();" class="btn-icon btn-delete" title="Supprimer">
                     <i class="fas fa-trash" style="color: white"></i>
                   </button>
                 </div>
@@ -113,231 +125,401 @@
         }
       </tbody>
     </table>
+
+    <div class="pagination-container" *ngIf="totalPages >= 1">
+      <div class="pagination-info">
+        <span>Affichage page {{ currentPage }} sur {{ totalPages }} ({{ totalItems }} résultats)</span>
+        <select class="page-size-select" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} par page</option>
+        </select>
+      </div>
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button class="pagination-btn" (click)="goToPage(1)" [disabled]="currentPage === 1" title="Première page">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button class="pagination-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" title="Page précédente">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        @for (p of pages; track p) {
+          <button class="pagination-btn" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="pagination-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages" title="Page suivante">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button class="pagination-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages" title="Dernière page">
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Modal pour créer/modifier un produit -->
-<div *ngIf="showModal" class="modal-overlay" (click)="closeModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
+<!-- Modal pour créer une nouvelle catégorie -->
+<div *ngIf="showCategorieModal" class="modal-overlay" (click)="closeCategorieModal()">
+  <div class="modal-content modal-content-sm" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h2 class="modal-title">{{ editingProduit ? 'Modifier le produit' : 'Nouveau produit' }}</h2>
-      <button class="btn-close" (click)="closeModal()">×</button>
+      <h2 class="modal-title">Nouvelle Catégorie</h2>
+      <button class="btn-close" (click)="closeCategorieModal()">×</button>
     </div>
 
     <div class="modal-body">
-      <form [formGroup]="produitForm" (ngSubmit)="onSubmit()" class="form">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="nom">Nom du produit <span class="required">*</span></label>
-            <input
-              type="text"
-              id="nom"
-              formControlName="nom"
-              (blur)="generateSlug()"
-              class="form-control"
-              placeholder="Ex: Basket Nike Air"
-            />
-            <div
-              *ngIf="produitForm.get('nom')?.errors && produitForm.get('nom')?.touched"
-              class="error-message"
-            >
-              Le nom est requis
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="slug">Slug (URL) <span class="required">*</span></label>
-            <input
-              type="text"
-              id="slug"
-              formControlName="slug"
-              class="form-control"
-              placeholder="basket-nike-air"
-            />
-            <small class="form-hint">Généré automatiquement à partir du nom</small>
-            <div
-              *ngIf="produitForm.get('slug')?.errors && produitForm.get('slug')?.touched"
-              class="error-message"
-            >
-              Format invalide (minuscules et tirets uniquement)
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="idCategorie">Catégorie <span class="required">*</span></label>
-            <select id="idCategorie" formControlName="idCategorie" class="form-control">
-              <option value="">Sélectionner une catégorie</option>
-              @for (item of getFlattenedCategories(); track item.cat._id) {
-                <option [value]="item.cat._id" [style.paddingLeft]="item.level * 16 + 'px'">
-                  {{ item.indent }}{{ item.cat.nom }}
-                </option>
-              }
-            </select>
-            <small class="form-hint">Sélectionnez une catégorie ou une sous-catégorie</small>
-          </div>
-
-          <!-- CORRECTION : formGroupName="prix" + formControlName simples à l'intérieur -->
-          <div class="form-group" formGroupName="prix">
-            <label for="devise">Devise <span class="required">*</span></label>
-            <select id="devise" formControlName="devise" class="form-control">
-              <option value="EUR">EUR (€)</option>
-              <option value="USD">USD ($)</option>
-              <option value="GBP">GBP (£)</option>
-              <option value="MGA">MGA (Ar)</option>
-            </select>
-          </div>
-
-          <div class="form-group" formGroupName="prix">
-            <label for="montant">Montant <span class="required">*</span></label>
-            <input
-              type="number"
-              id="montant"
-              formControlName="montant"
-              step="0.01"
-              min="0"
-              class="form-control"
-              placeholder="0.00"
-            />
-          </div>
-
-          <!-- CORRECTION : formGroupName="stock" + formControlName simple -->
-          <div class="form-group" formGroupName="stock">
-            <label for="quantite">Quantité en stock <span class="required">*</span></label>
-            <input
-              type="number"
-              id="quantite"
-              formControlName="quantite"
-              min="0"
-              class="form-control"
-              placeholder="0"
-            />
-          </div>
-
-          <div class="form-group full-width">
-            <label for="description">Description</label>
-            <textarea
-              id="description"
-              formControlName="description"
-              rows="3"
-              class="form-control"
-              placeholder="Description du produit..."
-            ></textarea>
+      <form [formGroup]="categorieForm" (ngSubmit)="onCreateCategorieSubmit()" class="form">
+        <div class="form-group">
+          <label for="categorie-nom">Nom <span class="required">*</span></label>
+          <input
+            type="text"
+            id="categorie-nom"
+            formControlName="nom"
+            (blur)="generateCategorieSlug()"
+            class="form-control"
+            placeholder="Ex: Chaussures"
+          />
+          <div
+            *ngIf="categorieForm.get('nom')?.errors && categorieForm.get('nom')?.touched"
+            class="error-message"
+          >
+            Le nom est requis
           </div>
         </div>
 
-        <!-- Attributs -->
-        <div class="form-section" formGroupName="attributs">
-          <h3 class="form-section-title">Attributs</h3>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="couleur">Couleur</label>
-              <input
-                type="text"
-                id="couleur"
-                formControlName="couleur"
-                class="form-control"
-                placeholder="Ex: noir"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="marque">Marque</label>
-              <input
-                type="text"
-                id="marque"
-                formControlName="marque"
-                class="form-control"
-                placeholder="Ex: Nike"
-              />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Tailles disponibles</label>
-            <div class="tailles-list">
-              @for (
-                taille of produitForm.get('attributs.taille')?.value;
-                track taille;
-                let i = $index
-              ) {
-                <div class="taille-item">
-                  <input
-                    type="text"
-                    [value]="taille"
-                    (input)="
-                      produitForm.get('attributs.taille')?.value[i] = $any($event.target).value
-                    "
-                    class="form-control"
-                    placeholder="Ex: 40"
-                  />
-                  <button type="button" (click)="removeTaille(i)" class="btn-icon btn-delete">
-                    <i class="fas fa-trash" style="color: white"></i>
-                  </button>
-                </div>
-              }
-              <button
-                type="button"
-                (click)="addTaille()"
-                class="btn btn-success"
-                style="color: white"
-              >
-                <i class="fas fa-plus" style="color: white"></i>
-                Ajouter une taille
-              </button>
-            </div>
+        <div class="form-group">
+          <label for="categorie-slug">Slug (URL) <span class="required">*</span></label>
+          <input
+            type="text"
+            id="categorie-slug"
+            formControlName="slug"
+            class="form-control"
+            placeholder="chaussures"
+          />
+          <small class="form-hint">Généré automatiquement à partir du nom</small>
+          <div
+            *ngIf="categorieForm.get('slug')?.errors && categorieForm.get('slug')?.touched"
+            class="error-message"
+          >
+            Format invalide (minuscules et tirets uniquement)
           </div>
         </div>
 
-        <!-- Images -->
-        <div class="form-section">
-          <h3 class="form-section-title">Images</h3>
-          <div class="form-group">
-            <label>URL des images</label>
-            <div class="images-list">
-              @for (image of produitForm.get('images')?.value; track image; let i = $index) {
-                <div class="image-item">
-                  <input
-                    type="url"
-                    [value]="image"
-                    (input)="produitForm.get('images')?.value[i] = $any($event.target).value"
-                    class="form-control"
-                    placeholder="https://exemple.com/image.jpg"
-                  />
-                  <button type="button" (click)="removeImageUrl(i)" class="btn-icon btn-delete">
-                    <i class="fas fa-trash" style="color: white"></i>
-                  </button>
-                </div>
-              }
-              <button
-                type="button"
-                (click)="addImageUrl()"
-                class="btn btn-success"
-                style="color: white"
-              >
-                <i class="fas fa-plus" style="color: white"></i>
-                Ajouter une image
-              </button>
-            </div>
-          </div>
+        <div class="form-group">
+          <label for="categorie-parent">Catégorie parent (optionnel)</label>
+          <select id="categorie-parent" formControlName="idCategorieParent" class="form-control">
+            <option value="">Aucune (catégorie racine)</option>
+            @for (item of getFlattenedCategories(); track item.cat._id) {
+              <option [value]="item.cat._id">
+                {{ item.indent }}
+                @if (item.level === 0) {
+                  📁
+                } @else {
+                  📂
+                }
+                {{ item.cat.nom }}
+              </option>
+            }
+          </select>
+          <small class="form-hint">Laissez vide pour une catégorie racine</small>
+        </div>
+
+        <div class="form-group">
+          <label for="categorie-description">Description</label>
+          <textarea
+            id="categorie-description"
+            formControlName="description"
+            rows="3"
+            class="form-control"
+            placeholder="Description de la catégorie..."
+          ></textarea>
         </div>
 
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
+          <button type="button" class="btn btn-secondary" (click)="closeCategorieModal()">Annuler</button>
           <button
             type="submit"
             class="btn btn-primary"
             style="color: white"
-            [disabled]="produitForm.invalid || isSubmitting"
+            [disabled]="categorieForm.invalid || isCreatingCategorie"
           >
             <i
-              *ngIf="isSubmitting"
+              *ngIf="isCreatingCategorie"
               class="fas fa-spinner fa-spin"
               style="color: white; margin-right: 8px"
             ></i>
-            {{ isSubmitting ? 'En cours...' : editingProduit ? 'Modifier' : 'Créer' }}
+            {{ isCreatingCategorie ? 'En cours...' : 'Créer' }}
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour voir les détails d'un produit -->
+<div *ngIf="showProduitModal" class="modal-overlay" (click)="closeProduitModal()">
+  <div class="modal-content modal-content-lg" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Détails du Produit</h2>
+      <button class="btn-close" (click)="closeProduitModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      @if (selectedProduit) {
+        <div class="produit-detail">
+          <!-- Images -->
+          <div class="produit-images-section">
+            <div class="main-image-container" *ngIf="selectedProduit.images && selectedProduit.images.length > 0">
+              <img [src]="selectedProduit.images[currentImageIndex]" [alt]="selectedProduit.nom" class="main-image" />
+              @if (selectedProduit.images.length > 1) {
+                <div class="image-navigation">
+                  <button class="nav-btn nav-prev" (click)="previousImage()" [disabled]="currentImageIndex === 0">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <span class="image-counter">{{ currentImageIndex + 1 }} / {{ selectedProduit.images.length }}</span>
+                  <button class="nav-btn nav-next" (click)="nextImage()" [disabled]="currentImageIndex === selectedProduit.images.length - 1">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                </div>
+              }
+            </div>
+            <div class="main-image-placeholder" *ngIf="!selectedProduit.images || selectedProduit.images.length === 0">
+              <i class="fas fa-image"></i>
+              <p>Aucune image</p>
+            </div>
+
+            <!-- Miniatures -->
+            <div class="thumbnails-container" *ngIf="selectedProduit.images && selectedProduit.images.length > 1">
+              <div
+                *ngFor="let image of selectedProduit.images; let i = index"
+                class="thumbnail"
+                [class.active]="i === currentImageIndex"
+                (click)="currentImageIndex = i"
+              >
+                <img [src]="image" [alt]="selectedProduit.nom + ' ' + (i + 1)" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Informations -->
+          <div class="produit-info-section">
+            <div class="info-header">
+              <h3 class="produit-name-detail">{{ selectedProduit.nom }}</h3>
+              <span class="statut-badge detail" [ngClass]="{
+                'statut-actif': selectedProduit.statut === 'actif',
+                'statut-rupture_stock': selectedProduit.statut === 'rupture_stock',
+                'statut-archive': selectedProduit.statut === 'archive'
+              }">
+                {{
+                  selectedProduit.statut === 'actif' ? 'Actif' :
+                  selectedProduit.statut === 'rupture_stock' ? 'Rupture de stock' :
+                  selectedProduit.statut === 'archive' ? 'Archivé' :
+                  selectedProduit.statut
+                }}
+              </span>
+            </div>
+
+            <div class="produit-slug-detail">
+              <i class="fas fa-link"></i>
+              <span class="slug-text">/boutique/{{ selectedProduit.slug }}</span>
+            </div>
+
+            <div class="info-block">
+              <div class="info-label">
+                <i class="fas fa-boxes"></i> Stock total
+              </div>
+              <div class="info-value">
+                <span class="stock-value" [class.stock-critique]="getProduitStock(selectedProduit) === 0">
+                  {{ getProduitStock(selectedProduit) }} unités
+                  @if (selectedProduit.variantes && selectedProduit.variantes.length > 1) {
+                    <span class="stock-hint">({{ selectedProduit.variantes.length }} variantes)</span>
+                  }
+                </span>
+              </div>
+            </div>
+
+            <!-- Catégorie -->
+            <div class="info-block">
+              <div class="info-label">
+                <i class="fas fa-layer-group"></i> Catégorie
+              </div>
+              <div class="info-value">
+                {{
+                  selectedProduit.idCategorie && typeof selectedProduit.idCategorie !== 'string'
+                    ? selectedProduit.idCategorie.nom
+                    : '-'
+                }}
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="info-block" *ngIf="selectedProduit.description">
+              <div class="info-label">
+                <i class="fas fa-align-left"></i> Description
+              </div>
+              <div class="info-value description-text">
+                {{ selectedProduit.description }}
+              </div>
+            </div>
+
+            <!-- Attributs -->
+            <div class="info-block" *ngIf="selectedProduit.attributs">
+              <div class="info-label">
+                <i class="fas fa-palette"></i> Attributs
+              </div>
+              <div class="info-value attributs-content">
+                <!-- Couleurs -->
+                @if (selectedProduit.attributs.couleurs?.length) {
+                <div class="attribut-simple-row">
+                  <span class="attribut-simple-label">
+                    <i class="fas fa-circle" style="color: var(--text-tertiary)"></i>
+                    Couleurs
+                  </span>
+                  <div class="attribut-simple-value">
+                    @for (couleurId of selectedProduit.attributs.couleurs; track couleurId; let last = $last) {
+                      <span class="couleur-badge-small">
+                        <span class="couleur-swatch-small" [style.background]="getCouleurHex(couleurId)"></span>
+                        {{ getCouleurName(couleurId) }}
+                      </span>
+                      @if (!last) {
+                        <span class="separator">,</span>
+                      }
+                    }
+                  </div>
+                </div>
+                }
+
+                <!-- Tailles -->
+                @if (getAttributsDisplay(selectedProduit).tailles) {
+                <div class="attribut-simple-row">
+                  <span class="attribut-simple-label">
+                    <i class="fas fa-ruler-horizontal"></i>
+                    Tailles
+                  </span>
+                  <div class="attribut-simple-value">
+                    @for (tailleId of selectedProduit.attributs.tailles; track tailleId; let last = $last) {
+                      <span class="taille-badge-small">{{ getTailleName(tailleId) }}</span>
+                      @if (!last) {
+                        <span class="separator">,</span>
+                      }
+                    }
+                  </div>
+                </div>
+                }
+
+                <!-- Marque -->
+                @if (getAttributsDisplay(selectedProduit).marque) {
+                <div class="attribut-simple-row">
+                  <span class="attribut-simple-label">
+                    <i class="fas fa-tag"></i>
+                    Marque
+                  </span>
+                  <span class="attribut-simple-value">
+                    <span class="marque-badge-small">{{ getAttributsDisplay(selectedProduit).marque }}</span>
+                  </span>
+                </div>
+                }
+              </div>
+            </div>
+
+            <!-- Variantes -->
+            <div class="info-block" *ngIf="selectedProduit.variantes && selectedProduit.variantes.length > 0">
+              <div class="info-label">
+                <i class="fas fa-boxes"></i> Variantes ({{ selectedProduit.variantes.length }})
+              </div>
+              <div class="info-value">
+                <div class="variantes-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Couleur</th>
+                        <th>Unité</th>
+                        <th>Prix</th>
+                        <th>Stock</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let variante of selectedProduit.variantes">
+                        <td>
+                          <span class="variante-couleur" *ngIf="variante.couleurHex">
+                            <span class="color-dot" [style.background]="variante.couleurHex"></span>
+                            {{ variante.couleur || '—' }}
+                          </span>
+                          <span *ngIf="!variante.couleur && !variante.couleurHex">—</span>
+                        </td>
+                        <td>{{ variante.unite || '—' }}</td>
+                        <td>
+                          <span class="variante-prix">
+                            {{ variante.prix.montant | number: '1.2-2' }} €
+                          </span>
+                        </td>
+                        <td>
+                          <span class="variante-stock" [class.stock-critique]="variante.stock.quantite === 0">
+                            {{ variante.stock.quantite }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="info-block dates-block">
+              <div class="date-item">
+                <i class="fas fa-calendar-plus"></i>
+                <span>Créé le:</span>
+                <strong>{{ selectedProduit.dateCreation | date: 'dd/MM/yyyy HH:mm' }}</strong>
+              </div>
+              <div class="date-item" *ngIf="selectedProduit.dateMiseAJour">
+                <i class="fas fa-calendar-edit"></i>
+                <span>Modifié le:</span>
+                <strong>{{ selectedProduit.dateMiseAJour | date: 'dd/MM/yyyy HH:mm' }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeProduitModal()">Fermer</button>
+      <button type="button" class="btn btn-danger" (click)="confirmDeleteProduit(selectedProduit)" *ngIf="selectedProduit">
+        <i class="fas fa-trash"></i> Supprimer
+      </button>
+      <button type="button" class="btn btn-primary" (click)="editProduit(selectedProduit)" *ngIf="selectedProduit">
+        <i class="fas fa-edit"></i> Modifier
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="cancelDelete()">
+  <div class="modal-content modal-content-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-danger">
+      <h2 class="modal-title">
+        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+      </h2>
+      <button class="btn-close" (click)="cancelDelete()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="delete-warning">
+        <i class="fas fa-trash-alt"></i>
+        <p>Êtes-vous sûr de vouloir supprimer le produit <strong>"{{ produitASupprimer?.nom }}"</strong> ?</p>
+      </div>
+      <div class="delete-info">
+        <i class="fas fa-info-circle"></i>
+        <p>Cette action est irréversible. Toutes les données liées à ce produit seront définitivement supprimées.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="cancelDelete()">Annuler</button>
+      <button type="button" class="btn btn-danger" (click)="executeDelete()" [disabled]="isDeleting">
+        @if (isDeleting) {
+          <i class="fas fa-spinner fa-spin"></i> Suppression...
+        } @else {
+          <i class="fas fa-trash"></i> Supprimer
+        }
+      </button>
     </div>
   </div>
 </div>
