@@ -1,6 +1,12 @@
 <!-- ================================================
      CONTAINER PRINCIPAL
      ================================================ -->
+<div *ngIf="isLoading" class="loading-container">
+  <div class="loading-spinner">
+    <div class="spinner-ring"></div>
+    <span>Chargement en cours...</span>
+  </div>
+</div>
 <div class="create-produit-container" *ngIf="!isLoading">
   <!-- ================================================
        FORM BODY (scrollable)
