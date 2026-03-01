@@ -24,6 +24,8 @@ export class EmplacementsCrudComponent implements OnInit {
   showModal = false;
   editingEmplacement: Emplacement | null = null;
   isSubmitting = false;
+  loadingCount = 0;
+  get isLoading(): boolean { return this.loadingCount > 0; }
   emplacementForm: FormGroup;
   coordonnees: string = '';
 
@@ -59,22 +61,29 @@ export class EmplacementsCrudComponent implements OnInit {
   }
 
   loadData() {
+    this.loadingCount++;
     this.centresService.getAllCentres().subscribe(centres => {
       this.centres = centres;
+      this.loadingCount--;
     });
 
+    this.loadingCount++;
     this.centresService.getBatiments().subscribe(batiments => {
       this.batiments = batiments;
+      this.loadingCount--;
     });
 
+    this.loadingCount++;
     this.centresService.getEtages().subscribe(etages => {
       this.etages = etages;
+      this.loadingCount--;
     });
 
     this.loadEmplacements();
   }
 
   loadEmplacements() {
+    this.loadingCount++;
     this.centresService.getEmplacementsPaginated(this.currentPage, this.pageSize).subscribe((response: any) => {
       if (response && response.success && response.data) {
         const data = response.data;
@@ -88,6 +97,9 @@ export class EmplacementsCrudComponent implements OnInit {
         this.totalPages = 1;
       }
       this.filterEmplacements();
+      this.loadingCount--;
+    }, () => {
+      this.loadingCount--;
     });
   }
 

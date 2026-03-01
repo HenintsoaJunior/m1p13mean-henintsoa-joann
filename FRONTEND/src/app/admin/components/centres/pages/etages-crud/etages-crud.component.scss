@@ -149,3 +149,27 @@
     cursor: not-allowed;
   }
 }
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #3660a9;
+    
+    i {
+      font-size: 36px;
+    }
+    
+    span {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+}
