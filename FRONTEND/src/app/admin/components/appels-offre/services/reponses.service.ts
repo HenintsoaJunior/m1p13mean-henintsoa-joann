@@ -9,6 +9,9 @@ export interface ReponseDto {
   boutique_id?: string;
   montant_propose?: number;
   email_proposeur?: string;
+  nom_boutique?: string;
+  telephone_boutique?: string;
+  adresse_boutique?: string;
   message?: string;
   statut?: string;
   cree_le?: Date;

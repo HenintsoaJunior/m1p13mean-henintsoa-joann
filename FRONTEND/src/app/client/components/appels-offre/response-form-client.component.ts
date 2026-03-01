@@ -23,6 +23,9 @@ export class ResponseFormClientComponent implements OnInit {
   emailProposeur = '';
   montant: number | undefined;
   message = '';
+  nomBoutique = '';
+  telephoneBoutique = '';
+  adresseBoutique = '';
   
   loading = false;
   submitting = false;
@@ -84,6 +87,10 @@ export class ResponseFormClientComponent implements OnInit {
       this.toastService.showError('Un message est requis');
       return;
     }
+    if (!this.nomBoutique || this.nomBoutique.trim().length === 0) {
+      this.toastService.showError('Le nom de la boutique est requis');
+      return;
+    }
     if (!this.appelId) {
       this.toastService.showError('Appel d\'offre non spécifié');
       return;
@@ -94,7 +101,10 @@ export class ResponseFormClientComponent implements OnInit {
       appel_offre_id: this.appelId,
       email_proposeur: this.emailProposeur,
       montant_propose: this.montant,
-      message: this.message
+      message: this.message,
+      nom_boutique: this.nomBoutique,
+      telephone_boutique: this.telephoneBoutique || '',
+      adresse_boutique: this.adresseBoutique || ''
     };
 
     // Submit using client service
@@ -106,6 +116,9 @@ export class ResponseFormClientComponent implements OnInit {
         this.emailProposeur = '';
         this.montant = undefined;
         this.message = '';
+        this.nomBoutique = '';
+        this.telephoneBoutique = '';
+        this.adresseBoutique = '';
         this.submitting = false;
         // Optionally navigate back
         setTimeout(() => {

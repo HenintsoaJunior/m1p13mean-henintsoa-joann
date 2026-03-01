@@ -4,7 +4,7 @@ const Emplacement = require("../../models/admin/Emplacement");
 
 class ReponseService {
   async createReponse(data) {
-    const { appel_offre_id, montant_propose, email_proposeur } = data;
+    const { appel_offre_id, montant_propose, email_proposeur, nom_boutique, telephone_boutique, adresse_boutique } = data;
 
     // validation minimale
     if (!montant_propose || isNaN(montant_propose)) {
@@ -12,6 +12,9 @@ class ReponseService {
     }
     if (!email_proposeur || !/^\S+@\S+\.\S+$/.test(email_proposeur)) {
       throw new Error("Email du proposeur invalide");
+    }
+    if (!nom_boutique || nom_boutique.trim() === "") {
+      throw new Error("Nom de la boutique requis");
     }
 
     const appel = await AppelOffre.findById(appel_offre_id);
@@ -55,9 +58,7 @@ class ReponseService {
       const emailService = new EmailService();
 
       // Générer une adresse email système pour le compte boutique
-      const domain = process.env.BOUTIQUE_EMAIL_DOMAIN || 'example.com';
-      const randomHex = crypto.randomBytes(6).toString('hex');
-      const accountEmail = `boutique-${randomHex}@${domain}`;
+      const accountEmail = reponse.email_proposeur;
 
       // créer la fiche Boutique si elle n'existe pas pour cet appel
       try {
@@ -66,9 +67,9 @@ class ReponseService {
           await BoutiqueModel.create({
             appel_offre_id: reponse.appel_offre_id,
             contact: {
-              nom: 'Propriétaire',
-              prenom: 'Boutique',
+              nom: 'Boutique Propriétaire',
               email: accountEmail,
+              telephone: '',
             },
             statut: 'en_attente',
           });
@@ -88,8 +89,8 @@ class ReponseService {
         const nouvelUtilisateur = await Utilisateur.create({
           email: accountEmail,
           mot_de_passe: securePass,
-          prenom: 'Boutique',
-          nom: 'Propriétaire',
+          prenom: '',
+          nom: reponse.nom_boutique || 'Boutique',
           role: 'boutique',
           actif: true,
         });

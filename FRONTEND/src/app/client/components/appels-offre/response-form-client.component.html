@@ -79,6 +79,56 @@
           <small class="form-hint">Nous utiliserons cet email pour vous contacter</small>
         </div>
 
+        <!-- Nom Boutique field -->
+        <div class="form-group">
+          <label for="nomBoutique" class="form-label">
+            <span class="required">*</span>
+            Nom de la boutique
+          </label>
+          <input
+            type="text"
+            id="nomBoutique"
+            [(ngModel)]="nomBoutique"
+            name="nomBoutique"
+            placeholder="Ex: Boutique ABC"
+            class="form-input"
+            required
+          />
+          <small class="form-hint">Entrez le nom de votre boutique</small>
+        </div>
+
+        <!-- Telephone field -->
+        <div class="form-group">
+          <label for="telephone" class="form-label">
+            Téléphone
+          </label>
+          <input
+            type="tel"
+            id="telephone"
+            [(ngModel)]="telephoneBoutique"
+            name="telephoneBoutique"
+            placeholder="+261 XX XX XX XX"
+            class="form-input"
+          />
+          <small class="form-hint">Numéro de téléphone de la boutique</small>
+        </div>
+
+        <!-- Adresse field -->
+        <div class="form-group">
+          <label for="adresse" class="form-label">
+            Adresse
+          </label>
+          <input
+            type="text"
+            id="adresse"
+            [(ngModel)]="adresseBoutique"
+            name="adresseBoutique"
+            placeholder="Ex: 123 Rue de la Paix, Antananarivo"
+            class="form-input"
+          />
+          <small class="form-hint">Adresse complète de la boutique</small>
+        </div>
+
         <!-- Montant field -->
         <div class="form-group">
           <label for="montant" class="form-label">

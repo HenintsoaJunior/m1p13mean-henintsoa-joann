@@ -69,8 +69,9 @@ export class ListBoutiquesComponent implements OnInit {
     const search = this.filtreNom.toLowerCase();
     return this.boutiques.filter(b =>
       (b.contact?.nom || '').toLowerCase().includes(search) ||
-      (b.contact?.prenom || '').toLowerCase().includes(search) ||
-      (b.contact?.email || '').toLowerCase().includes(search)
+      (b.contact?.email || '').toLowerCase().includes(search) ||
+      (b.contact?.telephone || '').toLowerCase().includes(search) ||
+      (b.contact?.adresse || '').toLowerCase().includes(search)
     );
   }
 

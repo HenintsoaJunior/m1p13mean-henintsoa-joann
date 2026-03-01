@@ -10,11 +10,13 @@ class EmailService {
    * @returns {Promise<void>}
    */
   async envoyerBienvenue(utilisateur) {
-    // TODO: Intégrer avec un service d'email (SendGrid, Mailgun, etc.)
     console.log(`📧 Email de bienvenue envoyé à ${utilisateur.email}`);
-    
     const template = this.genererTemplateBienvenue(utilisateur);
-    // await this.envoyerEmail(utilisateur.email, 'Bienvenue !', template);
+    try {
+      await this.envoyerEmail(utilisateur.email, 'Bienvenue !', template);
+    } catch (err) {
+      console.error('Erreur envoi bienvenue:', err);
+    }
   }
 
   /**
@@ -42,33 +44,32 @@ class EmailService {
    */
   async envoyerTokenReinitialisation(utilisateur, token) {
     console.log(`🔐 Token de réinitialisation envoyé à ${utilisateur.email}: ${token}`);
-    
     const template = this.genererTemplateReinitialisation(utilisateur, token);
-    // await this.envoyerEmail(utilisateur.email, 'Réinitialisation de mot de passe', template);
+    try {
+      await this.envoyerEmail(utilisateur.email, 'Réinitialisation de mot de passe', template);
+    } catch (err) {
+      console.error('Erreur envoi token reset:', err);
+    }
   }
 
-  /**
-   * Confirmer la réinitialisation du mot de passe
-   * @param {Object} utilisateur - Utilisateur
-   * @returns {Promise<void>}
-   */
   async confirmerReinitialisationMotDePasse(utilisateur) {
     console.log(`✅ Confirmation réinitialisation envoyée à ${utilisateur.email}`);
-    
     const template = this.genererTemplateConfirmationReset(utilisateur);
-    // await this.envoyerEmail(utilisateur.email, 'Mot de passe réinitialisé', template);
+    try {
+      await this.envoyerEmail(utilisateur.email, 'Mot de passe réinitialisé', template);
+    } catch (err) {
+      console.error('Erreur envoi confirmation reset:', err);
+    }
   }
 
-  /**
-   * Notifier un changement de mot de passe
-   * @param {Object} utilisateur - Utilisateur
-   * @returns {Promise<void>}
-   */
   async notifierChangementMotDePasse(utilisateur) {
     console.log(`🔔 Notification changement mot de passe à ${utilisateur.email}`);
-    
     const template = this.genererTemplateNotificationChangement(utilisateur);
-    // await this.envoyerEmail(utilisateur.email, 'Mot de passe modifié', template);
+    try {
+      await this.envoyerEmail(utilisateur.email, 'Mot de passe modifié', template);
+    } catch (err) {
+      console.error('Erreur envoi notification changement:', err);
+    }
   }
 
   // ========== MÉTHODES PRIVÉES DE GÉNÉRATION DE TEMPLATES ==========
