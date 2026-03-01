@@ -4,11 +4,12 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ProduitClientService, ProduitClient } from '../../services/produit-client.service';
 import { ProduitCardComponent } from './produit-card.component';
+import { ProduitDetailModalComponent } from './produit-detail-modal.component';
 
 @Component({
   selector: 'app-produit-list',
   standalone: true,
-  imports: [CommonModule, ProduitCardComponent],
+  imports: [CommonModule, ProduitCardComponent, ProduitDetailModalComponent],
   template: `
     <div class="produit-list-page">
 
@@ -21,7 +22,11 @@ import { ProduitCardComponent } from './produit-card.component';
         <p>Aucun produit trouvé.</p>
       </div>
       <div class="produit-grid" *ngIf="!isLoading && produits.length > 0">
-        <app-produit-card *ngFor="let p of produits" [produit]="p"></app-produit-card>
+        <app-produit-card
+          *ngFor="let p of produits"
+          [produit]="p"
+          (openDetail)="selectedProduit = p">
+        </app-produit-card>
       </div>
       <!-- Pagination -->
       <div class="pagination" *ngIf="totalPages > 1">
@@ -35,6 +40,13 @@ import { ProduitCardComponent } from './produit-card.component';
       </div>
 
     </div>
+
+    <!-- Product Detail Modal -->
+    <app-produit-detail-modal
+      *ngIf="selectedProduit"
+      [produit]="selectedProduit"
+      (fermer)="selectedProduit = null">
+    </app-produit-detail-modal>
   `,
   styles: [`
     .produit-list-page { padding: 20px 24px; }
@@ -68,6 +80,8 @@ export class ClientProduitListComponent implements OnInit, OnDestroy {
   currentPage = 1;
   total = 0;
   limit = 16;
+  selectedProduit: ProduitClient | null = null;
+
   private destroy$ = new Subject<void>();
 
   get totalPages(): number { return Math.ceil(this.total / this.limit); }
