@@ -116,9 +116,9 @@ export class EmplacementsCrudComponent implements OnInit {
     });
 
     this.filteredEmplacements = this.emplacements.filter(emplacement => {
-      const matchesSearch = emplacement.code.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                          emplacement.nom?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                          emplacement.type.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesSearch = (emplacement.code ?? '').toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                          (emplacement.nom ?? '').toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                          (emplacement.type ?? '').toLowerCase().includes(this.searchTerm.toLowerCase());
 
       // Gérer le cas où etage_id est un objet ou une chaîne
       const etageId = typeof emplacement.etage_id === 'object' && emplacement.etage_id !== null
