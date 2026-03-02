@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CategorieTree } from '../../services/categorie.service';
+import { FilterService } from '../../services/filter.service';
 
 @Component({
   selector: 'app-category-node',
@@ -13,7 +14,8 @@ import { CategorieTree } from '../../services/categorie.service';
         [class.expanded]="expanded"
         [class.has-children]="cat.children && cat.children.length > 0"
         [class.root-item]="level === 0"
-        (click)="toggle()"
+        [class.selected]="isSelected"
+        (click)="select()"
       >
         <!-- Dot indicator for sub-items -->
         <span *ngIf="level > 0" class="dot-indicator"></span>
@@ -79,6 +81,19 @@ import { CategorieTree } from '../../services/categorie.service';
     .category-item.root-item.expanded {
       color: #3660a9;
       background-color: #eef2fb;
+    }
+
+    /* Selected state */
+    .category-item.selected {
+      background-color: #dce8fb;
+      color: #3660a9;
+      font-weight: 700;
+    }
+
+    .category-item.selected .cat-icon i,
+    .category-item.selected .dot-indicator {
+      color: #3660a9;
+      background-color: #3660a9;
     }
 
     /* Hover state */
@@ -180,6 +195,12 @@ export class CategoryNodeComponent implements OnInit {
   @Input() defaultExpanded: boolean = false;
   expanded = false;
 
+  private filterService = inject(FilterService);
+
+  get isSelected(): boolean {
+    return !!this.cat._id && this.filterService.currentCategorie === this.cat._id;
+  }
+
   ngOnInit(): void {
     this.expanded = this.defaultExpanded;
   }
@@ -187,6 +208,14 @@ export class CategoryNodeComponent implements OnInit {
   toggle(): void {
     if (this.cat.children && this.cat.children.length > 0) {
       this.expanded = !this.expanded;
+    }
+  }
+
+  select(): void {
+    this.toggle();
+    if (this.cat._id) {
+      const newId = this.filterService.currentCategorie === this.cat._id ? '' : this.cat._id;
+      this.filterService.setCategorie(newId);
     }
   }
 }

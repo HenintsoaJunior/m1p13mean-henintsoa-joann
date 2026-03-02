@@ -1,7 +1,8 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { ToastService } from '../../../services/toast.service';
 import { AppelsOffreClientComponent } from '../appels-offre/appels-offre-client.component';
@@ -9,6 +10,7 @@ import { PanierService, PanierItem } from '../../services/panier.service';
 import { SouhaitService } from '../../services/souhait.service';
 import { ProduitClient } from '../../services/produit-client.service';
 import { ClientProduitListComponent } from '../produits/produit-list.component';
+import { FilterService } from '../../services/filter.service';
 
 @Component({
   selector: 'app-home',
@@ -21,6 +23,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
   private toastService = inject(ToastService);
+  private filterService = inject(FilterService);
   panierService = inject(PanierService);
   souhaitService = inject(SouhaitService);
 
@@ -33,13 +36,31 @@ export class HomeComponent implements OnInit, OnDestroy {
   souhaitItems: ProduitClient[] = [];
 
   private subs = new Subscription();
+  private searchInput$ = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     this.subs.add(this.panierService.items$.subscribe(items => this.panierItems = items));
     this.subs.add(this.souhaitService.items$.subscribe(items => this.souhaitItems = items));
+
+    // Wire search input with debounce to FilterService
+    this.searchInput$.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(q => this.filterService.setSearch(q));
   }
 
-  ngOnDestroy(): void { this.subs.unsubscribe(); }
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearchInput(event: Event): void {
+    const q = (event.target as HTMLInputElement).value;
+    this.searchInput$.next(q);
+  }
 
   openSidebar(type: 'panier' | 'souhait'): void { this.activeSidebar = type; }
   closeSidebar(): void { this.activeSidebar = null; }

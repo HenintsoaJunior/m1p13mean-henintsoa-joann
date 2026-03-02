@@ -174,12 +174,15 @@ app.get("/api/public/produits", async (req, res) => {
 
     const filter = { statut: "actif" };
     if (categorie) filter.idCategorie = categorie;
-    if (q) filter.nom = { $regex: q, $options: "i" };
+    if (q) filter.$or = [
+      { nom: { $regex: q, $options: "i" } },
+      { description: { $regex: q, $options: "i" } }
+    ];
 
     let [produits, total] = await Promise.all([
       Produit.find(filter)
         .populate("idCategorie", "nom slug")
-        .populate("idBoutique", "contact.nom statut")
+        .populate("idBoutique", "contact statut")
         .sort({ dateCreation: -1 })
         .skip(skip)
         .limit(parseInt(limit)),

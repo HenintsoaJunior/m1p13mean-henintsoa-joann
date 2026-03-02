@@ -46,6 +46,9 @@ import { SouhaitService } from '../../services/souhait.service';
         <div class="card-boutique" *ngIf="produit.idBoutique?.contact?.nom">
           <i class="fas fa-store"></i> {{ produit.idBoutique!.contact.nom }}
         </div>
+        <div class="card-adresse" *ngIf="produit.idBoutique?.contact?.adresse">
+          <i class="fas fa-map-marker-alt"></i> {{ produit.idBoutique!.contact.adresse }}
+        </div>
 
         <!-- Variant hint (if variants) -->
         <div class="variante-hint" *ngIf="produit.variantes && produit.variantes.length > 0">
@@ -244,9 +247,18 @@ import { SouhaitService } from '../../services/souhait.service';
         align-items: center;
         gap: 5px;
       }
-      .card-boutique i {
-        font-size: 10px;
+      .card-boutique i { font-size: 10px; }
+
+      .card-adresse {
+        font-size: 11px;
+        color: #b0b7c3;
+        display: flex;
+        align-items: flex-start;
+        gap: 5px;
+        line-height: 1.4;
+        margin-top: -2px;
       }
+      .card-adresse i { font-size: 10px; margin-top: 2px; flex-shrink: 0; }
 
       .variante-hint {
         display: flex;
