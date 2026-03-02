@@ -148,6 +148,7 @@ export class PromotionListComponent implements OnInit {
     }
     return 'Toute la boutique';
   }
+  
 
   getPages(): number[] {
     const pages: number[] = [];
