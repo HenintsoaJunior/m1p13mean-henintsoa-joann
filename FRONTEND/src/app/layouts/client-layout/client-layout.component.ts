@@ -20,9 +20,9 @@ export class ClientLayoutComponent implements OnInit {
     private filterService: FilterService
   ) {}
 
-  get currentCategorie(): string { return this.filterService.currentCategorie; }
+  get selectedCount(): number { return this.filterService.selectedCategories.length; }
 
-  resetCategorie(): void { this.filterService.setCategorie(''); }
+  resetCategorie(): void { this.filterService.clearCategories(); }
 
   ngOnInit(): void {
     this.categorieService.getCategoriesArbre().subscribe({
