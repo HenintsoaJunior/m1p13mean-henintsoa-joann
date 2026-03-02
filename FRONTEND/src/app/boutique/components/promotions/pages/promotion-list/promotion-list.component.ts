@@ -27,6 +27,7 @@ export class PromotionListComponent implements OnInit {
   produits: Produit[] = [];
   categories: Categorie[] = [];
   loading = false;
+  isDeleting = false;
   currentPage = 1;
   pageSize = 10;
   total = 0;
@@ -122,20 +123,28 @@ export class PromotionListComponent implements OnInit {
   executeDelete(): void {
     if (!this.deleteConfirmId) return;
     const id = this.deleteConfirmId;
+    this.isDeleting = true;
     this.promoService.deletePromotion(id).subscribe({
       next: () => {
-        this.toastService.showSuccess('Promotion supprimÃ©e');
+        this.toastService.showSuccess('Promotion supprimée');
         this.promotions = this.promotions.filter(p => p._id !== id);
         this.deleteConfirmId = null;
+        this.isDeleting = false;
       },
       error: () => {
         this.toastService.showError('Erreur lors de la suppression');
+        this.isDeleting = false;
       }
     });
   }
 
   getStatutLabel(statut?: string): string {
-    return statut || '';
+    switch (statut) {
+      case 'active': return 'Active';
+      case 'inactive': return 'Inactive';
+      case 'archive': return 'Archivée';
+      default: return statut || '';
+    }
   }
 
   getPromoTarget(promo: Promotion): string {
