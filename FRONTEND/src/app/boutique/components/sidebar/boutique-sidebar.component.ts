@@ -71,7 +71,7 @@ export class BoutiqueSidebarComponent implements OnInit, OnDestroy {
   onLogout(event: Event) {
     event.preventDefault();
     this.authService.logout();
-    this.router.navigate(['/boutique-login']);
+    this.router.navigate(['/']);
   }
 
   closeSidebar() {

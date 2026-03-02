@@ -182,7 +182,7 @@ export class ProduitCreateComponent implements OnInit {
       description: [''],
       // Prix et stock sont maintenant dans les variantes, mais gardés pour initialisation
       prix: this.formBuilder.group({
-        devise: ['MGA', [Validators.required]],
+        devise: ['Ar', [Validators.required]],
         montant: [0, [Validators.required, Validators.min(0)]],
       }),
       stock: this.formBuilder.group({
@@ -356,7 +356,7 @@ export class ProduitCreateComponent implements OnInit {
 
   updateFormValue() {
     this.produitForm.patchValue({
-      idCategorie: this.selectedCategories.join(','),
+      idCategorie: [...this.selectedCategories],
     });
   }
 
@@ -564,15 +564,13 @@ export class ProduitCreateComponent implements OnInit {
     this.selectSingleColor(value, colorName);
   }
 
-  // Couleurs/unités non encore utilisées dans les variantes
+  // Toutes les couleurs disponibles (réutilisables dans plusieurs variantes)
   get colorPresetsAvailable(): ColorPreset[] {
-    const usedColors = new Set(this.variantes.map(v => v.couleur));
-    return this.colorPresets.filter(c => !usedColors.has(c.name));
+    return this.colorPresets;
   }
 
   get taillesAvailable(): Taille[] {
-    const usedUnites = new Set(this.variantes.map(v => v.unite));
-    return this.tailles.filter(t => !usedUnites.has(t.label || t.valeur));
+    return this.tailles;
   }
 
   // Méthodes pour la sélection unique (mode variantes)
@@ -952,6 +950,9 @@ export class ProduitCreateComponent implements OnInit {
       this.isSubmitting = true;
       const produitData = this.produitForm.value;
 
+      // S'assurer que idCategorie est toujours un tableau
+      produitData.idCategorie = [...this.selectedCategories];
+
       // Formater les variantes avec prix et stock imbriqués
       if (this.useVariantesMode && this.variantes.length > 0) {
         produitData.variantes = this.variantes.map(v => ({
@@ -960,7 +961,7 @@ export class ProduitCreateComponent implements OnInit {
           unite: v.unite || '',
           typeUnitePrincipal: this.selectedTypeUniteId,
           prix: {
-            devise: 'MGA',
+            devise: 'Ar',
             montant: v.prix || 0,
           },
           stock: {
@@ -975,7 +976,7 @@ export class ProduitCreateComponent implements OnInit {
           unite: '',
           typeUnitePrincipal: this.selectedTypeUniteId,
           prix: {
-            devise: 'MGA',
+            devise: 'Ar',
             montant: this.produitForm.get('prix.montant')?.value || 0,
           },
           stock: {

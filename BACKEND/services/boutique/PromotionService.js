@@ -71,15 +71,20 @@ class PromotionService {
     // associer à chaque produit la promotion applicable (avec priorité)
     return produits.map(p => {
       const produitId = p._id.toString();
-      const categorieId = p.idCategorie ? (typeof p.idCategorie === 'object' ? p.idCategorie._id : p.idCategorie).toString() : null;
+      // idCategorie est maintenant un tableau
+      const categorieIds = Array.isArray(p.idCategorie)
+        ? p.idCategorie.map(c => (c && typeof c === 'object' ? c._id : c)?.toString()).filter(Boolean)
+        : p.idCategorie
+          ? [(typeof p.idCategorie === 'object' ? p.idCategorie._id : p.idCategorie)?.toString()].filter(Boolean)
+          : [];
       const boutiqueId = p.idBoutique ? (typeof p.idBoutique === 'object' ? p.idBoutique._id : p.idBoutique).toString() : null;
 
       // Priorité 1: promotion au niveau du produit
       let promo = promos.find(pr => pr.idProduit && pr.idProduit.toString() === produitId);
       
-      // Priorité 2: promotion au niveau de la catégorie
-      if (!promo && categorieId) {
-        promo = promos.find(pr => pr.idCategorie && pr.idCategorie.toString() === categorieId && !pr.idProduit);
+      // Priorité 2: promotion au niveau de la catégorie (vérifie toutes les catégories du produit)
+      if (!promo && categorieIds.length > 0) {
+        promo = promos.find(pr => pr.idCategorie && categorieIds.includes(pr.idCategorie.toString()) && !pr.idProduit);
       }
       
       // Priorité 3: promotion au niveau de la boutique

@@ -23,7 +23,7 @@ export class NavbarComponent {
 
   onLogout() {
     this.authService.logout();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/']);
     this.showMobileMenu = false;
   }
 }
