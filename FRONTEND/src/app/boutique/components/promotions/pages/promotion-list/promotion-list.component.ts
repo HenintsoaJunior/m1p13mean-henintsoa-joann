@@ -7,7 +7,7 @@ import { PromotionService, Promotion } from '../../services/promotion.service';
 import { ToastService } from '../../../../../services/toast.service';
 import { environment } from '../../../../../../environments/environment';
 
-interface Produit { _id: string; nom: string; }
+interface Produit { _id: string; nom: string; variantes?: Array<{ _id: string; nom?: string }>; }
 interface Categorie { _id: string; nom: string; }
 
 @Component({
@@ -34,6 +34,7 @@ export class PromotionListComponent implements OnInit {
   searchTerm = '';
   deleteConfirmId: string | null = null;
   Math = Math;
+  selectedPromo: Promotion | null = null; // used for detail modal
 
   get totalPages(): number {
     return Math.ceil(this.total / this.pageSize);
@@ -147,6 +148,45 @@ export class PromotionListComponent implements OnInit {
       return categorie?.nom || promo.idCategorie;
     }
     return 'Toute la boutique';
+  }
+
+  getProduitName(id?: string): string {
+    if (!id) return '-';
+    const produit = this.produits.find(p => p._id === id);
+    return produit?.nom || id;
+  }
+
+  getVarianteName(prodId: string | undefined, varId: string | undefined): string {
+    if (!prodId || !varId) return '-';
+    const produit = this.produits.find(p => p._id === prodId);
+    const variante = produit?.variantes?.find(v => v._id === varId as any);
+    if (!variante) {
+      const shortRef = varId ? (varId.length > 8 ? varId.slice(0, 8) + '…' : varId) : '';
+      return `${produit?.nom || 'Produit'} — réf. ${shortRef}`;
+    }
+    // Prefer explicit name
+    if ((variante as any).nom) return (variante as any).nom;
+    const parts: string[] = [];
+    if ((variante as any).couleur) parts.push((variante as any).couleur);
+    if ((variante as any).unite) parts.push((variante as any).unite);
+    if ((variante as any).prix?.montant != null) parts.push(String((variante as any).prix.montant) + ((variante as any).prix?.devise ? ' ' + (variante as any).prix.devise : ''));
+    if (parts.length > 0) return parts.join(' • ');
+    const shortRef = varId ? (varId.length > 8 ? varId.slice(0, 8) + '…' : varId) : '';
+    return `${produit?.nom || 'Produit'} — réf. ${shortRef}`;
+  }
+
+  getCategorieName(id?: string): string {
+    if (!id) return '-';
+    const cat = this.categories.find(c => c._id === id);
+    return cat?.nom || id;
+  }
+
+  showDetails(p: Promotion): void {
+    this.selectedPromo = p;
+  }
+
+  hideDetails(): void {
+    this.selectedPromo = null;
   }
   
 

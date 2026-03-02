@@ -177,9 +177,16 @@ export class ProduitCardComponent {
 
   /** Prix après application de la promotion si elle existe */
   get prixPromo(): number | null {
-    if (!this.produit.promotion) return null;
+    const promo = this.produit.promotion as any;
+    if (!promo) return null;
+    // if promotion targets a variant, ensure the current selected variant matches
+    if (promo.idVariante) {
+      const variant = this.produit.variantes?.[this.selectedIdx];
+      if (!variant || variant._id !== promo.idVariante) {
+        return null;
+      }
+    }
     const base = this.prixSelected;
-    const promo = this.produit.promotion;
     if (promo.type === 'pourcentage') {
       return Math.max(0, Math.round(base * (1 - promo.valeur / 100)));
     }

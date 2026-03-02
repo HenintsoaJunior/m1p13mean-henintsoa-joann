@@ -7,13 +7,6 @@
       <div class="section">
         <h3>📍 Portée de la promotion</h3>
         <div class="radio-group">
-          <label class="radio-option">
-            <input type="radio" name="scope" value="boutique" [(ngModel)]="scope" (change)="onScopeChange()" />
-            <span class="radio-label">
-              <strong>Toute la boutique</strong>
-              <small>S'applique à tous les produits</small>
-            </span>
-          </label>
           
           <label class="radio-option">
             <input type="radio" name="scope" value="category" [(ngModel)]="scope" (change)="onScopeChange()" />
@@ -44,11 +37,19 @@
         
         <div *ngIf="scope === 'product'" class="select-group">
           <label>Choisir un produit
-            <select required [(ngModel)]="data.idProduit" name="idProduit">
+            <select required [(ngModel)]="data.idProduit" name="idProduit" (change)="onProductChange()">
               <option value="">--- Sélectionner un produit ---</option>
               <option *ngFor="let p of produits" [value]="p._id">{{ p.nom }}</option>
             </select>
           </label>
+          <div *ngIf="variantes.length > 0" class="mt-2">
+            <label>Choisir une variante
+              <select [(ngModel)]="data.idVariante" name="idVariante">
+                <option value="">--- Toutes variantes ---</option>
+                <option *ngFor="let v of variantes" [value]="v._id">{{ getVarianteLabel(v) }}</option>
+              </select>
+            </label>
+          </div>
         </div>
       </div>
 

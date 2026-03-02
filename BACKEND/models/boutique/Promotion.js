@@ -7,10 +7,15 @@ const promotionSchema = new mongoose.Schema(
       ref: "Boutique",
       required: [true, "L'ID de la boutique est requis"],
     },
-    // soit la promotion s'applique à un produit précis, à une catégorie, ou globalement
+    // soit la promotion s'applique à un produit précis, une variante particulière, à une catégorie, ou globalement
     idProduit: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Produit",
+    },
+    idVariante: {
+      // stocke l'identifiant interne de variante (index ou autre)
+      type: String,
+      default: null
     },
     idCategorie: {
       type: mongoose.Schema.Types.ObjectId,
@@ -48,6 +53,7 @@ const promotionSchema = new mongoose.Schema(
 // indices utiles
 promotionSchema.index({ idBoutique: 1 });
 promotionSchema.index({ idProduit: 1 });
+promotionSchema.index({ idVariante: 1 });
 promotionSchema.index({ idCategorie: 1 });
 promotionSchema.index({ statut: 1 });
 

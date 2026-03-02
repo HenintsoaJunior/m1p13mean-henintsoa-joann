@@ -10,6 +10,7 @@ export interface ProduitClient {
   description?: string;
   images?: string[];
   variantes?: Array<{
+    _id?: string;
     couleur?: string;
     couleurHex?: string;
     unite?: string;
