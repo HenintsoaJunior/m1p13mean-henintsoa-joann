@@ -27,4 +27,8 @@ export class BoutiqueAdminService {
   desactiverBoutique(id: string): Observable<any> {
     return this.http.patch(`${this.apiUrl}/${id}/desactiver`, {}, { headers: this.getAuthHeaders() });
   }
+
+  reactiverBoutique(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/reactiver`, {}, { headers: this.getAuthHeaders() });
+  }
 }

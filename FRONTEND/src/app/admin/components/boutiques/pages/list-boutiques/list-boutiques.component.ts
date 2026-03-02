@@ -80,7 +80,7 @@ export class ListBoutiquesComponent implements OnInit {
     const newStatut = input.checked ? 'active' : 'fermee';
 
     if (newStatut === 'fermee') {
-      // Désactivation : transaction atomique côté backend
+      // Désactivation : cascade boutique + appel_offre + emplacement + utilisateur
       this.boutiqueService.desactiverBoutique(boutique._id).subscribe({
         next: () => {
           boutique.statut = 'fermee';
@@ -92,15 +92,15 @@ export class ListBoutiquesComponent implements OnInit {
         },
       });
     } else {
-      // Réactivation simple
-      this.boutiqueService.updateStatut(boutique._id, newStatut).subscribe({
+      // Réactivation : cascade boutique + appel_offre + emplacement + utilisateur
+      this.boutiqueService.reactiverBoutique(boutique._id).subscribe({
         next: () => {
-          boutique.statut = newStatut;
-          this.notify('Boutique activée avec succès', 'success');
+          boutique.statut = 'active';
+          this.notify('Boutique réactivée avec succès', 'success');
         },
         error: () => {
           input.checked = false;
-          this.notify('Erreur lors de la mise à jour', 'error');
+          this.notify('Erreur lors de la réactivation', 'error');
         },
       });
     }
