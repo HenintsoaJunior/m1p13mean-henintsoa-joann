@@ -1,8 +1,10 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { ProduitClient } from '../../services/produit-client.service';
 import { PanierService } from '../../services/panier.service';
 import { SouhaitService } from '../../services/souhait.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-produit-card',
@@ -380,6 +382,8 @@ export class ProduitCardComponent {
   constructor(
     private panierService: PanierService,
     private souhaitService: SouhaitService,
+    private authService: AuthService,
+    private router: Router,
   ) {}
 
   get selectedVariante() {
@@ -476,9 +480,11 @@ export class ProduitCardComponent {
 
   toggleSouhait(e: Event): void {
     e.stopPropagation();
+    if (!this.authService.isAuthenticated()) { this.router.navigate(['/client-login']); return; }
     this.souhaitService.basculer(this.produit);
   }
   addToCart(): void {
+    if (!this.authService.isAuthenticated()) { this.router.navigate(['/client-login']); return; }
     this.panierService.ajouter(this.produit, this.selectedIdx);
   }
   onOpenDetail(): void {

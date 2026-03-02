@@ -266,7 +266,101 @@
         <span>Total</span>
         <strong>{{ panierTotal | number: '1.0-0' }} Ar</strong>
       </div>
-      <button class="btn-checkout"><i class="fas fa-credit-card"></i> Commander</button>
+      <button class="btn-checkout" (click)="ouvrirCheckout()"><i class="fas fa-credit-card"></i> Commander</button>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div class="checkout-overlay" *ngIf="showCheckout" (click)="fermerCheckout()"></div>
+  <div class="checkout-modal" *ngIf="showCheckout">
+    <div class="checkout-header">
+      <div class="checkout-title"><i class="fas fa-receipt"></i> Confirmer la commande</div>
+      <button class="checkout-close" (click)="fermerCheckout()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Succès -->
+    <div class="checkout-success" *ngIf="checkoutSuccess">
+      <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+      <h3>Commande passée !</h3>
+      <p>Votre commande a été enregistrée avec succès.</p>
+      <div class="success-ref" *ngIf="checkoutReference">Référence : <strong>{{ checkoutReference }}</strong></div>
+      <button class="btn-close-success" (click)="fermerCheckout()">Fermer</button>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="checkout-body" *ngIf="!checkoutSuccess">
+
+      <!-- Infos client (pré-remplies) -->
+      <div class="checkout-section">
+        <div class="section-title"><i class="fas fa-user"></i> Vos informations</div>
+        <div class="client-info-grid">
+          <div class="client-field">
+            <span class="field-label">Prénom</span>
+            <span class="field-val">{{ checkoutUser?.prenom || '—' }}</span>
+          </div>
+          <div class="client-field">
+            <span class="field-label">Nom</span>
+            <span class="field-val">{{ checkoutUser?.nom || '—' }}</span>
+          </div>
+          <div class="client-field">
+            <span class="field-label">Email</span>
+            <span class="field-val">{{ checkoutUser?.email || '—' }}</span>
+          </div>
+          <div class="client-field">
+            <span class="field-label">Téléphone</span>
+            <span class="field-val">{{ checkoutUser?.telephone || '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adresse de livraison -->
+      <div class="checkout-section">
+        <div class="section-title"><i class="fas fa-map-marker-alt"></i> Adresse de livraison</div>
+        <textarea class="checkout-textarea" [(ngModel)]="checkoutAdresse" placeholder="Entrez votre adresse de livraison..." rows="2"></textarea>
+      </div>
+
+      <!-- Résumé du panier -->
+      <div class="checkout-section">
+        <div class="section-title"><i class="fas fa-shopping-cart"></i> Résumé ({{ panierItems.length }} article{{ panierItems.length > 1 ? 's' : '' }})</div>
+        <div class="checkout-items">
+          <div class="checkout-item" *ngFor="let item of panierItems">
+            <img *ngIf="item.produit.images?.length" [src]="item.produit.images![0]" [alt]="item.produit.nom" />
+            <div class="ci-no-img" *ngIf="!item.produit.images?.length"><i class="fas fa-box-open"></i></div>
+            <div class="ci-info">
+              <span class="ci-name">{{ item.produit.nom }}</span>
+              <span class="ci-variant" *ngIf="getLibelleVariante(item)">{{ getLibelleVariante(item) }}</span>
+            </div>
+            <div class="ci-right">
+              <span class="ci-qty">x{{ item.quantite }}</span>
+              <span class="ci-price">{{ getPrixVariante(item) * item.quantite | number:'1.0-0' }} Ar</span>
+            </div>
+          </div>
+        </div>
+        <div class="checkout-total">
+          <span>Total</span>
+          <strong>{{ panierTotal | number:'1.0-0' }} Ar</strong>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="checkout-section">
+        <div class="section-title"><i class="fas fa-sticky-note"></i> Notes (optionnel)</div>
+        <textarea class="checkout-textarea" [(ngModel)]="checkoutNotes" placeholder="Instructions spéciales..." rows="2"></textarea>
+      </div>
+
+      <!-- Erreur -->
+      <div class="checkout-error" *ngIf="checkoutError">
+        <i class="fas fa-exclamation-circle"></i> {{ checkoutError }}
+      </div>
+
+      <!-- Actions -->
+      <div class="checkout-actions">
+        <button class="btn-cancel" (click)="fermerCheckout()">Annuler</button>
+        <button class="btn-confirm" (click)="confirmerCommande()" [disabled]="checkoutLoading">
+          <span *ngIf="!checkoutLoading"><i class="fas fa-check"></i> Confirmer la commande</span>
+          <span *ngIf="checkoutLoading"><i class="fas fa-spinner fa-spin"></i> Traitement...</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

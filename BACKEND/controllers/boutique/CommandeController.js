@@ -1,13 +1,21 @@
 const CommandeService = require("../../services/boutique/CommandeService");
+const Boutique = require("../../models/admin/Boutique");
 
 class CommandeController {
   constructor() {
     this.service = new CommandeService();
   }
 
+  async _getBoutiqueId(utilisateur) {
+    const boutique = await Boutique.findOne({ "contact.email": utilisateur.email });
+    if (!boutique) throw new Error("Boutique introuvable pour cet utilisateur");
+    return boutique._id;
+  }
+
   async creerCommande(req, res) {
     try {
-      const commande = await this.service.creerCommande(req.body, req.utilisateur._id);
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const commande = await this.service.creerCommande(req.body, idBoutique);
       res.status(201).json({ commande });
     } catch (error) {
       console.error("Erreur création commande:", error);
@@ -17,7 +25,8 @@ class CommandeController {
 
   async listerCommandes(req, res) {
     try {
-      const resultat = await this.service.listerCommandes(req.utilisateur._id, {
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const resultat = await this.service.listerCommandes(idBoutique, {
         statut: req.query.statut,
         page: req.query.page,
         limite: req.query.limite,
@@ -31,7 +40,8 @@ class CommandeController {
 
   async obtenirCommande(req, res) {
     try {
-      const commande = await this.service.obtenirCommande(req.params.id, req.utilisateur._id);
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const commande = await this.service.obtenirCommande(req.params.id, idBoutique);
       res.json({ commande });
     } catch (error) {
       console.error("Erreur obtenir commande:", error);
@@ -42,11 +52,8 @@ class CommandeController {
 
   async modifierCommande(req, res) {
     try {
-      const commande = await this.service.modifierCommande(
-        req.params.id,
-        req.body,
-        req.utilisateur._id
-      );
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const commande = await this.service.modifierCommande(req.params.id, req.body, idBoutique);
       res.json({ commande });
     } catch (error) {
       console.error("Erreur modifier commande:", error);
@@ -57,12 +64,9 @@ class CommandeController {
 
   async modifierStatut(req, res) {
     try {
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
       const { statut } = req.body;
-      const commande = await this.service.modifierStatut(
-        req.params.id,
-        statut,
-        req.utilisateur._id
-      );
+      const commande = await this.service.modifierStatut(req.params.id, statut, idBoutique);
       res.json({ commande });
     } catch (error) {
       console.error("Erreur modifier statut:", error);
@@ -73,7 +77,8 @@ class CommandeController {
 
   async supprimerCommande(req, res) {
     try {
-      await this.service.supprimerCommande(req.params.id, req.utilisateur._id);
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      await this.service.supprimerCommande(req.params.id, idBoutique);
       res.json({ message: "Commande supprimée avec succès" });
     } catch (error) {
       console.error("Erreur supprimer commande:", error);
@@ -84,7 +89,8 @@ class CommandeController {
 
   async stats(req, res) {
     try {
-      const resultat = await this.service.stats(req.utilisateur._id);
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const resultat = await this.service.stats(idBoutique);
       res.json({ stats: resultat });
     } catch (error) {
       console.error("Erreur stats commandes:", error);

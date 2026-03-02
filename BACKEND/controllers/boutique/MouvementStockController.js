@@ -1,15 +1,23 @@
 const MouvementStockService = require("../../services/boutique/MouvementStockService");
+const Boutique = require("../../models/admin/Boutique");
 
 class MouvementStockController {
   constructor() {
     this.service = new MouvementStockService();
   }
 
+  async _getBoutiqueId(utilisateur) {
+    const boutique = await Boutique.findOne({ "contact.email": utilisateur.email });
+    if (!boutique) throw new Error("Boutique introuvable pour cet utilisateur");
+    return boutique._id;
+  }
+
   async creerMouvement(req, res) {
     try {
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
       const resultat = await this.service.creerMouvement({
         ...req.body,
-        idBoutique: req.utilisateur._id,
+        idBoutique,
         utilisateur: req.utilisateur._id,
       });
       res.status(201).json(resultat);
@@ -21,15 +29,13 @@ class MouvementStockController {
 
   async listerMouvements(req, res) {
     try {
-      const resultat = await this.service.listerMouvements(
-        req.utilisateur._id,
-        {
-          page: req.query.page,
-          limite: req.query.limite,
-          idProduit: req.query.idProduit,
-          type: req.query.type,
-        }
-      );
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const resultat = await this.service.listerMouvements(idBoutique, {
+        page: req.query.page,
+        limite: req.query.limite,
+        idProduit: req.query.idProduit,
+        type: req.query.type,
+      });
       res.json(resultat);
     } catch (error) {
       console.error("Erreur liste mouvements:", error);
@@ -39,10 +45,8 @@ class MouvementStockController {
 
   async listerParProduit(req, res) {
     try {
-      const resultat = await this.service.listerParProduit(
-        req.params.idProduit,
-        req.utilisateur._id
-      );
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const resultat = await this.service.listerParProduit(req.params.idProduit, idBoutique);
       res.json(resultat);
     } catch (error) {
       console.error("Erreur mouvements produit:", error);
@@ -53,7 +57,8 @@ class MouvementStockController {
 
   async stats(req, res) {
     try {
-      const resultat = await this.service.stats(req.utilisateur._id);
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const resultat = await this.service.stats(idBoutique);
       res.json({ stats: resultat });
     } catch (error) {
       console.error("Erreur stats mouvements:", error);

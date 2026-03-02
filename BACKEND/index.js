@@ -185,7 +185,27 @@ app.get("/api/public/produits", async (req, res) => {
     let [produits, total] = await Promise.all([
       Produit.find(filter)
         .populate("idCategorie", "nom slug")
-        .populate("idBoutique", "contact statut")
+        .populate({
+          path: "idBoutique",
+          select: "contact statut appel_offre_id",
+          populate: {
+            path: "appel_offre_id",
+            select: "emplacement_id",
+            populate: {
+              path: "emplacement_id",
+              select: "nom code type",
+              populate: {
+                path: "etage_id",
+                select: "nom niveau",
+                populate: {
+                  path: "batiment_id",
+                  select: "nom",
+                  populate: { path: "centre_id", select: "nom" }
+                }
+              }
+            }
+          }
+        })
         .sort({ dateCreation: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
@@ -198,10 +218,6 @@ app.get("/api/public/produits", async (req, res) => {
     produits = await promoService.annoterProduits(produits.map(p => p));
 
     const withPromo = produits.filter(p => p.promotion);
-    console.log(`[PROMO DEBUG] Total produits: ${produits.length}, avec promotion: ${withPromo.length}`);
-    if (withPromo.length > 0) {
-      console.log('[PROMO DEBUG] Exemple promo:', JSON.stringify(withPromo[0].promotion, null, 2));
-    }
 
     if (promo === 'true' || promo === '1' || promo === true) {
       produits = produits.filter(p => p.promotion);

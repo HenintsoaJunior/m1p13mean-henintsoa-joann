@@ -1,21 +1,25 @@
 const ProduitService = require("../../services/boutique/ProduitService");
+const Boutique = require("../../models/admin/Boutique");
 
 class ProduitController {
   constructor() {
     this.produitService = new ProduitService();
   }
 
-  /**
-   * Créer un nouveau produit
-   * @param {Object} req - Requête Express
-   * @param {Object} res - Réponse Express
-   */
+  async _getBoutiqueId(utilisateur) {
+    const boutique = await Boutique.findOne({ "contact.email": utilisateur.email });
+    if (!boutique) throw new Error("Boutique introuvable pour cet utilisateur");
+    return boutique._id;
+  }
+
   async creerProduit(req, res) {
     try {
-      // Ajouter l'ID de la boutique depuis l'utilisateur authentifié
+      const boutique = await Boutique.findOne({ "contact.email": req.utilisateur.email });
+      if (!boutique) return res.status(404).json({ erreur: "Boutique introuvable pour cet utilisateur" });
+
       const donneesAvecBoutique = {
         ...req.body,
-        idBoutique: req.utilisateur._id,
+        idBoutique: boutique._id,
       };
 
       const resultat = await this.produitService.creerProduit(donneesAvecBoutique);
@@ -108,14 +112,12 @@ class ProduitController {
    */
   async obtenirProduitsParBoutique(req, res) {
     try {
-      const idBoutique = req.utilisateur._id;
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
       const produits = await this.produitService.obtenirProduitsParBoutique(idBoutique);
       res.json({ produits });
     } catch (error) {
       console.error("Erreur lors de la récupération des produits:", error);
-      res.status(500).json({
-        erreur: error.message || "Erreur serveur lors de la récupération des produits",
-      });
+      res.status(500).json({ erreur: error.message || "Erreur serveur lors de la récupération des produits" });
     }
   }
 
@@ -180,21 +182,13 @@ class ProduitController {
   async rechercherProduits(req, res) {
     try {
       const { terme } = req.query;
-      const idBoutique = req.utilisateur._id;
-      
-      if (!terme) {
-        return res.status(400).json({
-          erreur: "Le terme de recherche est requis",
-        });
-      }
-
+      if (!terme) return res.status(400).json({ erreur: "Le terme de recherche est requis" });
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
       const produits = await this.produitService.rechercherProduits(terme, idBoutique);
       res.json({ produits });
     } catch (error) {
       console.error("Erreur lors de la recherche des produits:", error);
-      res.status(500).json({
-        erreur: error.message || "Erreur serveur lors de la recherche des produits",
-      });
+      res.status(500).json({ erreur: error.message || "Erreur serveur lors de la recherche des produits" });
     }
   }
 
@@ -205,24 +199,18 @@ class ProduitController {
    */
   async obtenirListeProduits(req, res) {
     try {
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
       const filtres = {
-        idBoutique: req.utilisateur._id,
+        idBoutique,
         idCategorie: req.query.idCategorie,
         statut: req.query.statut,
       };
-
-      const pagination = {
-        page: req.query.page || 1,
-        limite: req.query.limite || 10,
-      };
-
+      const pagination = { page: req.query.page || 1, limite: req.query.limite || 10 };
       const resultat = await this.produitService.obtenirListeProduits(filtres, pagination);
       res.json(resultat);
     } catch (error) {
       console.error("Erreur lors de la récupération des produits:", error);
-      res.status(500).json({
-        erreur: "Erreur serveur lors de la récupération des produits",
-      });
+      res.status(500).json({ erreur: "Erreur serveur lors de la récupération des produits" });
     }
   }
 }
