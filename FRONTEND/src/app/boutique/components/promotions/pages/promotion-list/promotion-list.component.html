@@ -136,7 +136,7 @@
         <tr><th>Type</th><td>{{ selectedPromo.type }}</td></tr>
         <tr><th>Valeur</th><td>{{ selectedPromo.valeur }} {{ selectedPromo.type === 'pourcentage' ? '%' : 'Ar' }}</td></tr>
         <tr><th>Produit</th><td>{{ getProduitName(selectedPromo.idProduit) }}</td></tr>
-        <tr><th>Variante</th><td>{{ getVarianteName(selectedPromo?.idProduit, selectedPromo?.idVariante) }}</td></tr>
+        <tr><th>Variante</th><td>{{ getVarianteName(selectedPromo.idProduit, selectedPromo.idVariante) }}</td></tr>
         <tr><th>Catégorie</th><td>{{ getCategorieName(selectedPromo.idCategorie) }}</td></tr>
         <tr><th>Début</th><td>{{ selectedPromo.dateDebut | date:'medium' }}</td></tr>
         <tr><th>Fin</th><td>{{ selectedPromo.dateFin | date:'medium' }}</td></tr>
