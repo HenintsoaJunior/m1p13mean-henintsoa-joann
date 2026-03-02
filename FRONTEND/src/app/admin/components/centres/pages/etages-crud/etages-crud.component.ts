@@ -23,6 +23,8 @@ export class EtagesCrudComponent implements OnInit {
   showModal = false;
   editingEtage: Etage | null = null;
   isSubmitting = false;
+  loadingCount = 0;
+  get isLoading(): boolean { return this.loadingCount > 0; }
   etageForm: FormGroup;
 
   // Pagination
@@ -51,18 +53,23 @@ export class EtagesCrudComponent implements OnInit {
   }
 
   loadData() {
+    this.loadingCount++;
     this.centresService.getAllCentres().subscribe(centres => {
       this.centres = centres;
+      this.loadingCount--;
     });
 
+    this.loadingCount++;
     this.centresService.getBatiments().subscribe(batiments => {
       this.batiments = batiments;
+      this.loadingCount--;
     });
 
     this.loadEtages();
   }
 
   loadEtages() {
+    this.loadingCount++;
     this.centresService.getEtagesPaginated(this.currentPage, this.pageSize).subscribe((response: any) => {
       if (response && response.success && response.data) {
         const data = response.data;
@@ -79,6 +86,9 @@ export class EtagesCrudComponent implements OnInit {
       if (this.searchTerm || this.selectedBatimentId || this.selectedCentreId) {
         this.filterEtages();
       }
+      this.loadingCount--;
+    }, () => {
+      this.loadingCount--;
     });
   }
 

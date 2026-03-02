@@ -1,9 +1,11 @@
 <div class="page-container">
 
   @if (isLoading) {
-    <div class="loading-state">
-      <i class="fas fa-spinner fa-spin"></i>
-      <span>Chargement des informations...</span>
+    <div class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <span>Chargement en cours...</span>
+      </div>
     </div>
   } @else if (erreur) {
     <div class="error-state">

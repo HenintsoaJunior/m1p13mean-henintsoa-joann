@@ -21,6 +21,8 @@ export class BatimentsCrudComponent implements OnInit {
   showModal = false;
   editingBatiment: Batiment | null = null;
   isSubmitting = false;
+  loadingCount = 0;
+  get isLoading(): boolean { return this.loadingCount > 0; }
   batimentForm: FormGroup;
 
   // Pagination
@@ -48,14 +50,17 @@ export class BatimentsCrudComponent implements OnInit {
   }
 
   loadData() {
+    this.loadingCount++;
     this.centresService.getAllCentres().subscribe(centres => {
       this.centres = centres;
+      this.loadingCount--;
     });
 
     this.loadBatiments();
   }
 
   loadBatiments() {
+    this.loadingCount++;
     this.centresService.getBatimentsPaginated(this.currentPage, this.pageSize).subscribe((response: any) => {
       if (response && response.success && response.data) {
         const data = response.data;
@@ -72,6 +77,9 @@ export class BatimentsCrudComponent implements OnInit {
       if (this.searchTerm || this.selectedCentreId) {
         this.filterBatiments();
       }
+      this.loadingCount--;
+    }, () => {
+      this.loadingCount--;
     });
   }
 

@@ -65,7 +65,22 @@ app.get("/api/public/appels-offre", async (req, res) => {
       .populate({
         path: "emplacement_id",
         model: "Emplacement",
-        select: "_id nom code surface_m2 loyer_mensuel type",
+        select: "_id nom code surface_m2 loyer_mensuel type statut",
+        populate: {
+          path: "etage_id",
+          model: "Etage",
+          select: "_id nom niveau surface_totale_m2 hauteur_sous_plafond_m",
+          populate: {
+            path: "batiment_id",
+            model: "Batiment",
+            select: "_id nom description",
+            populate: {
+              path: "centre_id",
+              model: "Centre",
+              select: "_id nom adresse description"
+            }
+          }
+        }
       })
       .sort({ date_appel: -1 })
       .skip(skip)
@@ -109,7 +124,22 @@ app.get("/api/public/appels-offre/:id", async (req, res) => {
       .populate({
         path: "emplacement_id",
         model: "Emplacement",
-        select: "_id nom code surface_m2 loyer_mensuel type",
+        select: "_id nom code surface_m2 loyer_mensuel type statut",
+        populate: {
+          path: "etage_id",
+          model: "Etage",
+          select: "_id nom niveau surface_totale_m2 hauteur_sous_plafond_m",
+          populate: {
+            path: "batiment_id",
+            model: "Batiment",
+            select: "_id nom description",
+            populate: {
+              path: "centre_id",
+              model: "Centre",
+              select: "_id nom adresse description"
+            }
+          }
+        }
       })
       .lean();
 
