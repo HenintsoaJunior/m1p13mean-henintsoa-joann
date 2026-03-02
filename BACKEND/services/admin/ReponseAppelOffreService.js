@@ -17,6 +17,16 @@ class ReponseService {
       throw new Error("Nom de la boutique requis");
     }
 
+    // Vérifier si cet email est déjà associé à une boutique active
+    const BoutiqueModel = require("../../models/admin/Boutique");
+    const boutiqueExistante = await BoutiqueModel.findOne({ 
+      'contact.email': email_proposeur,
+      statut: 'active'
+    });
+    if (boutiqueExistante) {
+      throw new Error("Cet email est déjà associé à une boutique active");
+    }
+
     const appel = await AppelOffre.findById(appel_offre_id);
     if (!appel) throw new Error("Appel d'offre introuvable");
     if (appel.statut !== "ouvert") throw new Error("Appel d'offre non ouvert à la réponse");
@@ -72,7 +82,7 @@ class ReponseService {
               telephone: reponse.telephone_boutique || '',
               adresse: reponse.adresse_boutique || '',
             },
-            statut: 'en_attente',
+            statut: 'active',
           });
         }
       } catch (err) {
