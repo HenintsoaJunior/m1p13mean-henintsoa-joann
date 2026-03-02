@@ -7,12 +7,21 @@
 
     <div class="search-section">
       <div class="search-bar-container">
-        <input type="text" class="search-bar" placeholder="Que désirez-vous aujourd'hui ?" (input)="onSearchInput($event)" />
+        <input
+          type="text"
+          class="search-bar"
+          placeholder="Que désirez-vous aujourd'hui ?"
+          (input)="onSearchInput($event)"
+        />
         <button class="search-button"><i class="fas fa-search"></i></button>
       </div>
 
       <div class="header-actions">
-        <div class="action-item action-heart" (click)="openSidebar('souhait')" style="cursor:pointer; position:relative;">
+        <div
+          class="action-item action-heart"
+          (click)="openSidebar('souhait')"
+          style="cursor: pointer; position: relative"
+        >
           <i class="fas fa-heart"></i>
           <span class="action-badge" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
           <span>Mes souhaits</span>
@@ -21,7 +30,11 @@
           <i class="fas fa-user"></i>
           <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
         </div>
-        <div class="action-item action-cart" (click)="openSidebar('panier')" style="cursor:pointer; position:relative;">
+        <div
+          class="action-item action-cart"
+          (click)="openSidebar('panier')"
+          style="cursor: pointer; position: relative"
+        >
           <i class="fas fa-shopping-cart"></i>
           <span class="action-badge" *ngIf="panierCount > 0">{{ panierCount }}</span>
           <span>Mon panier</span>
@@ -39,13 +52,6 @@
         (click)="selectTab('produits')"
       >
         <i class="fas fa-box"></i> Produits
-      </button>
-      <button
-        class="tab-btn"
-        [class.active]="activeTab === 'promotion'"
-        (click)="selectTab('promotion')"
-      >
-        <i class="fas fa-tag"></i> Promotion
       </button>
       <button
         class="tab-btn"
@@ -74,7 +80,11 @@
   <!-- Fixed footer with action items -->
   <footer class="fixed-footer">
     <div class="footer-actions">
-      <div class="footer-action-item" (click)="openSidebar('souhait')" style="cursor:pointer; position:relative;">
+      <div
+        class="footer-action-item"
+        (click)="openSidebar('souhait')"
+        style="cursor: pointer; position: relative"
+      >
         <i class="fas fa-heart"></i>
         <span class="action-badge" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
         <span>Mes souhaits</span>
@@ -83,7 +93,11 @@
         <i class="fas fa-user"></i>
         <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
       </div>
-      <div class="footer-action-item" (click)="openSidebar('panier')" style="cursor:pointer; position:relative;">
+      <div
+        class="footer-action-item"
+        (click)="openSidebar('panier')"
+        style="cursor: pointer; position: relative"
+      >
         <i class="fas fa-shopping-cart"></i>
         <span class="action-badge" *ngIf="panierCount > 0">{{ panierCount }}</span>
         <span>Mon panier</span>
@@ -135,7 +149,7 @@
   <div class="right-drawer" [class.open]="activeSidebar === 'souhait'">
     <div class="drawer-header">
       <div class="drawer-title">
-        <i class="fas fa-heart" style="color:#e74c3c; margin-right:8px;"></i>
+        <i class="fas fa-heart" style="color: #e74c3c; margin-right: 8px"></i>
         Mes souhaits
         <span class="drawer-count" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
       </div>
@@ -148,12 +162,20 @@
       </div>
       <div *ngFor="let p of souhaitItems" class="drawer-item">
         <div class="drawer-item-img">
-          <img *ngIf="p.images && p.images.length > 0; else noImgS" [src]="p.images[0]" [alt]="p.nom" />
-          <ng-template #noImgS><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div></ng-template>
+          <img
+            *ngIf="p.images && p.images.length > 0; else noImgS"
+            [src]="p.images[0]"
+            [alt]="p.nom"
+          />
+          <ng-template #noImgS
+            ><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div
+          ></ng-template>
         </div>
         <div class="drawer-item-info">
           <div class="drawer-item-name">{{ p.nom }}</div>
-          <div class="drawer-item-price" *ngIf="getPrixMin(p) > 0">{{ getPrixMin(p) | number:'1.0-0' }} Ar</div>
+          <div class="drawer-item-price" *ngIf="getPrixMin(p) > 0">
+            {{ getPrixMin(p) | number: '1.0-0' }} Ar
+          </div>
           <div class="drawer-item-actions">
             <button class="btn-add-cart" (click)="ajouterSouhaitAuPanier(p)">
               <i class="fas fa-shopping-cart"></i> Ajouter au panier
@@ -171,7 +193,7 @@
   <div class="right-drawer" [class.open]="activeSidebar === 'panier'">
     <div class="drawer-header">
       <div class="drawer-title">
-        <i class="fas fa-shopping-cart" style="color:#3660a9; margin-right:8px;"></i>
+        <i class="fas fa-shopping-cart" style="color: #3660a9; margin-right: 8px"></i>
         Mon panier
         <span class="drawer-count" *ngIf="panierCount > 0">{{ panierCount }}</span>
       </div>
@@ -184,21 +206,56 @@
       </div>
       <div *ngFor="let item of panierItems" class="drawer-item">
         <div class="drawer-item-img">
-          <img *ngIf="item.produit.images && item.produit.images.length > 0; else noImgP"
-               [src]="item.produit.images[0]" [alt]="item.produit.nom" />
-          <ng-template #noImgP><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div></ng-template>
+          <img
+            *ngIf="item.produit.images && item.produit.images.length > 0; else noImgP"
+            [src]="item.produit.images[0]"
+            [alt]="item.produit.nom"
+          />
+          <ng-template #noImgP
+            ><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div
+          ></ng-template>
         </div>
         <div class="drawer-item-info">
           <div class="drawer-item-name">{{ item.produit.nom }}</div>
-          <div class="drawer-item-variante" *ngIf="getLibelleVariante(item)">{{ getLibelleVariante(item) }}</div>
-          <div class="drawer-item-price" *ngIf="getPrixVariante(item) > 0">{{ getPrixVariante(item) | number:'1.0-0' }} Ar</div>
+          <div class="drawer-item-variante" *ngIf="getLibelleVariante(item)">
+            {{ getLibelleVariante(item) }}
+          </div>
+          <div class="drawer-item-price" *ngIf="getPrixVariante(item) > 0">
+            {{ getPrixVariante(item) | number: '1.0-0' }} Ar
+          </div>
           <div class="drawer-qty">
-            <button class="qty-btn" (click)="panierService.modifierQuantite(item.produit._id, item.varianteIndex, item.quantite - 1)">−</button>
+            <button
+              class="qty-btn"
+              (click)="
+                panierService.modifierQuantite(
+                  item.produit._id,
+                  item.varianteIndex,
+                  item.quantite - 1
+                )
+              "
+            >
+              −
+            </button>
             <span class="qty-val">{{ item.quantite }}</span>
-            <button class="qty-btn" (click)="panierService.modifierQuantite(item.produit._id, item.varianteIndex, item.quantite + 1)">+</button>
+            <button
+              class="qty-btn"
+              (click)="
+                panierService.modifierQuantite(
+                  item.produit._id,
+                  item.varianteIndex,
+                  item.quantite + 1
+                )
+              "
+            >
+              +
+            </button>
           </div>
         </div>
-        <button class="drawer-item-remove" (click)="panierService.retirer(item.produit._id, item.varianteIndex)" title="Retirer">
+        <button
+          class="drawer-item-remove"
+          (click)="panierService.retirer(item.produit._id, item.varianteIndex)"
+          title="Retirer"
+        >
           <i class="fas fa-trash-alt"></i>
         </button>
       </div>
@@ -206,12 +263,9 @@
     <div class="drawer-footer" *ngIf="panierItems.length > 0">
       <div class="drawer-total">
         <span>Total</span>
-        <strong>{{ panierTotal | number:'1.0-0' }} Ar</strong>
+        <strong>{{ panierTotal | number: '1.0-0' }} Ar</strong>
       </div>
-      <button class="btn-checkout">
-        <i class="fas fa-credit-card"></i> Commander
-      </button>
+      <button class="btn-checkout"><i class="fas fa-credit-card"></i> Commander</button>
     </div>
   </div>
-
 </div>

@@ -60,12 +60,28 @@ class PromotionService {
   async annoterProduits(produits) {
     if (!Array.isArray(produits) || produits.length === 0) return produits;
     const now = new Date();
+    // Début du jour courant (minuit) pour inclure les promos dont dateDebut = aujourd'hui
+    const startOfDay = new Date(now);
+    startOfDay.setUTCHours(0, 0, 0, 0);
     
     // Récupérer toutes les promotions actives
     const promos = await Promotion.find({
       statut: "active",
-      dateDebut: { $lte: now },
-      dateFin: { $gte: now },
+      dateDebut: { $lte: new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000) },
+      dateFin: { $gte: startOfDay },
+    });
+
+    console.log(`[PROMO SERVICE] Date now: ${now.toISOString()}`);
+    console.log(`[PROMO SERVICE] Promotions actives trouvées: ${promos.length}`);
+    promos.forEach(pr => {
+      console.log(`  → id:${pr._id} type:${pr.type} valeur:${pr.valeur} idProduit:${pr.idProduit} idCategorie:${pr.idCategorie} idBoutique:${pr.idBoutique} debut:${pr.dateDebut} fin:${pr.dateFin}`);
+    });
+
+    // Debug: toutes les promos DB sans filtre date/statut
+    const toutesPromos = await Promotion.find({}).lean();
+    console.log(`[PROMO SERVICE DEBUG ALL] Total dans DB (sans filtre): ${toutesPromos.length}`);
+    toutesPromos.forEach(pr => {
+      console.log(`  [ALL] id:${pr._id} statut:${pr.statut} type:${pr.type} valeur:${pr.valeur} idProduit:${pr.idProduit} idVariante:${pr.idVariante} debut:${pr.dateDebut?.toISOString?.()} fin:${pr.dateFin?.toISOString?.()}`);
     });
 
     // associer à chaque produit la promotion applicable (avec priorité)
@@ -79,6 +95,8 @@ class PromotionService {
           : [];
       const boutiqueId = p.idBoutique ? (typeof p.idBoutique === 'object' ? p.idBoutique._id : p.idBoutique).toString() : null;
 
+      console.log(`[PROMO MATCH] Produit: ${produitId} | boutique: ${boutiqueId} | categories: ${categorieIds.join(',')}`);
+
       // Priorité 1: promotion au niveau du produit
       let promo = promos.find(pr => pr.idProduit && pr.idProduit.toString() === produitId);
       
@@ -91,6 +109,9 @@ class PromotionService {
       if (!promo && boutiqueId) {
         promo = promos.find(pr => pr.idBoutique && pr.idBoutique.toString() === boutiqueId && !pr.idCategorie && !pr.idProduit);
       }
+
+      if (promo) console.log(`  ✅ Promo trouvée: ${promo._id}`);
+      else console.log(`  ❌ Aucune promo pour ce produit`);
 
       return {
         ...p.toJSON(),

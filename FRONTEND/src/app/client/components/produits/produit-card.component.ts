@@ -30,9 +30,10 @@ import { SouhaitService } from '../../services/souhait.service';
         >
           <i class="fas fa-heart"></i>
         </button>
-        <!-- Badge stock -->
-        <span class="badge-stock" *ngIf="!enStock">Rupture</span>
-        <span class="badge-promo" *ngIf="produit.promotion">Promo</span>
+        <!-- Badge promo rouge haut gauche -->
+        <span class="badge-promo" *ngIf="produit.promotion">{{ promoLabel }}</span>
+        <!-- Badge stock (décalé si promo présente) -->
+        <span class="badge-stock" [class.shifted]="produit.promotion" *ngIf="!enStock">Rupture</span>
         <!-- Detail hover overlay -->
         <div class="img-overlay">
           <span><i class="fas fa-eye"></i> Voir détails</span>
@@ -56,15 +57,25 @@ import { SouhaitService } from '../../services/souhait.service';
           {{ produit.variantes.length }} variante{{
             produit.variantes.length > 1 ? 's' : ''
           }}
-          disponible{{ produit.variantes.length > 1 ? 's' : '' }}
         </div>
 
-        <!-- Price: only if NO variants -->
+        <!-- Prix variantes avec promo -->
+        <div class="card-price" *ngIf="produit.variantes && produit.variantes.length > 0">
+          <ng-container *ngIf="prixMinPromo !== null; else prixNormal">
+            <span class="old-price">{{ prixMinOriginal | number:'1.0-0' }} {{ devise }}</span>
+            <span class="current-price is-promo">{{ prixMinPromo | number:'1.0-0' }} {{ devise }}</span>
+          </ng-container>
+          <ng-template #prixNormal>
+            <span class="current-price">dès {{ prixMin | number:'1.0-0' }} {{ devise }}</span>
+          </ng-template>
+        </div>
+
+        <!-- Price: produits sans variantes -->
         <div class="card-price" *ngIf="!produit.variantes || produit.variantes.length === 0">
           <span *ngIf="prixPromo !== null" class="old-price"
             >{{ prixSelected | number: '1.0-0' }} {{ devise }}</span
           >
-          <span class="current-price"
+          <span class="current-price" [class.is-promo]="prixPromo !== null"
             >{{ (prixPromo !== null ? prixPromo : prixSelected) | number: '1.0-0' }}
             {{ devise }}</span
           >
@@ -190,7 +201,7 @@ import { SouhaitService } from '../../services/souhait.service';
         position: absolute;
         top: 8px;
         left: 8px;
-        background: #ef4444;
+        background: #6b7280;
         color: white;
         font-size: 10px;
         font-weight: 700;
@@ -199,18 +210,20 @@ import { SouhaitService } from '../../services/souhait.service';
         text-transform: uppercase;
         z-index: 2;
       }
+      .badge-stock.shifted { left: auto; right: 8px; }
+      /* Badge promo rouge haut gauche */
       .badge-promo {
         position: absolute;
         top: 8px;
-        right: 8px;
-        background: #f59e0b;
+        left: 8px;
+        background: #ef4444;
         color: white;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 2px 7px;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 8px;
         border-radius: 4px;
-        text-transform: uppercase;
         z-index: 2;
+        letter-spacing: 0.02em;
       }
 
       .card-body {
@@ -260,6 +273,8 @@ import { SouhaitService } from '../../services/souhait.service';
       }
       .card-adresse i { font-size: 10px; margin-top: 2px; flex-shrink: 0; }
 
+      /* Promo row for variant products — supprimé, remplacé par prix inline */
+
       .variante-hint {
         display: flex;
         align-items: center;
@@ -288,9 +303,8 @@ import { SouhaitService } from '../../services/souhait.service';
         margin-right: 6px;
         font-size: 14px;
       }
-      .card-price .current-price {
-        color: #ef4444;
-      }
+      .card-price .current-price { color: #3660a9; }
+      .card-price .current-price.is-promo { color: #d97706; }
 
       .card-actions {
         display: flex;
@@ -353,7 +367,15 @@ import { SouhaitService } from '../../services/souhait.service';
   ],
 })
 export class ProduitCardComponent {
-  @Input() produit!: ProduitClient;
+  @Input() set produit(value: ProduitClient) {
+    this._produit = value;
+    if (value?.promotion) {
+      console.log('[PROMO CARD]', value.nom, '→ promotion:', value.promotion);
+    }
+  }
+  get produit(): ProduitClient { return this._produit; }
+  private _produit!: ProduitClient;
+
   @Output() openDetail = new EventEmitter<ProduitClient>();
 
   selectedIdx = 0;
@@ -373,6 +395,41 @@ export class ProduitCardComponent {
       this.selectedVariante?.prix.montant ??
       Math.min(...this.produit.variantes.map((v) => v.prix.montant))
     );
+  }
+
+  /** Label de réduction affiché dans le badge, ex: "-20%" ou "-5 000 Ar" */
+  get promoLabel(): string {
+    const promo = this.produit.promotion;
+    if (!promo) return '';
+    return promo.type === 'pourcentage'
+      ? `-${promo.valeur}%`
+      : `-${promo.valeur.toLocaleString('fr-FR')} Ar`;
+  }
+
+  /** Prix minimum parmi toutes les variantes (avant promo) */
+  get prixMin(): number {
+    if (!this.produit.variantes?.length) return 0;
+    return Math.min(...this.produit.variantes.map(v => v.prix.montant));
+  }
+
+  /** Prix minimum après application de la promo (pour produits avec variantes) */
+  get prixMinPromo(): number | null {
+    const promo = this.produit.promotion as any;
+    if (!promo || !this.produit.variantes?.length) return null;
+    const base = this.prixMinOriginal;
+    if (promo.type === 'pourcentage') return Math.max(0, Math.round(base * (1 - promo.valeur / 100)));
+    if (promo.type === 'montant') return Math.max(0, base - promo.valeur);
+    return null;
+  }
+
+  /** Prix original de la variante ciblée par la promo (ou min global) */
+  get prixMinOriginal(): number {
+    const promo = this.produit.promotion as any;
+    if (promo?.idVariante && this.produit.variantes?.length) {
+      const target = this.produit.variantes.find(v => v._id === promo.idVariante);
+      if (target) return target.prix.montant;
+    }
+    return this.prixMin;
   }
 
   get prixPromo(): number | null {
