@@ -18,7 +18,7 @@ export interface ProduitClient {
     stock: { quantite: number };
   }>;
   idCategorie?: { _id: string; nom: string; slug: string };
-  idBoutique?: { contact: { nom: string } };
+  idBoutique?: { contact: { nom: string; adresse?: string; telephone?: string; email?: string }; statut?: string };
   statut: string;
   promotion?: {
     _id?: string;

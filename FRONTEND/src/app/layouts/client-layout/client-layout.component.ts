@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { ClientCategorieService, CategorieTree } from '../../client/services/categorie.service';
 import { CategoryNodeComponent } from '../../client/components/sidebar/category-node.component';
+import { FilterService } from '../../client/services/filter.service';
 
 @Component({
   selector: 'app-client-layout',
@@ -14,7 +15,14 @@ import { CategoryNodeComponent } from '../../client/components/sidebar/category-
 export class ClientLayoutComponent implements OnInit {
   categoriesTree: CategorieTree[] = [];
 
-  constructor(private categorieService: ClientCategorieService) {}
+  constructor(
+    private categorieService: ClientCategorieService,
+    private filterService: FilterService
+  ) {}
+
+  get currentCategorie(): string { return this.filterService.currentCategorie; }
+
+  resetCategorie(): void { this.filterService.setCategorie(''); }
 
   ngOnInit(): void {
     this.categorieService.getCategoriesArbre().subscribe({
