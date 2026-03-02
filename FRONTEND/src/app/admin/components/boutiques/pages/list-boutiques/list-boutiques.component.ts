@@ -78,17 +78,32 @@ export class ListBoutiquesComponent implements OnInit {
   onStatusChange(boutique: any, event: Event): void {
     const input = event.target as HTMLInputElement;
     const newStatut = input.checked ? 'active' : 'fermee';
-    this.boutiqueService.updateStatut(boutique._id, newStatut).subscribe({
-      next: (res: any) => {
-        boutique.statut = newStatut;
-        this.notify(`Boutique ${newStatut === 'active' ? 'activée' : 'désactivée'} avec succès`, 'success');
-      },
-      error: () => {
-        // Revert the checkbox
-        input.checked = !input.checked;
-        this.notify('Erreur lors de la mise à jour', 'error');
-      },
-    });
+
+    if (newStatut === 'fermee') {
+      // Désactivation : transaction atomique côté backend
+      this.boutiqueService.desactiverBoutique(boutique._id).subscribe({
+        next: () => {
+          boutique.statut = 'fermee';
+          this.notify('Boutique désactivée avec succès', 'success');
+        },
+        error: () => {
+          input.checked = true;
+          this.notify('Erreur lors de la désactivation', 'error');
+        },
+      });
+    } else {
+      // Réactivation simple
+      this.boutiqueService.updateStatut(boutique._id, newStatut).subscribe({
+        next: () => {
+          boutique.statut = newStatut;
+          this.notify('Boutique activée avec succès', 'success');
+        },
+        error: () => {
+          input.checked = false;
+          this.notify('Erreur lors de la mise à jour', 'error');
+        },
+      });
+    }
   }
 
   notify(message: string, type: 'success' | 'error'): void {

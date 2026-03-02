@@ -23,4 +23,8 @@ export class BoutiqueAdminService {
   updateStatut(id: string, statut: string): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, { statut }, { headers: this.getAuthHeaders() });
   }
+
+  desactiverBoutique(id: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/desactiver`, {}, { headers: this.getAuthHeaders() });
+  }
 }
