@@ -106,7 +106,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   onLogout() {
     this.authService.logout();
-    this.router.navigate(['/client-login']);
+    this.router.navigate(['/']);
     this.showLogoutPopup = false;
   }
 

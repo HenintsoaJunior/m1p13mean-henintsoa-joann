@@ -8,6 +8,7 @@ router.get("/appel-offre/:appelOffreId", boutiqueController.getBoutiquesByAppelO
 router.get("/statut/:statut", boutiqueController.getBoutiquesByStatut);
 router.get("/:id", boutiqueController.getBoutiqueById);
 router.patch("/:id/desactiver", boutiqueController.desactiverBoutique);
+router.patch("/:id/reactiver", boutiqueController.reactiverBoutique);
 router.put("/:id", boutiqueController.updateBoutique);
 router.delete("/:id", boutiqueController.deleteBoutique);
 

@@ -172,7 +172,7 @@ export class ProduitEditComponent implements OnInit {
       slug: ['', [Validators.required, Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
       description: [''],
       prix: this.formBuilder.group({
-        devise: ['MGA', [Validators.required]],
+        devise: ['Ar', [Validators.required]],
         montant: [0, [Validators.required, Validators.min(0)]],
       }),
       stock: this.formBuilder.group({
@@ -289,7 +289,7 @@ export class ProduitEditComponent implements OnInit {
     // Gérer le prix
     if (produit.prix) {
       patchValue.prix = {
-        devise: produit.prix.devise || 'MGA',
+        devise: produit.prix.devise || 'Ar',
         montant: produit.prix.montant || 0,
       };
     }
@@ -475,7 +475,7 @@ export class ProduitEditComponent implements OnInit {
 
   updateFormValue() {
     this.produitForm.patchValue({
-      idCategorie: this.selectedCategories.join(','),
+      idCategorie: [...this.selectedCategories],
     });
   }
 
@@ -776,15 +776,13 @@ export class ProduitEditComponent implements OnInit {
     }
   }
 
-  // Couleurs/unités non encore utilisées dans les variantes
+  // Toutes les couleurs disponibles (réutilisables dans plusieurs variantes)
   get colorPresetsAvailable(): ColorPreset[] {
-    const usedColors = new Set(this.variantes.map(v => v.couleur));
-    return this.colorPresets.filter(c => !usedColors.has(c.name));
+    return this.colorPresets;
   }
 
   get taillesAvailable(): Taille[] {
-    const usedUnites = new Set(this.variantes.map(v => v.unite));
-    return this.tailles.filter(t => !usedUnites.has(t.label || t.valeur));
+    return this.tailles;
   }
 
   isSingleColorSelected(hex: string): boolean {
@@ -1181,7 +1179,7 @@ export class ProduitEditComponent implements OnInit {
         unite: v.unite || '',
         typeUnitePrincipal: this.selectedTypeUniteId,
         prix: {
-          devise: 'MGA',
+          devise: 'Ar',
           montant: v.prix || 0,
         },
         stock: {
@@ -1190,6 +1188,9 @@ export class ProduitEditComponent implements OnInit {
       }));
 
       const produitData: any = this.produitForm.value;
+
+      // S'assurer que idCategorie est toujours un tableau
+      produitData.idCategorie = [...this.selectedCategories];
 
       if (this.useVariantesMode && this.variantes.length > 0) {
         produitData.variantes = variantesFormatees;

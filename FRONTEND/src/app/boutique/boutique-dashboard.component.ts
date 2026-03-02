@@ -74,6 +74,6 @@ export class BoutiqueDashboardComponent {
 
   onLogout() {
     this.authService.logout();
-    this.router.navigate(['/boutique-login']);
+    this.router.navigate(['/']);
   }
 }
