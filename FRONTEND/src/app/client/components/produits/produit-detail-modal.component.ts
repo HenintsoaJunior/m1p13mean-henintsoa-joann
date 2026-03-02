@@ -396,8 +396,11 @@ export class ProduitDetailModalComponent implements OnInit {
   /** Prix promotionnel pour la variante sélectionnée, si applicable */
   get prixPromo(): number | null {
     if (!this.produit.promotion || !this.selectedVariante) return null;
+    const promo = this.produit.promotion as any;
+    if (promo.idVariante && promo.idVariante !== this.selectedVariante._id) {
+      return null;
+    }
     const base = this.selectedVariante.prix.montant;
-    const promo = this.produit.promotion;
     if (promo.type === 'pourcentage') {
       return Math.max(0, Math.round(base * (1 - promo.valeur / 100)));
     }

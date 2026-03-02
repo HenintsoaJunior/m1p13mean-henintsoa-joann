@@ -41,8 +41,9 @@
     <table *ngIf="!loading" class="data-table">
       <thead>
         <tr>
-          <th>Promotion</th>
-          <th>Portée</th>
+          <th>Type</th>
+          <th>Valeur</th>
+          <th>Cible</th>
           <th>Période</th>
           <th>Statut</th>
           <th>Actions</th>
@@ -58,12 +59,8 @@
         </tr>
 
         <tr *ngFor="let p of promotions; trackBy: trackByPromotion" class="table-row">
-          <td>
-            <div>
-              <div style="font-weight:600">{{ p.type === 'pourcentage' ? p.valeur + '%' : p.valeur + ' Ar' }}</div>
-              <div class="text-secondary">{{ p.type }}</div>
-            </div>
-          </td>
+          <td>{{ p.type }}</td>
+          <td>{{ p.type === 'pourcentage' ? p.valeur + '%' : p.valeur + ' Ar' }}</td>
           <td>{{ getPromoTarget(p) }}</td>
           <td>
             <div>{{ p.dateDebut | date:'shortDate' }}</div>
@@ -78,6 +75,9 @@
           </td>
           <td>
             <div class="action-buttons">
+              <button (click)="showDetails(p); $event.stopPropagation();" class="btn-icon btn-info" title="Détails">
+                <i class="fas fa-info-circle" style="color: white"></i>
+              </button>
               <button (click)="goToEdit(p._id!); $event.stopPropagation();" class="btn-icon btn-edit" title="Modifier">
                 <i class="fas fa-edit" style="color: white"></i>
               </button>
@@ -125,6 +125,25 @@
       <div class="modal-actions">
         <button (click)="executeDelete()" class="btn btn-danger">Supprimer</button>
         <button (click)="cancelDelete()" class="btn btn-secondary">Annuler</button>
+      </div>
+    </div>
+  </div>
+  <!-- Détails modal -->
+  <div *ngIf="selectedPromo" class="modal-overlay" (click)="hideDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>Détails de la promotion</h3>
+      <table class="detail-table">
+        <tr><th>Type</th><td>{{ selectedPromo.type }}</td></tr>
+        <tr><th>Valeur</th><td>{{ selectedPromo.valeur }} {{ selectedPromo.type === 'pourcentage' ? '%' : 'Ar' }}</td></tr>
+        <tr><th>Produit</th><td>{{ getProduitName(selectedPromo.idProduit) }}</td></tr>
+        <tr><th>Variante</th><td>{{ getVarianteName(selectedPromo?.idProduit, selectedPromo?.idVariante) }}</td></tr>
+        <tr><th>Catégorie</th><td>{{ getCategorieName(selectedPromo.idCategorie) }}</td></tr>
+        <tr><th>Début</th><td>{{ selectedPromo.dateDebut | date:'shortDate' }}</td></tr>
+        <tr><th>Fin</th><td>{{ selectedPromo.dateFin | date:'shortDate' }}</td></tr>
+        <tr><th>Statut</th><td>{{ getStatutLabel(selectedPromo.statut) }}</td></tr>
+      </table>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="hideDetails()">Fermer</button>
       </div>
     </div>
   </div>

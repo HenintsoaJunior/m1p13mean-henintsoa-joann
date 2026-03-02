@@ -9,6 +9,7 @@ export interface Promotion {
   _id?: string;
   idBoutique?: string;
   idProduit?: string;
+  idVariante?: string; // for targeting specific variant
   idCategorie?: string;
   type: 'pourcentage' | 'montant';
   valeur: number;
@@ -21,6 +22,7 @@ export interface Promotion {
 
 export interface PromotionFormData {
   idProduit?: string;
+  idVariante?: string;
   idCategorie?: string;
   type: 'pourcentage' | 'montant';
   valeur: number;

@@ -259,6 +259,19 @@
   font-size: 14px;
 }
 
+/* informational button (details) */
+.btn-info { background-color: #0ea5e9; border-color: #0ea5e9; color: white; }
+.btn-info:hover { background-color: #0284c7; }
+
+/* detail modal */
+.detail-table { width: 100%; border-collapse: collapse; }
+.detail-table th { text-align: left; padding: 4px 8px; color: #374151; width: 35%; }
+.detail-table td { padding: 4px 8px; }
+
+.modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+.modal-content { background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px; }
+.modal-actions { margin-top: 16px; text-align: right; }
+
 .btn-icon:hover {
   background-color: #f3f4f6;
   border-color: #9ca3af;

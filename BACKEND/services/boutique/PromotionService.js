@@ -23,6 +23,10 @@ class PromotionService {
     if (new Date(donnees.dateFin) < new Date(donnees.dateDebut)) {
       throw new Error("La date de fin doit être postérieure à la date de début");
     }
+    // variant validation: if idVariante provided, require idProduit as well
+    if (donnees.idVariante && !donnees.idProduit) {
+      throw new Error("Une variante nécessite un produit associé");
+    }
 
     return await this.promoRepo.creer(donnees);
   }
