@@ -480,6 +480,31 @@
   padding: 0 !important;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.detail-scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+
+  /* Scrollbar stylisée */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f8fafc;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f8fafc;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+    &:hover { background: #94a3b8; }
+  }
 }
 
 /* Header style boutique */
