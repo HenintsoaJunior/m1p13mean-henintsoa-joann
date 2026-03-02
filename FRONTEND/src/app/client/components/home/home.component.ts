@@ -34,6 +34,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   showLogoutPopup = false;
   activeTab = 'produits';
 
+  // Login in profile modal
+  loginEmail = '';
+  loginPassword = '';
+  loginLoading = false;
+  loginError = '';
+
+  // Commandes
+  mesCommandes: any[] = [];
+  loadingCommandes = false;
+  selectedCommande: any = null;
+
   // Right drawer
   activeSidebar: 'panier' | 'souhait' | null = null;
   panierItems: PanierItem[] = [];
@@ -184,9 +195,61 @@ export class HomeComponent implements OnInit, OnDestroy {
   onProfileClick() {
     if (this.isLoggedIn) {
       this.showLogoutPopup = true;
+      this.chargerMesCommandes();
     } else {
-      this.router.navigate(['/client-login']);
+      this.loginEmail = '';
+      this.loginPassword = '';
+      this.loginError = '';
+      this.showLogoutPopup = true;
     }
+  }
+
+  voirDetailCommande(cmd: any): void {
+    this.selectedCommande = cmd;
+  }
+
+  retourListeCommandes(): void {
+    this.selectedCommande = null;
+  }
+
+  getStatutLabel(statut: string): string {
+    const labels: Record<string,string> = {
+      en_attente: 'En attente', confirmee: 'Confirmée',
+      expediee: 'Expédiée', livree: 'Livrée', annulee: 'Annulée'
+    };
+    return labels[statut] || statut;
+  }
+
+  chargerMesCommandes(): void {
+    this.loadingCommandes = true;
+    this.commandeService.mesCommandes().subscribe({
+      next: (res) => {
+        this.mesCommandes = res?.data?.commandes || res?.commandes || res?.data || [];
+        this.loadingCommandes = false;
+      },
+      error: () => { this.mesCommandes = []; this.loadingCommandes = false; }
+    });
+  }
+
+  loginFromModal(): void {
+    if (this.loginLoading) return;
+    this.loginError = '';
+    this.loginLoading = true;
+    this.authService.login({ email: this.loginEmail, mot_de_passe: this.loginPassword }, 'client').subscribe({
+      next: () => {
+        this.loginLoading = false;
+        this.chargerMesCommandes();
+      },
+      error: (e: any) => {
+        this.loginLoading = false;
+        this.loginError = e?.error?.message || 'Email ou mot de passe incorrect';
+      }
+    });
+  }
+
+  goToRegister(): void {
+    this.showLogoutPopup = false;
+    this.router.navigate(['/client-register']);
   }
 
   onLogout() {
