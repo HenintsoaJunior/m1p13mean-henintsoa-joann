@@ -11,11 +11,12 @@ import { SouhaitService } from '../../services/souhait.service';
 import { ProduitClient } from '../../services/produit-client.service';
 import { ClientProduitListComponent } from '../produits/produit-list.component';
 import { FilterService } from '../../services/filter.service';
+import { CentreContactComponent } from '../centre-contact/centre-contact.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NgIf, AppelsOffreClientComponent, ClientProduitListComponent],
+  imports: [CommonModule, NgIf, AppelsOffreClientComponent, ClientProduitListComponent, CentreContactComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
