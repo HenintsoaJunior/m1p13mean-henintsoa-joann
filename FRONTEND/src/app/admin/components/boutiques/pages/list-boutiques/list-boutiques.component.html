@@ -49,9 +49,11 @@
     </div>
 
     @if (isLoading) {
-      <div class="empty-state">
-        <i class="fas fa-spinner fa-spin"></i>
-        <p>Chargement...</p>
+      <div class="loading-container">
+        <div class="loading-spinner">
+          <div class="spinner-ring"></div>
+          <span>Chargement en cours...</span>
+        </div>
       </div>
     } @else if (filteredBoutiques.length === 0) {
       <div class="empty-state">

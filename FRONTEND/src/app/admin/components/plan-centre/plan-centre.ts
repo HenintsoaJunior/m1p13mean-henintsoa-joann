@@ -24,6 +24,7 @@ export class PlanCentreComponent implements OnInit {
   showEmplacementsPopup = false;
   showCentresList = true;
   loading = false;
+  isLoading = false;
   error: string | null = null;
 
   constructor(
@@ -54,17 +55,20 @@ export class PlanCentreComponent implements OnInit {
 
   private loadCentres() {
     this.loading = true;
+    this.isLoading = true;
     this.centreService.getAllCentres().subscribe({
       next: (response) => {
         if (response.success && response.data.centres) {
           this.centres = response.data.centres;
         }
         this.loading = false;
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Erreur lors du chargement des centres:', error);
         this.error = 'Erreur lors du chargement des centres';
         this.loading = false;
+        this.isLoading = false;
         // Fallback vers les données mock en cas d'erreur
         this.loadMockData();
       }

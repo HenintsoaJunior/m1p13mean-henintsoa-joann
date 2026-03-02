@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface AppelOffreDto {
   _id?: string;
@@ -11,6 +12,31 @@ export interface AppelOffreDto {
     code: string;
     surface_m2: number;
     loyer_mensuel: number;
+    type: string;
+    statut: string;
+    etage_id?: {
+      _id: string;
+      nom: string;
+      niveau: number;
+      surface_totale_m2?: number;
+      hauteur_sous_plafond_m?: number;
+      batiment_id?: {
+        _id: string;
+        nom: string;
+        description?: string;
+        centre_id?: {
+          _id: string;
+          nom: string;
+          description?: string;
+          adresse?: {
+            rue?: string;
+            ville?: string;
+            code_postal?: string;
+            pays?: string;
+          };
+        };
+      };
+    };
   };
   description: string;
   statut: string;
@@ -34,25 +60,20 @@ export interface AppelsOffreResponse {
   providedIn: 'root'
 })
 export class AppelsOffreService {
-  // Use public API endpoint that doesn't require authentication
-  // backend base path (dev uses localhost:5000)
-  private apiUrl = 'http://localhost:5000/api/public/appels-offre';
+  private apiUrl = `${environment.apiUrl}/api/public/appels-offre`;
+  private reponsesUrl = `${environment.apiUrl}/api/reponses-appel-offre`;
 
   constructor(private http: HttpClient) {}
 
-  // Get all open appels d'offre with pagination
   getAllAppelsOuverts(page: number = 1, limit: number = 10): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}?page=${page}&limit=${limit}`);
   }
 
-  // Get appel d'offre by ID
   getAppelOffre(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 
-  // Submit a response to an appel (public endpoint)
   createReponse(payload: any): Observable<any> {
-    // direct backend route; public POST allowed without auth
-    return this.http.post<any>('http://localhost:5000/api/reponses-appel-offre', payload);
+    return this.http.post<any>(this.reponsesUrl, payload);
   }
 }

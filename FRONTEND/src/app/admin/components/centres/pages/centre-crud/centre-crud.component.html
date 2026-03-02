@@ -29,7 +29,14 @@
       </button>
     </div>
 
-    <table class="data-table">
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <span>Chargement en cours...</span>
+      </div>
+    </div>
+
+    <table *ngIf="!isLoading" class="data-table">
       <thead>
         <tr>
           <th>Nom</th>

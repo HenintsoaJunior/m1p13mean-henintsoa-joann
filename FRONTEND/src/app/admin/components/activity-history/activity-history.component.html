@@ -32,6 +32,15 @@
 
   <!-- Tableau -->
   <div class="table-container">
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <span>Chargement en cours...</span>
+      </div>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
     <table class="data-table">
       <thead>
         <tr>
@@ -99,6 +108,7 @@
         </button>
       </div>
     </div>
+    </ng-container>
   </div>
   
   <!-- Modal pour les détails -->

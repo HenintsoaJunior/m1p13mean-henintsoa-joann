@@ -1,162 +1,356 @@
 <div class="appels-offre-page">
-  <div class="page-header">
-    <h1>Appels d'offres</h1>
-    <p>Découvrez les appels d'offres disponibles et soumettez votre candidature</p>
-  </div>
-
-  <!-- Search and Filters -->
-  <div class="filters-section">
-    <div class="filters-container">
-      <div class="filters-header">
-        <i class="fa-solid fa-filter"></i>
-        <span>Filtres</span>
-      </div>
-      <div class="filters-content">
-        <div class="search-box">
-          <input
-            type="text"
-            placeholder="Rechercher (description, emplacement, code)..."
-            [(ngModel)]="searchTerm"
-            class="search-input"
-          />
-          <i class="fas fa-search"></i>
-        </div>
-      </div>
-    </div>
+  <!-- Search bar -->
+  <div class="search-bar">
+    <i class="fas fa-search"></i>
+    <input
+      type="text"
+      placeholder="Rechercher par description, emplacement, code..."
+      [(ngModel)]="searchTerm"
+      class="search-input"
+    />
+    <span *ngIf="searchTerm" class="clear-search" (click)="searchTerm = ''">
+      <i class="fas fa-times"></i>
+    </span>
   </div>
 
   <!-- Loading state -->
-  <div *ngIf="loading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Chargement des appels d'offres...</p>
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner">
+      <div class="spinner-ring"></div>
+      <span>Chargement en cours...</span>
+    </div>
   </div>
 
-  <!-- Appels d'offres list -->
-  <div *ngIf="!loading && filteredAppels.length > 0" class="appels-list">
+  <!-- Appels d'offres grid -->
+  <div *ngIf="!loading && filteredAppels.length > 0" class="appels-grid">
     <div *ngFor="let appel of filteredAppels" class="appel-card" (click)="openModal(appel)">
-      <div class="appel-header">
-        <h3 class="appel-description">{{ appel.description }}</h3>
-        <span class="appel-status" [ngClass]="'status-' + appel.statut">
-          {{ appel.statut | uppercase }}
-        </span>
+      <!-- Card header -->
+      <div class="card-header">
+        <div class="card-title-row">
+          <span class="appel-status" [ngClass]="'status-' + appel.statut">
+            {{ appel.statut | uppercase }}
+          </span>
+          <h3 class="appel-description">{{ appel.description }}</h3>
+        </div>
       </div>
-      
-      <div class="appel-details">
-        <div class="detail-item" *ngIf="appel.emplacement">
-          <i class="fas fa-map-marker-alt"></i>
-          <div>
-            <label>Emplacement</label>
-            <p>{{ appel.emplacement.nom }} ({{ appel.emplacement.code }})</p>
+
+      <!-- Card body: info grid -->
+      <div class="card-body">
+        <div class="info-row" *ngIf="appel.emplacement">
+          <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="info-content">
+            <span class="info-label">Emplacement</span>
+            <span class="info-value"
+              >{{ appel.emplacement.nom }}
+              <span class="code-badge">{{ appel.emplacement.code }}</span></span
+            >
           </div>
         </div>
-        
-        <div class="detail-item" *ngIf="appel.emplacement?.surface_m2">
-          <i class="fas fa-ruler"></i>
-          <div>
-            <label>Surface</label>
-            <p>{{ appel.emplacement?.surface_m2 }} m²</p>
+
+        <div class="info-chips">
+          <div class="chip" *ngIf="appel.emplacement?.surface_m2">
+            <i class="fas fa-ruler-combined"></i>
+            {{ appel.emplacement?.surface_m2 }} m²
           </div>
-        </div>
-        
-        <div class="detail-item" *ngIf="appel.emplacement?.loyer_mensuel">
-          <i class="fas fa-money-bill-wave"></i>
-          <div>
-            <label>Loyer mensuel</label>
-            <p>{{ appel.emplacement?.loyer_mensuel | number:'1.2-2' }} Ar</p>
+          <div class="chip chip-money" *ngIf="appel.emplacement?.loyer_mensuel">
+            <i class="fas fa-coins"></i>
+            {{ appel.emplacement?.loyer_mensuel | number: '1.0-0' }} MGA/mois
           </div>
-        </div>
-        
-        <div class="detail-item" *ngIf="appel.date_deadline">
-          <i class="fas fa-calendar"></i>
-          <div>
-            <label>Deadline</label>
-            <p>{{ appel.date_deadline | date:'shortDate' }}</p>
+          <div class="chip chip-deadline" *ngIf="appel.date_deadline">
+            <i class="fas fa-calendar-alt"></i>
+            {{ appel.date_deadline | date: 'dd/MM/yyyy' }}
           </div>
         </div>
       </div>
 
-      <div class="appel-action">
-        <button class="btn-submit-response" (click)="openModal(appel); $event.stopPropagation()">
+      <!-- Card footer -->
+      <div class="card-footer">
+        <button class="btn-details" (click)="openDetailModal(appel, $event)">
+          <i class="fas fa-eye"></i>
+          Détails
+        </button>
+        <button class="btn-respond" (click)="openModal(appel); $event.stopPropagation()">
           <i class="fas fa-paper-plane"></i>
-          Soumettre une réponse
+          Soumettre
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Empty state -->
+  <!-- Empty states -->
   <div *ngIf="!loading && appelsOffre.length === 0" class="empty-state">
-    <i class="fas fa-inbox"></i>
-    <p>Aucun appel d'offre disponible pour le moment</p>
+    <div class="empty-icon"><i class="fas fa-inbox"></i></div>
+    <h3>Aucun appel d'offre</h3>
+    <p>Aucun appel d'offre n'est disponible pour le moment. Revenez plus tard.</p>
   </div>
 
-  <!-- Modal for submitting response -->
-  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()"></div>
-  <div class="modal-container" *ngIf="showModal">
-    <div class="modal-header">
-      <h3>Répondre à l'appel d'offre</h3>
-      <button class="modal-close" (click)="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <app-response-form-client
-        [appel]="selectedAppel"
-        (submitted)="closeModal()"
-      ></app-response-form-client>
-    </div>
-  </div>
-
-  <!-- No results from search -->
-  <div *ngIf="!loading && appelsOffre.length > 0 && filteredAppels.length === 0" class="empty-state">
-    <i class="fas fa-search"></i>
-    <p>Aucun résultat ne correspond à votre recherche</p>
+  <div
+    *ngIf="!loading && appelsOffre.length > 0 && filteredAppels.length === 0"
+    class="empty-state"
+  >
+    <div class="empty-icon"><i class="fas fa-search"></i></div>
+    <h3>Aucun résultat</h3>
+    <p>
+      Aucun appel d'offre ne correspond à "<strong>{{ searchTerm }}</strong
+      >"
+    </p>
   </div>
 
   <!-- Pagination -->
   <div class="pagination-container" *ngIf="totalPages > 1 && !loading">
-    <div class="pagination-info">
-      <span>Affichage page {{ currentPage }} sur {{ totalPages }} ({{ totalItems }} résultats)</span>
-    </div>
-
+    <span class="pagination-info"
+      >Page {{ currentPage }} / {{ totalPages }} — {{ totalItems }} résultats</span
+    >
     <div class="pagination">
-      <button 
-        (click)="goToPage(currentPage - 1)" 
-        [disabled]="currentPage === 1"
-        class="pagination-btn"
-      >
+      <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1" class="pg-btn">
         <i class="fas fa-chevron-left"></i>
       </button>
-
-      <button 
+      <button
         *ngFor="let page of getPaginationItems()"
         (click)="goToPage(page)"
         [class.active]="page === currentPage"
-        class="pagination-btn"
+        class="pg-btn"
       >
         {{ page }}
       </button>
-
-      <button 
+      <button
         (click)="goToPage(currentPage + 1)"
         [disabled]="currentPage === totalPages"
-        class="pagination-btn"
+        class="pg-btn"
       >
         <i class="fas fa-chevron-right"></i>
       </button>
     </div>
-
-    <div class="pagination-size-selector">
-      <label for="pageSize">Résultats par page:</label>
-      <select 
-        id="pageSize"
-        [value]="pageSize"
-        (change)="onPageSizeChange($event)"
-        class="size-select"
-      >
+    <div class="page-size">
+      <label>Par page:</label>
+      <select [value]="pageSize" (change)="onPageSizeChange($event)" class="size-select">
         <option value="5">5</option>
         <option value="10">10</option>
         <option value="20">20</option>
-        <option value="50">50</option>
       </select>
     </div>
+  </div>
+</div>
+
+<!-- Modal overlay -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()"></div>
+
+<!-- Modal soumettre -->
+<div class="modal-container" *ngIf="showModal">
+  <div class="modal-header">
+    <div class="modal-title">
+      <div class="modal-title-icon"><i class="fas fa-paper-plane"></i></div>
+      <div>
+        <h3>Soumettre une réponse</h3>
+        <p *ngIf="selectedAppel">{{ selectedAppel.description }}</p>
+      </div>
+    </div>
+    <button class="modal-close" (click)="closeModal()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="modal-body">
+    <app-response-form-client
+      [appel]="selectedAppel"
+      (submitted)="closeModal()"
+    ></app-response-form-client>
+  </div>
+</div>
+
+<!-- Modal détails overlay -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()"></div>
+
+<!-- Modal détails emplacement -->
+<div class="modal-container modal-details" *ngIf="showDetailModal && detailAppel">
+
+  <!-- Header modal -->
+  <div class="modal-header">
+    <div class="modal-title">
+      <div class="modal-title-icon detail-icon"><i class="fas fa-map-pin"></i></div>
+      <div>
+        <h3>Détails de l'emplacement</h3>
+        <p>{{ detailAppel.description }}</p>
+      </div>
+    </div>
+    <button class="modal-close" (click)="closeDetailModal()"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div class="modal-body detail-body">
+
+    <!-- Contenu scrollable -->
+    <div class="detail-scroll-content">
+
+    <!-- En-tête style boutique-header -->
+    <div class="detail-boutique-header">
+      <div class="detail-avatar">
+        <i class="fas fa-store-alt"></i>
+      </div>
+      <div class="detail-header-info">
+        <h2>{{ detailAppel.emplacement?.nom || detailAppel.emplacement?.code || 'Emplacement' }}
+          <span class="code-badge-mono" *ngIf="detailAppel.emplacement?.nom">{{ detailAppel.emplacement?.code }}</span>
+        </h2>
+        <div class="detail-header-badges">
+          <span class="appel-status" [ngClass]="'status-' + detailAppel.statut">
+            <i class="fas fa-circle"></i>
+            Appel {{ detailAppel.statut | uppercase }}
+          </span>
+          <span class="loyer-badge" *ngIf="detailAppel.emplacement?.loyer_mensuel">
+            <i class="fas fa-coins"></i>
+            {{ detailAppel.emplacement?.loyer_mensuel | number:'1.0-0' }} MGA / mois
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info grid (style mon-boutique) -->
+    <div class="detail-info-grid">
+
+      <!-- Card: Emplacement -->
+      <div class="detail-info-card" *ngIf="detailAppel.emplacement">
+        <div class="detail-info-card-header">
+          <i class="fas fa-map-marker-alt"></i>
+          <h3>Emplacement</h3>
+        </div>
+        <div class="info-rows">
+          <div class="info-row" *ngIf="detailAppel.emplacement.code">
+            <span class="info-label"><i class="fas fa-barcode"></i> Code</span>
+            <span class="info-value code-value">{{ detailAppel.emplacement.code }}</span>
+          </div>
+          <div class="info-row" *ngIf="detailAppel.emplacement.type">
+            <span class="info-label"><i class="fas fa-shapes"></i> Type</span>
+            <span class="info-value">{{ getTypeLabel(detailAppel.emplacement.type) }}</span>
+          </div>
+          <div class="info-row" *ngIf="detailAppel.emplacement.surface_m2">
+            <span class="info-label"><i class="fas fa-ruler-combined"></i> Surface</span>
+            <span class="info-value">{{ detailAppel.emplacement.surface_m2 }} m²</span>
+          </div>
+          <div class="info-row" *ngIf="detailAppel.emplacement.loyer_mensuel">
+            <span class="info-label"><i class="fas fa-money-bill-wave"></i> Loyer mensuel</span>
+            <span class="info-value">{{ detailAppel.emplacement.loyer_mensuel | number:'1.0-0' }} MGA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Appel d'offre -->
+      <div class="detail-info-card">
+        <div class="detail-info-card-header">
+          <i class="fas fa-gavel"></i>
+          <h3>Appel d'offre</h3>
+        </div>
+        <div class="info-rows">
+          <div class="info-row">
+            <span class="info-label"><i class="fas fa-align-left"></i> Description</span>
+            <span class="info-value">{{ detailAppel.description }}</span>
+          </div>
+          <div class="info-row" *ngIf="detailAppel.date_appel">
+            <span class="info-label"><i class="fas fa-calendar-check"></i> Date appel</span>
+            <span class="info-value">{{ detailAppel.date_appel | date:'dd MMMM yyyy' }}</span>
+          </div>
+          <div class="info-row" *ngIf="detailAppel.date_deadline">
+            <span class="info-label"><i class="fas fa-calendar-times"></i> Deadline</span>
+            <span class="info-value deadline-val"><i class="fas fa-exclamation-circle"></i> {{ detailAppel.date_deadline | date:'dd MMMM yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Location card (arbre hiérarchique style mon-boutique) -->
+    <div class="detail-location-card" *ngIf="detailAppel.emplacement">
+      <div class="detail-location-header">
+        <i class="fas fa-route"></i>
+        <h3>Localisation dans le centre
+          <span class="centre-name-inline" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id?.centre_id">
+            — {{ detailAppel.emplacement!.etage_id!.batiment_id!.centre_id!.nom }}
+          </span>
+        </h3>
+      </div>
+
+      <div class="location-tree">
+
+        <!-- Niveau 1 : Emplacement -->
+        <div class="tree-node tree-node-emplacement">
+          <div class="tree-node-icon"><i class="fas fa-store-alt"></i></div>
+          <div class="tree-node-content">
+            <span class="tree-level">Emplacement</span>
+            <strong>{{ detailAppel.emplacement!.nom || detailAppel.emplacement!.code }}</strong>
+            <span class="tree-badge type-badge">{{ getTypeLabel(detailAppel.emplacement!.type) }}</span>
+            <span class="tree-badge" *ngIf="detailAppel.emplacement!.surface_m2">{{ detailAppel.emplacement!.surface_m2 }} m²</span>
+          </div>
+        </div>
+
+        <div class="tree-connector" *ngIf="detailAppel.emplacement!.etage_id"><i class="fas fa-angle-up"></i></div>
+
+        <!-- Niveau 2 : Étage -->
+        <div class="tree-node tree-node-etage" *ngIf="detailAppel.emplacement!.etage_id">
+          <div class="tree-node-icon"><i class="fas fa-layer-group"></i></div>
+          <div class="tree-node-content">
+            <span class="tree-level">Étage</span>
+            <strong>{{ detailAppel.emplacement!.etage_id!.nom }}</strong>
+            <span class="tree-badge">Niveau {{ detailAppel.emplacement!.etage_id!.niveau }}</span>
+            <span class="tree-badge" *ngIf="detailAppel.emplacement!.etage_id!.surface_totale_m2">{{ detailAppel.emplacement!.etage_id!.surface_totale_m2 }} m²</span>
+          </div>
+        </div>
+
+        <div class="tree-connector" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id"><i class="fas fa-angle-up"></i></div>
+
+        <!-- Niveau 3 : Bâtiment -->
+        <div class="tree-node tree-node-batiment" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id">
+          <div class="tree-node-icon"><i class="fas fa-building"></i></div>
+          <div class="tree-node-content">
+            <span class="tree-level">Bâtiment</span>
+            <strong>{{ detailAppel.emplacement!.etage_id!.batiment_id!.nom }}</strong>
+            <span class="tree-desc" *ngIf="detailAppel.emplacement!.etage_id!.batiment_id!.description">
+              {{ detailAppel.emplacement!.etage_id!.batiment_id!.description }}
+            </span>
+          </div>
+        </div>
+
+        <div class="tree-connector" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id?.centre_id"><i class="fas fa-angle-up"></i></div>
+
+        <!-- Niveau 4 : Centre -->
+        <div class="tree-node tree-node-centre" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id?.centre_id">
+          <div class="tree-node-icon"><i class="fas fa-city"></i></div>
+          <div class="tree-node-content">
+            <span class="tree-level">Centre commercial</span>
+            <strong>{{ detailAppel.emplacement!.etage_id!.batiment_id!.centre_id!.nom }}</strong>
+            <span class="tree-badge" *ngIf="detailAppel.emplacement!.etage_id!.batiment_id!.centre_id!.adresse?.ville">
+              <i class="fas fa-map-marker-alt"></i>
+              {{ detailAppel.emplacement!.etage_id!.batiment_id!.centre_id!.adresse?.ville }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb-path">
+        <span class="bc-item bc-centre" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id?.centre_id">
+          <i class="fas fa-city"></i> {{ detailAppel.emplacement!.etage_id!.batiment_id!.centre_id!.nom }}
+        </span>
+        <i class="fas fa-chevron-right bc-sep" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id?.centre_id"></i>
+        <span class="bc-item bc-batiment" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id">
+          <i class="fas fa-building"></i> {{ detailAppel.emplacement!.etage_id!.batiment_id!.nom }}
+        </span>
+        <i class="fas fa-chevron-right bc-sep" *ngIf="detailAppel.emplacement!.etage_id?.batiment_id"></i>
+        <span class="bc-item bc-etage" *ngIf="detailAppel.emplacement!.etage_id">
+          <i class="fas fa-layer-group"></i> {{ detailAppel.emplacement!.etage_id!.nom }}
+        </span>
+        <i class="fas fa-chevron-right bc-sep" *ngIf="detailAppel.emplacement!.etage_id"></i>
+        <span class="bc-item bc-emplacement bc-active">
+          <i class="fas fa-store-alt"></i> {{ detailAppel.emplacement!.nom || detailAppel.emplacement!.code }}
+        </span>
+      </div>
+    </div>
+
+    </div><!-- /detail-scroll-content -->
+
+    <!-- CTA fixe en bas -->
+    <div class="detail-cta">
+      <button class="btn-cancel" (click)="closeDetailModal()">Fermer</button>
+      <button class="btn-submit-from-detail" (click)="closeDetailModal(); openModal(detailAppel!)">
+        <i class="fas fa-paper-plane"></i>
+        Soumettre une réponse
+      </button>
+    </div>
+
   </div>
 </div>

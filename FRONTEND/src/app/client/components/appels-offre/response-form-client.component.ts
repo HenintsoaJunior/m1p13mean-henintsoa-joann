@@ -120,10 +120,6 @@ export class ResponseFormClientComponent implements OnInit {
         this.telephoneBoutique = '';
         this.adresseBoutique = '';
         this.submitting = false;
-        // Optionally navigate back
-        setTimeout(() => {
-          this.router.navigate(['/client/appels']);
-        }, 2000);
         // emit event for modal
         this.submitted.emit();
       },
