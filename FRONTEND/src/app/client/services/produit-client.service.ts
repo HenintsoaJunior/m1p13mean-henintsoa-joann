@@ -18,7 +18,25 @@ export interface ProduitClient {
     stock: { quantite: number };
   }>;
   idCategorie?: { _id: string; nom: string; slug: string };
-  idBoutique?: { contact: { nom: string; adresse?: string; telephone?: string; email?: string }; statut?: string };
+  idBoutique?: {
+    contact: { nom: string; adresse?: string; telephone?: string; email?: string };
+    statut?: string;
+    appel_offre_id?: {
+      emplacement_id?: {
+        nom?: string;
+        code?: string;
+        type?: string;
+        etage_id?: {
+          nom?: string;
+          niveau?: number;
+          batiment_id?: {
+            nom?: string;
+            centre_id?: { nom?: string };
+          };
+        };
+      };
+    };
+  };
   statut: string;
   promotion?: {
     _id?: string;

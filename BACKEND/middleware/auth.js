@@ -77,7 +77,7 @@ const interdireAccesInterdit = (req, res, next) => {
   }
 
   // Déterminer la zone d'accès basée sur l'URL
-  const chemin = req.path;
+  const chemin = req.originalUrl || req.path;
 
   // Administrateur : accès à l’espace client et à l’espace boutique
   // Aucune restriction pour les admins

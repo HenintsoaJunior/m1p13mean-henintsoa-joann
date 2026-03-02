@@ -1,15 +1,23 @@
 const PromotionService = require("../../services/boutique/PromotionService");
+const Boutique = require("../../models/admin/Boutique");
 
 class PromotionController {
   constructor() {
     this.promoService = new PromotionService();
   }
 
+  async _getBoutiqueId(utilisateur) {
+    const boutique = await Boutique.findOne({ "contact.email": utilisateur.email });
+    if (!boutique) throw new Error("Boutique introuvable pour cet utilisateur");
+    return boutique._id;
+  }
+
   // --- admin actions (boutique) ---
 
   async creerPromotion(req, res) {
     try {
-      const donnees = { ...req.body, idBoutique: req.utilisateur._id };
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
+      const donnees = { ...req.body, idBoutique };
       const promo = await this.promoService.creerPromotion(donnees);
       res.status(201).json({ promotion: promo });
     } catch (err) {
@@ -20,10 +28,11 @@ class PromotionController {
 
   async listerPromotions(req, res) {
     try {
+      const idBoutique = await this._getBoutiqueId(req.utilisateur);
       const options = {};
       if (req.query.active === 'true') options.activeOnly = true;
       if (req.query.statut) options.statut = req.query.statut;
-      const promos = await this.promoService.obtenirPromotionsBoutique(req.utilisateur._id, options);
+      const promos = await this.promoService.obtenirPromotionsBoutique(idBoutique, options);
       res.json({ promotions: promos });
     } catch (err) {
       console.error("Erreur liste promotions", err);
