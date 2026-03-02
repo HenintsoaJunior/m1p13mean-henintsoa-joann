@@ -92,7 +92,7 @@
           <!-- Message -->
           <td class="msg-cell">
             <span *ngIf="r.message" title="{{ r.message }}">
-              {{ r.message | slice:0:80 }}{{ (r.message?.length ?? 0) > 80 ? '…' : '' }}
+              {{ r.message | slice:0:80 }}{{ r.message.length > 80 ? '…' : '' }}
             </span>
             <span *ngIf="!r.message" class="text-muted">—</span>
           </td>

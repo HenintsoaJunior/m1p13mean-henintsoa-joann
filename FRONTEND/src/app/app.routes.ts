@@ -34,6 +34,9 @@ import { CommandeListComponent } from './boutique/components/commandes/commande-
 
 // Boutique components - Categories
 import { CategorieListComponent } from './boutique/components/categories/pages/categorie-list/categorie-list.component';
+// Boutique components - Promotions
+import { PromotionListComponent } from './boutique/components/promotions/pages/promotion-list/promotion-list.component';
+import { PromotionFormComponent } from './boutique/components/promotions/pages/promotion-form/promotion-form.component';
 
 // Admin components - Appels d'offre
 import { AppelsOffreListComponent } from './admin/components/appels-offre/pages/appels-offre-list/appels-offre-list.component';
@@ -105,6 +108,9 @@ export const routes: Routes = [
       { path: 'stock', component: StockMouvementsComponent },
       { path: 'commandes', component: CommandeListComponent },
       { path: 'categories', component: CategorieListComponent },
+      { path: 'promotions', component: PromotionListComponent },
+      { path: 'promotions/nouveau', component: PromotionFormComponent },
+      { path: 'promotions/edit/:id', component: PromotionFormComponent },
       { path: 'mon-boutique', component: MonBoutiqueComponent },
     ],
   },

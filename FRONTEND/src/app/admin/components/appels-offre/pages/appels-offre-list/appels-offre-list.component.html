@@ -67,7 +67,7 @@
           </td>
           <td class="desc">
             {{ appel.description | slice: 0 : 60
-            }}{{ (appel.description?.length ?? 0) > 60 ? '...' : '' }}
+            }}{{ appel.description.length > 60 ? '...' : '' }}
           </td>
           <td>
             <span class="badge" [ngClass]="'badge-' + appel.statut">{{

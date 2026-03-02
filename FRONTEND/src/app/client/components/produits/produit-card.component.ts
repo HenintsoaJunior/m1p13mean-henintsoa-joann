@@ -23,6 +23,7 @@ import { SouhaitService } from '../../services/souhait.service';
         </button>
         <!-- Badge stock -->
         <span class="badge-stock" *ngIf="!enStock">Rupture</span>
+        <span class="badge-promo" *ngIf="produit.promotion">Promo</span>
         <!-- Detail hover overlay -->
         <div class="img-overlay">
           <span><i class="fas fa-eye"></i> Voir détails</span>
@@ -44,7 +45,10 @@ import { SouhaitService } from '../../services/souhait.service';
         </div>
 
         <!-- Price: only if NO variants -->
-        <div class="card-price" *ngIf="!produit.variantes || produit.variantes.length === 0">{{ prixSelected | number:'1.0-0' }} {{ devise }}</div>
+        <div class="card-price" *ngIf="!produit.variantes || produit.variantes.length === 0">
+          <span *ngIf="prixPromo !== null" class="old-price">{{ prixSelected | number:'1.0-0' }} {{ devise }}</span>
+          <span class="current-price">{{ (prixPromo !== null ? prixPromo : prixSelected) | number:'1.0-0' }} {{ devise }}</span>
+        </div>
         <div class="card-actions">
           <button class="btn-cart" (click)="addToCart()" [disabled]="!enStock" [class.added]="dansLePanier">
             <i class="fas" [class.fa-shopping-cart]="!dansLePanier" [class.fa-check]="dansLePanier"></i>
@@ -103,6 +107,12 @@ import { SouhaitService } from '../../services/souhait.service';
       font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
       text-transform: uppercase; z-index: 2;
     }
+    .badge-promo {
+      position: absolute; top: 8px; right: 8px;
+      background: #f59e0b; color: white;
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+      text-transform: uppercase; z-index: 2;
+    }
 
     .card-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
     .card-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #3660a9; }
@@ -124,6 +134,8 @@ import { SouhaitService } from '../../services/souhait.service';
     }
 
     .card-price { font-size: 16px; font-weight: 700; color: #3660a9; }
+    .card-price .old-price { text-decoration: line-through; color: #9ca3af; margin-right: 6px; font-size: 14px; }
+    .card-price .current-price { color: #ef4444; }
 
     .card-actions { display: flex; gap: 6px; margin-top: 4px; }
 
@@ -161,6 +173,20 @@ export class ProduitCardComponent {
   get prixSelected(): number {
     if (!this.produit.variantes?.length) return 0;
     return this.selectedVariante?.prix.montant ?? Math.min(...this.produit.variantes.map(v => v.prix.montant));
+  }
+
+  /** Prix après application de la promotion si elle existe */
+  get prixPromo(): number | null {
+    if (!this.produit.promotion) return null;
+    const base = this.prixSelected;
+    const promo = this.produit.promotion;
+    if (promo.type === 'pourcentage') {
+      return Math.max(0, Math.round(base * (1 - promo.valeur / 100)));
+    }
+    if (promo.type === 'montant') {
+      return Math.max(0, base - promo.valeur);
+    }
+    return null;
   }
 
   get devise(): string { return this.produit.variantes?.[0]?.prix?.devise || 'MGA'; }
