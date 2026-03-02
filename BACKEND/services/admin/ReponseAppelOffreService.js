@@ -67,9 +67,9 @@ class ReponseService {
           await BoutiqueModel.create({
             appel_offre_id: reponse.appel_offre_id,
             contact: {
-              nom: 'Boutique Propriétaire',
+              nom: reponse.nom_boutique || 'Boutique',
               email: accountEmail,
-              telephone: '',
+              telephone: reponse.telephone_boutique || '',
             },
             statut: 'en_attente',
           });
