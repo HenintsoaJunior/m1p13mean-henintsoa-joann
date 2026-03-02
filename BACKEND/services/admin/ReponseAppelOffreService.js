@@ -70,6 +70,7 @@ class ReponseService {
               nom: reponse.nom_boutique || 'Boutique',
               email: accountEmail,
               telephone: reponse.telephone_boutique || '',
+              adresse: reponse.adresse_boutique || '',
             },
             statut: 'en_attente',
           });
