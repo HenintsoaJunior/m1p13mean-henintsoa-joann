@@ -196,6 +196,13 @@ app.get("/api/public/produits", async (req, res) => {
     const PromotionService = require("./services/boutique/PromotionService");
     const promoService = new PromotionService();
     produits = await promoService.annoterProduits(produits.map(p => p));
+
+    const withPromo = produits.filter(p => p.promotion);
+    console.log(`[PROMO DEBUG] Total produits: ${produits.length}, avec promotion: ${withPromo.length}`);
+    if (withPromo.length > 0) {
+      console.log('[PROMO DEBUG] Exemple promo:', JSON.stringify(withPromo[0].promotion, null, 2));
+    }
+
     if (promo === 'true' || promo === '1' || promo === true) {
       produits = produits.filter(p => p.promotion);
       total = produits.length;

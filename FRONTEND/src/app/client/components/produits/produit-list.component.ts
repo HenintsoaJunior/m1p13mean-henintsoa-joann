@@ -185,8 +185,21 @@ export class ClientProduitListComponent implements OnInit, OnDestroy, OnChanges 
     this.produitService.getProduits(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (res) => { this.produits = res.produits || []; this.total = res.total || 0; this.isLoading = false; },
-        error: () => { this.isLoading = false; }
+        next: (res) => {
+          this.produits = res.produits || [];
+          this.total = res.total || 0;
+          this.isLoading = false;
+          const avecPromo = this.produits.filter(p => p.promotion);
+          console.log(`[PROMO DEBUG] Reçu: ${this.produits.length} produits, ${avecPromo.length} avec promotion`);
+          // Log brut du 1er produit pour voir si promotion est présent dans la réponse API
+          if (this.produits.length > 0) {
+            console.log('[PROMO RAW] Premier produit:', JSON.stringify(this.produits[0], null, 2));
+          }
+          if (avecPromo.length > 0) {
+            console.log('[PROMO DEBUG] Premier produit avec promo:', avecPromo[0].nom, avecPromo[0].promotion);
+          }
+        },
+        error: (e) => { console.error('[PROMO DEBUG] Erreur getProduits:', e); this.isLoading = false; }
       });
   }
 

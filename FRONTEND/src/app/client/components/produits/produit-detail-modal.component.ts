@@ -51,6 +51,25 @@ import { SouhaitService } from '../../services/souhait.service';
 
         <h1 class="prod-title">{{ produit.nom }}</h1>
 
+        <!-- Bloc promotion -->
+        <div class="promo-panel" *ngIf="produit.promotion">
+          <div class="promo-panel-header">
+            <span class="promo-panel-badge">
+              <i class="fas fa-tag"></i> PROMOTION
+            </span>
+            <span class="promo-panel-value">{{ promoLabel }}</span>
+          </div>
+          <div class="promo-panel-details">
+            <span class="promo-validity">
+              <i class="fas fa-calendar-alt"></i>
+              Du {{ formatDate(produit.promotion.dateDebut) }} au {{ formatDate(produit.promotion.dateFin) }}
+            </span>
+            <span class="promo-scope">
+              <i class="fas fa-bullseye"></i> {{ promoCible }}
+            </span>
+          </div>
+        </div>
+
         <p class="prod-desc" *ngIf="produit.description">{{ produit.description }}</p>
         <div class="desc-placeholder" *ngIf="!produit.description">
           <i class="fas fa-info-circle"></i> Aucune description disponible.
@@ -82,10 +101,15 @@ import { SouhaitService } from '../../services/souhait.service';
         </div>
 
         <!-- Price -->
-        <div class="price-block" *ngIf="selectedVariante" style="margin-top: 8px;">
-          <span *ngIf="prixPromo !== null" class="old-price">{{ selectedVariante.prix.montant | number:'1.0-0' }}</span>
-          <span class="price-main">{{ (prixPromo !== null ? prixPromo : selectedVariante.prix.montant) | number:'1.0-0' }}</span>
-          <span class="price-cur">{{ selectedVariante.prix.devise }}</span>
+        <div class="price-block" *ngIf="selectedVariante" style="margin-top: 8px;" [class.has-promo]="prixPromo !== null">
+          <div class="price-left">
+            <span *ngIf="prixPromo !== null" class="old-price">{{ selectedVariante.prix.montant | number:'1.0-0' }}</span>
+            <div class="price-main-wrap">
+              <span class="price-main" [class.promo-price]="prixPromo !== null">{{ (prixPromo !== null ? prixPromo : selectedVariante.prix.montant) | number:'1.0-0' }}</span>
+              <span class="price-cur">{{ selectedVariante.prix.devise }}</span>
+            </div>
+          </div>
+          <span class="price-discount-tag" *ngIf="prixPromo !== null">{{ promoLabel }}</span>
         </div>
 
         <!-- Quantity -->
@@ -221,6 +245,37 @@ import { SouhaitService } from '../../services/souhait.service';
     .wish-toggle.wished i { color: #ef4444; }
 
     .prod-title { font-size: 22px; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.25; }
+
+    /* Bloc promotion */
+    .promo-panel {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1.5px solid #fcd34d;
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .promo-panel-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .promo-panel-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #d97706; color: white;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+      padding: 3px 10px; border-radius: 20px; text-transform: uppercase;
+    }
+    .promo-panel-badge i { font-size: 10px; }
+    .promo-panel-value {
+      font-size: 22px; font-weight: 900; color: #92400e; letter-spacing: -0.5px;
+    }
+    .promo-panel-details {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .promo-validity, .promo-scope {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; color: #78350f; font-weight: 500;
+    }
+    .promo-validity i, .promo-scope i { font-size: 11px; color: #d97706; }
+
     .prod-desc { font-size: 13.5px; color: #64748b; line-height: 1.7; margin: 0; }
     .desc-placeholder {
       font-size: 13px; color: #94a3b8; font-style: italic;
@@ -310,23 +365,36 @@ import { SouhaitService } from '../../services/souhait.service';
 
     /* Price */
     .price-block {
-      display: flex; align-items: flex-end; gap: 8px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
       padding: 14px 18px;
       background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fc 100%);
       border-radius: 14px;
       border-left: 4px solid #3660a9;
     }
+    .price-block.has-promo {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border-left-color: #d97706;
+    }
+    .price-left { display: flex; flex-direction: column; gap: 2px; }
+    .price-main-wrap { display: flex; align-items: flex-end; gap: 8px; }
     .price-main {
       font-size: 36px; font-weight: 900; line-height: 1;
-      color: #1e3a7b;
-      letter-spacing: -0.5px;
+      color: #1e3a7b; letter-spacing: -0.5px;
     }
+    .price-main.promo-price { color: #92400e; }
     .price-cur {
       font-size: 15px; font-weight: 800; color: #3660a9;
-      padding-bottom: 4px;
-      text-transform: uppercase; letter-spacing: 0.05em;
+      padding-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;
     }
-    .price-block .old-price { text-decoration: line-through; color: #9ca3af; margin-right: 6px; font-size: 20px; }
+    .price-block.has-promo .price-cur { color: #d97706; }
+    .price-block .old-price {
+      text-decoration: line-through; color: #9ca3af; font-size: 14px; font-weight: 500;
+    }
+    .price-discount-tag {
+      background: #d97706; color: white;
+      font-size: 15px; font-weight: 900; letter-spacing: 0.02em;
+      padding: 6px 14px; border-radius: 8px; white-space: nowrap;
+    }
 
     .qty-row-label {
       display: flex; align-items: center; justify-content: space-between;
@@ -408,6 +476,32 @@ export class ProduitDetailModalComponent implements OnInit {
       return Math.max(0, base - promo.valeur);
     }
     return null;
+  }
+
+  /** Label affiché dans le badge promo, ex: "-20%" ou "-5 000 Ar" */
+  get promoLabel(): string {
+    const promo = this.produit.promotion as any;
+    if (!promo) return '';
+    return promo.type === 'pourcentage'
+      ? `-${promo.valeur}%`
+      : `-${promo.valeur.toLocaleString('fr-FR')} Ar`;
+  }
+
+  /** Description de la portée de la promotion */
+  get promoCible(): string {
+    const promo = this.produit.promotion as any;
+    if (!promo) return '';
+    if (promo.idVariante) return 'Variante spécifique';
+    if (promo.idProduit && !promo.idVariante) return 'Ce produit';
+    if (promo.idCategorie) return 'Toute la catégorie';
+    return 'Toute la boutique';
+  }
+
+  /** Formate une date ISO en "dd/mm/yyyy" */
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   selectVariante(idx: number): void {
