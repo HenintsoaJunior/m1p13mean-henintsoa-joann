@@ -133,13 +133,13 @@ async function seedCategories() {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ Connecté à MongoDB");
 
-    // Récupérer l'ID de la boutique depuis les variables d'environnement
-    const idBoutique = process.env.BOUTIQUE_ID;
+    // Récupérer l'ID de la boutique depuis les variables d'environnement (optionnel)
+    const idBoutique = process.env.BOUTIQUE_ID || null;
 
-    if (!idBoutique) {
-      console.error("❌ Veuillez définir BOUTIQUE_ID dans le fichier .env");
-      console.error("   Exemple: BOUTIQUE_ID=67a1b2c3d4e5f6g7h8i9j0k1");
-      process.exit(1);
+    if (idBoutique) {
+      console.log(`🏪  Boutique ciblée : ${idBoutique}`);
+    } else {
+      console.log("ℹ️   Aucun BOUTIQUE_ID défini — idBoutique sera null");
     }
 
     // Supprimer les catégories existantes de la boutique
