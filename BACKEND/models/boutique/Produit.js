@@ -8,9 +8,12 @@ const produitSchema = new mongoose.Schema(
       required: [true, "L'ID de la boutique est requis"],
     },
     idCategorie: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Categorie",
-      required: [true, "L'ID de la catégorie est requis"],
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Categorie" }],
+      required: [true, "Au moins une catégorie est requise"],
+      validate: {
+        validator: function(v) { return Array.isArray(v) && v.length > 0; },
+        message: "Au moins une catégorie est requise",
+      },
     },
     nom: {
       type: String,
