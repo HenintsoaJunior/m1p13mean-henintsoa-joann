@@ -84,6 +84,15 @@ class BoutiqueController {
       res.status(400).json({ success: false, message: error.message });
     }
   }
+
+  async reactiverBoutique(req, res) {
+    try {
+      const boutique = await boutiqueService.reactiverBoutique(req.params.id);
+      res.status(200).json({ success: true, message: "Boutique réactivée avec succès", data: boutique });
+    } catch (error) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
 }
 
 module.exports = new BoutiqueController();
