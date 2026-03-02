@@ -60,24 +60,29 @@ export class PromotionService {
   }
 
   getPromotionById(id: string): Observable<Promotion> {
-    return this.http.get<Promotion>(`${this.apiUrl}/${id}`, {
+    return this.http.get<{ promotion: Promotion }>(`${this.apiUrl}/${id}`, {
       headers: this.getAuthHeaders(),
-    }).pipe(catchError(this.handleError.bind(this)));
+    }).pipe(
+      map(res => res.promotion),
+      catchError(this.handleError.bind(this)),
+    );
   }
 
   createPromotion(promo: PromotionFormData): Observable<Promotion> {
-    return this.http.post<Promotion>(`${this.apiUrl}`, promo, {
+    return this.http.post<{ promotion: Promotion }>(`${this.apiUrl}`, promo, {
       headers: this.getAuthHeaders(),
     }).pipe(
+      map(res => res.promotion),
       tap(() => this.toastService.showSuccess('Promotion créée')),
       catchError(this.handleError.bind(this)),
     );
   }
 
   updatePromotion(id: string, promo: PromotionFormData): Observable<Promotion> {
-    return this.http.put<Promotion>(`${this.apiUrl}/${id}`, promo, {
+    return this.http.put<{ promotion: Promotion }>(`${this.apiUrl}/${id}`, promo, {
       headers: this.getAuthHeaders(),
     }).pipe(
+      map(res => res.promotion),
       tap(() => this.toastService.showSuccess('Promotion mise à jour')),
       catchError(this.handleError.bind(this)),
     );

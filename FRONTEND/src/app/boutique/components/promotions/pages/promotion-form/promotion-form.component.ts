@@ -92,24 +92,38 @@ export class PromotionFormComponent implements OnInit {
           console.error('Erreur chargement promotion:', err);
         }
       });
+      // After fetching promotion, also load variants if product scope
+      if (this.scope === 'product' && this.data.idProduit) {
+        setTimeout(() => {
+          if (this.produits.length > 0) {
+            this.onProductChange();
+          }
+        }, 200);
+      }
     }
   }
 
   private formatDateForInput(date: any): string {
     if (!date) return '';
-    // Si c'est déjà un string au format YYYY-MM-DD, le retourner directement
-    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(date)) {
-      return date.substring(0, 10);
+    // Si c'est déjà un string au format ISO datetime-local (YYYY-MM-DDTHH:mm), le retourner directement
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(date)) {
+      return date.substring(0, 16);
     }
-    // Sinon, parser la date (ISO string avec heure)
+    // Si c'est un string date simple YYYY-MM-DD, convertir à datetime-local (00:00)
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date + 'T00:00';
+    }
+    // Sinon, parser la date (ISO string avec ou sans heure)
     const d = new Date(date);
     if (isNaN(d.getTime())) return ''; // invalide
     
-    // Note: getUTCDate() pour éviter les décalages de fuseau horaire
+    // Note: getUTC* pour éviter les décalages de fuseau horaire
     const year = d.getUTCFullYear();
     const month = String(d.getUTCMonth() + 1).padStart(2, '0');
     const day = String(d.getUTCDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    const hours = String(d.getUTCHours()).padStart(2, '0');
+    const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
   chargerProduits(): void {
@@ -120,7 +134,8 @@ export class PromotionFormComponent implements OnInit {
         next: (res) => {
           this.produits = res.produits || [];
           console.log('Produits loaded for promo form:', this.produits);
-          if (this.scope === 'product' && this.data.idProduit) {
+          // After products are loaded, trigger product change to load variants if editing
+          if (this.editing && this.scope === 'product' && this.data.idProduit) {
             this.onProductChange();
           }
         },
