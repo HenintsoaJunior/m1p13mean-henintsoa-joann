@@ -173,7 +173,10 @@ app.get("/api/public/produits", async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const filter = { statut: "actif" };
-    if (categorie) filter.idCategorie = categorie;
+    if (categorie) {
+      const cats = categorie.split(',').map(c => c.trim()).filter(Boolean);
+      filter.idCategorie = cats.length === 1 ? cats[0] : { $in: cats };
+    }
     if (q) filter.$or = [
       { nom: { $regex: q, $options: "i" } },
       { description: { $regex: q, $options: "i" } }

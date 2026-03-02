@@ -5,7 +5,7 @@ import { takeUntil, debounceTime } from 'rxjs/operators';
 import { ProduitClientService, ProduitClient } from '../../services/produit-client.service';
 import { ProduitCardComponent } from './produit-card.component';
 import { ProduitDetailModalComponent } from './produit-detail-modal.component';
-import { FilterService } from '../../services/filter.service';
+import { FilterService, CategorieFilter } from '../../services/filter.service';
 
 @Component({
   selector: 'app-produit-list',
@@ -15,15 +15,18 @@ import { FilterService } from '../../services/filter.service';
     <div class="produit-list-page">
 
       <!-- Active filters indicator -->
-      <div class="active-filters" *ngIf="activeCategorie || activeSearch">
-        <span class="filter-badge" *ngIf="activeCategorie">
-          <i class="fas fa-tag"></i> Catégorie filtrée
-          <button class="filter-clear" (click)="filterService.setCategorie('')" title="Effacer">×</button>
+      <div class="active-filters" *ngIf="activeCategories.length > 0 || activeSearch">
+        <span class="filter-badge" *ngFor="let cat of activeCategories">
+          <i class="fas fa-tag"></i> {{ cat.nom }}
+          <button class="filter-clear" (click)="filterService.toggleCategorie(cat.id, cat.nom)" title="Retirer">×</button>
         </span>
-        <span class="filter-badge" *ngIf="activeSearch">
+        <span class="filter-badge search-badge" *ngIf="activeSearch">
           <i class="fas fa-search"></i> "{{ activeSearch }}"
           <button class="filter-clear" (click)="filterService.setSearch('')" title="Effacer">×</button>
         </span>
+        <button class="btn-reset-all" *ngIf="activeCategories.length > 1" (click)="filterService.clearCategories()">
+          <i class="fas fa-times-circle"></i> Tout effacer
+        </button>
       </div>
 
       <!-- Products -->
@@ -74,17 +77,26 @@ import { FilterService } from '../../services/filter.service';
     .produit-list-page { padding: 20px 24px; }
 
     .active-filters {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center;
     }
     .filter-badge {
       display: inline-flex; align-items: center; gap: 6px;
       background: #eef2fb; color: #3660a9; border: 1px solid #c7d8f5;
-      border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600;
+      border-radius: 20px; padding: 4px 10px; font-size: 12px; font-weight: 600;
+      max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    .filter-badge.search-badge { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
     .filter-clear {
-      background: none; border: none; color: #3660a9; cursor: pointer;
-      font-size: 16px; line-height: 1; padding: 0 0 0 4px; font-weight: 700;
+      background: none; border: none; color: inherit; cursor: pointer;
+      font-size: 16px; line-height: 1; padding: 0 0 0 2px; font-weight: 700; flex-shrink: 0;
     }
+    .btn-reset-all {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: none; border: 1px solid #fca5a5; color: #dc2626; border-radius: 20px;
+      padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-reset-all:hover { background: #fef2f2; }
 
     .produit-grid {
       display: grid;
@@ -121,7 +133,7 @@ export class ClientProduitListComponent implements OnInit, OnDestroy, OnChanges 
   limit = 16;
   selectedProduit: ProduitClient | null = null;
 
-  activeCategorie = '';
+  activeCategories: CategorieFilter[] = [];
   activeSearch = '';
 
   filterService = inject(FilterService);
@@ -148,15 +160,14 @@ export class ClientProduitListComponent implements OnInit, OnDestroy, OnChanges 
   constructor(private produitService: ProduitClientService) {}
 
   ngOnInit(): void {
-    combineLatest([this.filterService.categorie$, this.filterService.search$])
+    combineLatest([this.filterService.categories$, this.filterService.search$])
       .pipe(takeUntil(this.destroy$), debounceTime(0))
-      .subscribe(([cat, q]) => {
-        this.activeCategorie = cat;
+      .subscribe(([cats, q]) => {
+        this.activeCategories = cats;
         this.activeSearch = q;
         this.currentPage = 1;
         this.charger();
-      });
-  }
+      });  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['promo']) { this.currentPage = 1; this.charger(); }
@@ -168,7 +179,7 @@ export class ClientProduitListComponent implements OnInit, OnDestroy, OnChanges 
     this.isLoading = true;
     const params: any = { page: this.currentPage, limit: this.limit };
     if (this.promo) params.promo = true;
-    if (this.activeCategorie) params.categorie = this.activeCategorie;
+    if (this.activeCategories.length > 0) params.categorie = this.activeCategories.map(c => c.id).join(',');
     if (this.activeSearch) params.q = this.activeSearch;
 
     this.produitService.getProduits(params)

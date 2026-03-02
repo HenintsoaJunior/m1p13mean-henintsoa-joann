@@ -13,6 +13,7 @@
       <div class="sidebar-section-label">
         <i class="fas fa-th-large"></i>
         Catégories
+        <span class="cat-count" *ngIf="selectedCount > 0">{{ selectedCount }}</span>
       </div>
 
       <!-- Category tree — composant récursif -->
@@ -20,7 +21,7 @@
         <!-- Bouton Toutes catégories -->
         <div
           class="category-item root-item all-categories"
-          [class.selected]="currentCategorie === ''"
+          [class.selected]="selectedCount === 0"
           (click)="resetCategorie()"
         >
           <span class="cat-icon"><i class="fas fa-border-all"></i></span>
