@@ -260,7 +260,13 @@ class ProduitService {
       nettoyees.idBoutique = donnees.idBoutique;
     }
     if (donnees.idCategorie) {
-      nettoyees.idCategorie = donnees.idCategorie;
+      if (Array.isArray(donnees.idCategorie)) {
+        nettoyees.idCategorie = donnees.idCategorie.filter(Boolean);
+      } else if (typeof donnees.idCategorie === 'string') {
+        nettoyees.idCategorie = donnees.idCategorie.split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        nettoyees.idCategorie = [donnees.idCategorie];
+      }
     }
     if (donnees.nom) {
       nettoyees.nom = donnees.nom.trim();
