@@ -7,12 +7,21 @@
 
     <div class="search-section">
       <div class="search-bar-container">
-        <input type="text" class="search-bar" placeholder="Que désirez-vous aujourd'hui ?" />
+        <input
+          type="text"
+          class="search-bar"
+          placeholder="Que désirez-vous aujourd'hui ?"
+          (input)="onSearchInput($event)"
+        />
         <button class="search-button"><i class="fas fa-search"></i></button>
       </div>
 
       <div class="header-actions">
-        <div class="action-item action-heart" (click)="openSidebar('souhait')" style="cursor:pointer; position:relative;">
+        <div
+          class="action-item action-heart"
+          (click)="openSidebar('souhait')"
+          style="cursor: pointer; position: relative"
+        >
           <i class="fas fa-heart"></i>
           <span class="action-badge" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
           <span>Mes souhaits</span>
@@ -21,7 +30,11 @@
           <i class="fas fa-user"></i>
           <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
         </div>
-        <div class="action-item action-cart" (click)="openSidebar('panier')" style="cursor:pointer; position:relative;">
+        <div
+          class="action-item action-cart"
+          (click)="openSidebar('panier')"
+          style="cursor: pointer; position: relative"
+        >
           <i class="fas fa-shopping-cart"></i>
           <span class="action-badge" *ngIf="panierCount > 0">{{ panierCount }}</span>
           <span>Mon panier</span>
@@ -39,13 +52,6 @@
         (click)="selectTab('produits')"
       >
         <i class="fas fa-box"></i> Produits
-      </button>
-      <button
-        class="tab-btn"
-        [class.active]="activeTab === 'promotion'"
-        (click)="selectTab('promotion')"
-      >
-        <i class="fas fa-tag"></i> Promotion
       </button>
       <button
         class="tab-btn"
@@ -67,14 +73,19 @@
   <!-- Main content -->
   <main class="main-content">
     <app-produit-list *ngIf="activeTab === 'produits'"></app-produit-list>
-    <div *ngIf="activeTab === 'promotion'" class="welcome-section"></div>
+    <app-produit-list *ngIf="activeTab === 'promotion'" [promo]="true"></app-produit-list>
     <app-appels-offre-client *ngIf="activeTab === 'appels'"></app-appels-offre-client>
+    <app-centre-contact *ngIf="activeTab === 'contact'"></app-centre-contact>
   </main>
 
   <!-- Fixed footer with action items -->
   <footer class="fixed-footer">
     <div class="footer-actions">
-      <div class="footer-action-item" (click)="openSidebar('souhait')" style="cursor:pointer; position:relative;">
+      <div
+        class="footer-action-item"
+        (click)="openSidebar('souhait')"
+        style="cursor: pointer; position: relative"
+      >
         <i class="fas fa-heart"></i>
         <span class="action-badge" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
         <span>Mes souhaits</span>
@@ -83,7 +94,11 @@
         <i class="fas fa-user"></i>
         <span>{{ isLoggedIn ? userName : 'Me connecter' }}</span>
       </div>
-      <div class="footer-action-item" (click)="openSidebar('panier')" style="cursor:pointer; position:relative;">
+      <div
+        class="footer-action-item"
+        (click)="openSidebar('panier')"
+        style="cursor: pointer; position: relative"
+      >
         <i class="fas fa-shopping-cart"></i>
         <span class="action-badge" *ngIf="panierCount > 0">{{ panierCount }}</span>
         <span>Mon panier</span>
@@ -135,7 +150,7 @@
   <div class="right-drawer" [class.open]="activeSidebar === 'souhait'">
     <div class="drawer-header">
       <div class="drawer-title">
-        <i class="fas fa-heart" style="color:#e74c3c; margin-right:8px;"></i>
+        <i class="fas fa-heart" style="color: #e74c3c; margin-right: 8px"></i>
         Mes souhaits
         <span class="drawer-count" *ngIf="souhaitCount > 0">{{ souhaitCount }}</span>
       </div>
@@ -148,12 +163,20 @@
       </div>
       <div *ngFor="let p of souhaitItems" class="drawer-item">
         <div class="drawer-item-img">
-          <img *ngIf="p.images && p.images.length > 0; else noImgS" [src]="p.images[0]" [alt]="p.nom" />
-          <ng-template #noImgS><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div></ng-template>
+          <img
+            *ngIf="p.images && p.images.length > 0; else noImgS"
+            [src]="p.images[0]"
+            [alt]="p.nom"
+          />
+          <ng-template #noImgS
+            ><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div
+          ></ng-template>
         </div>
         <div class="drawer-item-info">
           <div class="drawer-item-name">{{ p.nom }}</div>
-          <div class="drawer-item-price" *ngIf="getPrixMin(p) > 0">{{ getPrixMin(p) | number:'1.0-0' }} Ar</div>
+          <div class="drawer-item-price" *ngIf="getPrixMin(p) > 0">
+            {{ getPrixMin(p) | number: '1.0-0' }} Ar
+          </div>
           <div class="drawer-item-actions">
             <button class="btn-add-cart" (click)="ajouterSouhaitAuPanier(p)">
               <i class="fas fa-shopping-cart"></i> Ajouter au panier
@@ -171,7 +194,7 @@
   <div class="right-drawer" [class.open]="activeSidebar === 'panier'">
     <div class="drawer-header">
       <div class="drawer-title">
-        <i class="fas fa-shopping-cart" style="color:#3660a9; margin-right:8px;"></i>
+        <i class="fas fa-shopping-cart" style="color: #3660a9; margin-right: 8px"></i>
         Mon panier
         <span class="drawer-count" *ngIf="panierCount > 0">{{ panierCount }}</span>
       </div>
@@ -184,21 +207,56 @@
       </div>
       <div *ngFor="let item of panierItems" class="drawer-item">
         <div class="drawer-item-img">
-          <img *ngIf="item.produit.images && item.produit.images.length > 0; else noImgP"
-               [src]="item.produit.images[0]" [alt]="item.produit.nom" />
-          <ng-template #noImgP><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div></ng-template>
+          <img
+            *ngIf="item.produit.images && item.produit.images.length > 0; else noImgP"
+            [src]="item.produit.images[0]"
+            [alt]="item.produit.nom"
+          />
+          <ng-template #noImgP
+            ><div class="no-img-placeholder"><i class="fas fa-box-open"></i></div
+          ></ng-template>
         </div>
         <div class="drawer-item-info">
           <div class="drawer-item-name">{{ item.produit.nom }}</div>
-          <div class="drawer-item-variante" *ngIf="getLibelleVariante(item)">{{ getLibelleVariante(item) }}</div>
-          <div class="drawer-item-price" *ngIf="getPrixVariante(item) > 0">{{ getPrixVariante(item) | number:'1.0-0' }} Ar</div>
+          <div class="drawer-item-variante" *ngIf="getLibelleVariante(item)">
+            {{ getLibelleVariante(item) }}
+          </div>
+          <div class="drawer-item-price" *ngIf="getPrixVariante(item) > 0">
+            {{ getPrixVariante(item) | number: '1.0-0' }} Ar
+          </div>
           <div class="drawer-qty">
-            <button class="qty-btn" (click)="panierService.modifierQuantite(item.produit._id, item.varianteIndex, item.quantite - 1)">−</button>
+            <button
+              class="qty-btn"
+              (click)="
+                panierService.modifierQuantite(
+                  item.produit._id,
+                  item.varianteIndex,
+                  item.quantite - 1
+                )
+              "
+            >
+              −
+            </button>
             <span class="qty-val">{{ item.quantite }}</span>
-            <button class="qty-btn" (click)="panierService.modifierQuantite(item.produit._id, item.varianteIndex, item.quantite + 1)">+</button>
+            <button
+              class="qty-btn"
+              (click)="
+                panierService.modifierQuantite(
+                  item.produit._id,
+                  item.varianteIndex,
+                  item.quantite + 1
+                )
+              "
+            >
+              +
+            </button>
           </div>
         </div>
-        <button class="drawer-item-remove" (click)="panierService.retirer(item.produit._id, item.varianteIndex)" title="Retirer">
+        <button
+          class="drawer-item-remove"
+          (click)="panierService.retirer(item.produit._id, item.varianteIndex)"
+          title="Retirer"
+        >
           <i class="fas fa-trash-alt"></i>
         </button>
       </div>
@@ -206,12 +264,103 @@
     <div class="drawer-footer" *ngIf="panierItems.length > 0">
       <div class="drawer-total">
         <span>Total</span>
-        <strong>{{ panierTotal | number:'1.0-0' }} Ar</strong>
+        <strong>{{ panierTotal | number: '1.0-0' }} Ar</strong>
       </div>
-      <button class="btn-checkout">
-        <i class="fas fa-credit-card"></i> Commander
-      </button>
+      <button class="btn-checkout" (click)="ouvrirCheckout()"><i class="fas fa-credit-card"></i> Commander</button>
     </div>
   </div>
 
+  <!-- Checkout Modal -->
+  <div class="checkout-overlay" *ngIf="showCheckout" (click)="fermerCheckout()"></div>
+  <div class="checkout-modal" *ngIf="showCheckout">
+    <div class="checkout-header">
+      <div class="checkout-title"><i class="fas fa-receipt"></i> Confirmer la commande</div>
+      <button class="checkout-close" (click)="fermerCheckout()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Succès -->
+    <div class="checkout-success" *ngIf="checkoutSuccess">
+      <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+      <h3>Commande passée !</h3>
+      <p>Votre commande a été enregistrée avec succès.</p>
+      <div class="success-ref" *ngIf="checkoutReference">Référence : <strong>{{ checkoutReference }}</strong></div>
+      <button class="btn-close-success" (click)="fermerCheckout()">Fermer</button>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="checkout-body" *ngIf="!checkoutSuccess">
+
+      <!-- Infos client (pré-remplies) -->
+      <div class="checkout-section">
+        <div class="section-title"><i class="fas fa-user"></i> Vos informations</div>
+        <div class="client-info-grid">
+          <div class="client-field">
+            <span class="field-label">Prénom</span>
+            <span class="field-val">{{ checkoutUser?.prenom || '—' }}</span>
+          </div>
+          <div class="client-field">
+            <span class="field-label">Nom</span>
+            <span class="field-val">{{ checkoutUser?.nom || '—' }}</span>
+          </div>
+          <div class="client-field">
+            <span class="field-label">Email</span>
+            <span class="field-val">{{ checkoutUser?.email || '—' }}</span>
+          </div>
+          <div class="client-field">
+            <span class="field-label">Téléphone</span>
+            <span class="field-val">{{ checkoutUser?.telephone || '—' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adresse de livraison -->
+      <div class="checkout-section">
+        <div class="section-title"><i class="fas fa-map-marker-alt"></i> Adresse de livraison</div>
+        <textarea class="checkout-textarea" [(ngModel)]="checkoutAdresse" placeholder="Entrez votre adresse de livraison..." rows="2"></textarea>
+      </div>
+
+      <!-- Résumé du panier -->
+      <div class="checkout-section">
+        <div class="section-title"><i class="fas fa-shopping-cart"></i> Résumé ({{ panierItems.length }} article{{ panierItems.length > 1 ? 's' : '' }})</div>
+        <div class="checkout-items">
+          <div class="checkout-item" *ngFor="let item of panierItems">
+            <img *ngIf="item.produit.images?.length" [src]="item.produit.images![0]" [alt]="item.produit.nom" />
+            <div class="ci-no-img" *ngIf="!item.produit.images?.length"><i class="fas fa-box-open"></i></div>
+            <div class="ci-info">
+              <span class="ci-name">{{ item.produit.nom }}</span>
+              <span class="ci-variant" *ngIf="getLibelleVariante(item)">{{ getLibelleVariante(item) }}</span>
+            </div>
+            <div class="ci-right">
+              <span class="ci-qty">x{{ item.quantite }}</span>
+              <span class="ci-price">{{ getPrixVariante(item) * item.quantite | number:'1.0-0' }} Ar</span>
+            </div>
+          </div>
+        </div>
+        <div class="checkout-total">
+          <span>Total</span>
+          <strong>{{ panierTotal | number:'1.0-0' }} Ar</strong>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="checkout-section">
+        <div class="section-title"><i class="fas fa-sticky-note"></i> Notes (optionnel)</div>
+        <textarea class="checkout-textarea" [(ngModel)]="checkoutNotes" placeholder="Instructions spéciales..." rows="2"></textarea>
+      </div>
+
+      <!-- Erreur -->
+      <div class="checkout-error" *ngIf="checkoutError">
+        <i class="fas fa-exclamation-circle"></i> {{ checkoutError }}
+      </div>
+
+      <!-- Actions -->
+      <div class="checkout-actions">
+        <button class="btn-cancel" (click)="fermerCheckout()">Annuler</button>
+        <button class="btn-confirm" (click)="confirmerCommande()" [disabled]="checkoutLoading">
+          <span *ngIf="!checkoutLoading"><i class="fas fa-check"></i> Confirmer la commande</span>
+          <span *ngIf="checkoutLoading"><i class="fas fa-spinner fa-spin"></i> Traitement...</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

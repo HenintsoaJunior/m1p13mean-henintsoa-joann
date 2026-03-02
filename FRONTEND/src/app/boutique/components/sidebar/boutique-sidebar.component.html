@@ -85,6 +85,20 @@
         <span class="nav-text" *ngIf="!isCollapsed">Stocks</span>
         <div class="nav-indicator" *ngIf="currentRoute.startsWith('/boutique/stock')"></div>
       </a>
+
+      <a
+        routerLink="/boutique/promotions"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Promotions' : null"
+        (click)="closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-tag"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Promotions</span>
+        <div class="nav-indicator" *ngIf="currentRoute.startsWith('/boutique/promotions')"></div>
+      </a>
     </div>
 
     <div class="nav-section">

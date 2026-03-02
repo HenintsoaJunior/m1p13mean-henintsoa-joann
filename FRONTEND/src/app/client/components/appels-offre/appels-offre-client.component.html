@@ -54,7 +54,7 @@
           </div>
           <div class="chip chip-money" *ngIf="appel.emplacement?.loyer_mensuel">
             <i class="fas fa-coins"></i>
-            {{ appel.emplacement?.loyer_mensuel | number: '1.0-0' }} MGA/mois
+            {{ appel.emplacement?.loyer_mensuel | number: '1.0-0' }} Ar/mois
           </div>
           <div class="chip chip-deadline" *ngIf="appel.date_deadline">
             <i class="fas fa-calendar-alt"></i>
@@ -194,7 +194,7 @@
           </span>
           <span class="loyer-badge" *ngIf="detailAppel.emplacement?.loyer_mensuel">
             <i class="fas fa-coins"></i>
-            {{ detailAppel.emplacement?.loyer_mensuel | number:'1.0-0' }} MGA / mois
+            {{ detailAppel.emplacement?.loyer_mensuel | number:'1.0-0' }} Ar / mois
           </span>
         </div>
       </div>
@@ -224,7 +224,7 @@
           </div>
           <div class="info-row" *ngIf="detailAppel.emplacement.loyer_mensuel">
             <span class="info-label"><i class="fas fa-money-bill-wave"></i> Loyer mensuel</span>
-            <span class="info-value">{{ detailAppel.emplacement.loyer_mensuel | number:'1.0-0' }} MGA</span>
+            <span class="info-value">{{ detailAppel.emplacement.loyer_mensuel | number:'1.0-0' }} Ar</span>
           </div>
         </div>
       </div>

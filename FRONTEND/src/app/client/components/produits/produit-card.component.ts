@@ -1,8 +1,10 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { ProduitClient } from '../../services/produit-client.service';
 import { PanierService } from '../../services/panier.service';
 import { SouhaitService } from '../../services/souhait.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-produit-card',
@@ -12,17 +14,28 @@ import { SouhaitService } from '../../services/souhait.service';
     <div class="card" [class.souhaite]="isSouhaite">
       <!-- Image -->
       <div class="card-img-wrap" (click)="onOpenDetail()">
-        <img *ngIf="produit.images && produit.images.length > 0; else noImg"
-             [src]="produit.images[0]" [alt]="produit.nom" class="card-img" />
+        <img
+          *ngIf="produit.images && produit.images.length > 0; else noImg"
+          [src]="produit.images[0]"
+          [alt]="produit.nom"
+          class="card-img"
+        />
         <ng-template #noImg>
           <div class="card-no-img"><i class="fas fa-box-open"></i></div>
         </ng-template>
         <!-- Wishlist btn -->
-        <button class="btn-souhait" (click)="toggleSouhait($event)" [class.active]="isSouhaite" title="Ajouter aux souhaits">
+        <button
+          class="btn-souhait"
+          (click)="toggleSouhait($event)"
+          [class.active]="isSouhaite"
+          title="Ajouter aux souhaits"
+        >
           <i class="fas fa-heart"></i>
         </button>
-        <!-- Badge stock -->
-        <span class="badge-stock" *ngIf="!enStock">Rupture</span>
+        <!-- Badge promo rouge haut gauche -->
+        <span class="badge-promo" *ngIf="produit.promotion">{{ promoLabel }}</span>
+        <!-- Badge stock (décalé si promo présente) -->
+        <span class="badge-stock" [class.shifted]="produit.promotion" *ngIf="!enStock">Rupture</span>
         <!-- Detail hover overlay -->
         <div class="img-overlay">
           <span><i class="fas fa-eye"></i> Voir détails</span>
@@ -36,18 +49,51 @@ import { SouhaitService } from '../../services/souhait.service';
         <div class="card-boutique" *ngIf="produit.idBoutique?.contact?.nom">
           <i class="fas fa-store"></i> {{ produit.idBoutique!.contact.nom }}
         </div>
+        <div class="card-adresse" *ngIf="produit.idBoutique?.contact?.adresse">
+          <i class="fas fa-map-marker-alt"></i> {{ produit.idBoutique!.contact.adresse }}
+        </div>
 
         <!-- Variant hint (if variants) -->
         <div class="variante-hint" *ngIf="produit.variantes && produit.variantes.length > 0">
           <i class="fas fa-palette"></i>
-          {{ produit.variantes.length }} variante{{ produit.variantes.length > 1 ? 's' : '' }} disponible{{ produit.variantes.length > 1 ? 's' : '' }}
+          {{ produit.variantes.length }} variante{{
+            produit.variantes.length > 1 ? 's' : ''
+          }}
         </div>
 
-        <!-- Price: only if NO variants -->
-        <div class="card-price" *ngIf="!produit.variantes || produit.variantes.length === 0">{{ prixSelected | number:'1.0-0' }} {{ devise }}</div>
+        <!-- Prix variantes avec promo -->
+        <div class="card-price" *ngIf="produit.variantes && produit.variantes.length > 0">
+          <ng-container *ngIf="prixMinPromo !== null; else prixNormal">
+            <span class="old-price">{{ prixMinOriginal | number:'1.0-0' }} {{ devise }}</span>
+            <span class="current-price is-promo">{{ prixMinPromo | number:'1.0-0' }} {{ devise }}</span>
+          </ng-container>
+          <ng-template #prixNormal>
+            <span class="current-price">dès {{ prixMin | number:'1.0-0' }} {{ devise }}</span>
+          </ng-template>
+        </div>
+
+        <!-- Price: produits sans variantes -->
+        <div class="card-price" *ngIf="!produit.variantes || produit.variantes.length === 0">
+          <span *ngIf="prixPromo !== null" class="old-price"
+            >{{ prixSelected | number: '1.0-0' }} {{ devise }}</span
+          >
+          <span class="current-price" [class.is-promo]="prixPromo !== null"
+            >{{ (prixPromo !== null ? prixPromo : prixSelected) | number: '1.0-0' }}
+            {{ devise }}</span
+          >
+        </div>
         <div class="card-actions">
-          <button class="btn-cart" (click)="addToCart()" [disabled]="!enStock" [class.added]="dansLePanier">
-            <i class="fas" [class.fa-shopping-cart]="!dansLePanier" [class.fa-check]="dansLePanier"></i>
+          <button
+            class="btn-cart"
+            (click)="addToCart()"
+            [disabled]="!enStock"
+            [class.added]="dansLePanier"
+          >
+            <i
+              class="fas"
+              [class.fa-shopping-cart]="!dansLePanier"
+              [class.fa-check]="dansLePanier"
+            ></i>
             {{ dansLePanier ? 'Ajouté' : 'Ajouter' }}
           </button>
           <button class="btn-detail" (click)="onOpenDetail()" title="Voir les détails">
@@ -57,121 +103,371 @@ import { SouhaitService } from '../../services/souhait.service';
       </div>
     </div>
   `,
-  styles: [`
-    .card {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      overflow: hidden;
-      transition: transform 0.15s, box-shadow 0.15s;
-      display: flex;
-      flex-direction: column;
-    }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+  styles: [
+    `
+      .card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+        display: flex;
+        flex-direction: column;
+      }
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      }
 
-    .card-img-wrap {
-      position: relative; height: 180px; overflow: hidden;
-      background: #f3f4f6; cursor: pointer;
-    }
-    .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.25s; }
-    .card-img-wrap:hover .card-img { transform: scale(1.04); }
-    .card-no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #d1d5db; font-size: 40px; }
+      .card-img-wrap {
+        position: relative;
+        height: 180px;
+        overflow: hidden;
+        background: #f3f4f6;
+        cursor: pointer;
+      }
+      .card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.25s;
+      }
+      .card-img-wrap:hover .card-img {
+        transform: scale(1.04);
+      }
+      .card-no-img {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d1d5db;
+        font-size: 40px;
+      }
 
-    .img-overlay {
-      position: absolute; inset: 0;
-      background: rgba(54,96,169,0.55);
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; transition: opacity 0.2s;
-      span { color: #fff; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-    }
-    .card-img-wrap:hover .img-overlay { opacity: 1; }
+      .img-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(54, 96, 169, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+        span {
+          color: #fff;
+          font-size: 14px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+      }
+      .card-img-wrap:hover .img-overlay {
+        opacity: 1;
+      }
 
-    .btn-souhait {
-      position: absolute; top: 8px; right: 8px;
-      width: 32px; height: 32px; border-radius: 50%;
-      background: white; border: 1px solid #e5e7eb;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: all 0.15s; z-index: 2;
-    }
-    .btn-souhait i { color: #d1d5db; font-size: 13px; transition: color 0.15s; }
-    .btn-souhait:hover i, .btn-souhait.active i { color: #ef4444; }
-    .btn-souhait.active { border-color: #ef4444; background: #fff1f2; }
+      .btn-souhait {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        z-index: 2;
+      }
+      .btn-souhait i {
+        color: #d1d5db;
+        font-size: 13px;
+        transition: color 0.15s;
+      }
+      .btn-souhait:hover i,
+      .btn-souhait.active i {
+        color: #ef4444;
+      }
+      .btn-souhait.active {
+        border-color: #ef4444;
+        background: #fff1f2;
+      }
 
-    .badge-stock {
-      position: absolute; top: 8px; left: 8px;
-      background: #ef4444; color: white;
-      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
-      text-transform: uppercase; z-index: 2;
-    }
+      .badge-stock {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: #6b7280;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        z-index: 2;
+      }
+      .badge-stock.shifted { left: auto; right: 8px; }
+      /* Badge promo rouge haut gauche */
+      .badge-promo {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: #ef4444;
+        color: white;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 4px;
+        z-index: 2;
+        letter-spacing: 0.02em;
+      }
 
-    .card-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
-    .card-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #3660a9; }
-    .card-title {
-      font-size: 13.5px; font-weight: 600; color: #111827;
-      margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      cursor: pointer;
-      &:hover { color: #3660a9; }
-    }
-    .card-boutique { font-size: 11px; color: #9ca3af; display: flex; align-items: center; gap: 5px; }
-    .card-boutique i { font-size: 10px; }
+      .card-body {
+        padding: 10px 12px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+      }
+      .card-category {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #3660a9;
+      }
+      .card-title {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #111827;
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+        &:hover {
+          color: #3660a9;
+        }
+      }
+      .card-boutique {
+        font-size: 11px;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .card-boutique i { font-size: 10px; }
 
-    .variante-hint {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 11.5px; color: #3660a9; font-weight: 600;
-      background: #eff6ff; padding: 3px 8px; border-radius: 20px;
-      width: fit-content; margin: 2px 0;
-      i { font-size: 10px; }
-    }
+      .card-adresse {
+        font-size: 11px;
+        color: #b0b7c3;
+        display: flex;
+        align-items: flex-start;
+        gap: 5px;
+        line-height: 1.4;
+        margin-top: -2px;
+      }
+      .card-adresse i { font-size: 10px; margin-top: 2px; flex-shrink: 0; }
 
-    .card-price { font-size: 16px; font-weight: 700; color: #3660a9; }
+      /* Promo row for variant products — supprimé, remplacé par prix inline */
 
-    .card-actions { display: flex; gap: 6px; margin-top: 4px; }
+      .variante-hint {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11.5px;
+        color: #3660a9;
+        font-weight: 600;
+        background: #eff6ff;
+        padding: 3px 8px;
+        border-radius: 20px;
+        width: fit-content;
+        margin: 2px 0;
+        i {
+          font-size: 10px;
+        }
+      }
 
-    .btn-cart {
-      flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
-      padding: 7px 8px; border: none; border-radius: 6px;
-      background: #3660a9; color: white;
-      font-size: 12px; font-weight: 600; cursor: pointer;
-      transition: background 0.15s;
-      &:hover:not(:disabled) { background: #2a4d8a; }
-      &:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; }
-      &.added { background: #059669; }
-      &.added:hover { background: #047857; }
-    }
+      .card-price {
+        font-size: 16px;
+        font-weight: 700;
+        color: #3660a9;
+      }
+      .card-price .old-price {
+        text-decoration: line-through;
+        color: #9ca3af;
+        margin-right: 6px;
+        font-size: 14px;
+      }
+      .card-price .current-price { color: #3660a9; }
+      .card-price .current-price.is-promo { color: #d97706; }
 
-    .btn-detail {
-      width: 34px; height: 34px; border-radius: 6px;
-      border: 1px solid #e5e7eb; background: #f9fafb;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: 13px; color: #6b7280; transition: all 0.15s; flex-shrink: 0;
-      &:hover { border-color: #3660a9; color: #3660a9; background: #eff6ff; }
-    }
-  `]
+      .card-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .btn-cart {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 7px 8px;
+        border: none;
+        border-radius: 6px;
+        background: #3660a9;
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+        &:hover:not(:disabled) {
+          background: #2a4d8a;
+        }
+        &:disabled {
+          background: #d1d5db;
+          color: #9ca3af;
+          cursor: not-allowed;
+        }
+        &.added {
+          background: #059669;
+        }
+        &.added:hover {
+          background: #047857;
+        }
+      }
+
+      .btn-detail {
+        width: 34px;
+        height: 34px;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: #6b7280;
+        transition: all 0.15s;
+        flex-shrink: 0;
+        &:hover {
+          border-color: #3660a9;
+          color: #3660a9;
+          background: #eff6ff;
+        }
+      }
+    `,
+  ],
 })
 export class ProduitCardComponent {
-  @Input() produit!: ProduitClient;
+  @Input() set produit(value: ProduitClient) {
+    this._produit = value;
+  }
+  get produit(): ProduitClient { return this._produit; }
+  private _produit!: ProduitClient;
+
   @Output() openDetail = new EventEmitter<ProduitClient>();
 
   selectedIdx = 0;
 
-  constructor(private panierService: PanierService, private souhaitService: SouhaitService) {}
+  constructor(
+    private panierService: PanierService,
+    private souhaitService: SouhaitService,
+    private authService: AuthService,
+    private router: Router,
+  ) {}
 
-  get selectedVariante() { return this.produit.variantes?.[this.selectedIdx] ?? null; }
+  get selectedVariante() {
+    return this.produit.variantes?.[this.selectedIdx] ?? null;
+  }
 
   get prixSelected(): number {
     if (!this.produit.variantes?.length) return 0;
-    return this.selectedVariante?.prix.montant ?? Math.min(...this.produit.variantes.map(v => v.prix.montant));
+    return (
+      this.selectedVariante?.prix.montant ??
+      Math.min(...this.produit.variantes.map((v) => v.prix.montant))
+    );
   }
 
-  get devise(): string { return this.produit.variantes?.[0]?.prix?.devise || 'MGA'; }
+  /** Label de réduction affiché dans le badge, ex: "-20%" ou "-5 000 Ar" */
+  get promoLabel(): string {
+    const promo = this.produit.promotion;
+    if (!promo) return '';
+    return promo.type === 'pourcentage'
+      ? `-${promo.valeur}%`
+      : `-${promo.valeur.toLocaleString('fr-FR')} Ar`;
+  }
+
+  /** Prix minimum parmi toutes les variantes (avant promo) */
+  get prixMin(): number {
+    if (!this.produit.variantes?.length) return 0;
+    return Math.min(...this.produit.variantes.map(v => v.prix.montant));
+  }
+
+  /** Prix minimum après application de la promo (pour produits avec variantes) */
+  get prixMinPromo(): number | null {
+    const promo = this.produit.promotion as any;
+    if (!promo || !this.produit.variantes?.length) return null;
+    const base = this.prixMinOriginal;
+    if (promo.type === 'pourcentage') return Math.max(0, Math.round(base * (1 - promo.valeur / 100)));
+    if (promo.type === 'montant') return Math.max(0, base - promo.valeur);
+    return null;
+  }
+
+  /** Prix original de la variante ciblée par la promo (ou min global) */
+  get prixMinOriginal(): number {
+    const promo = this.produit.promotion as any;
+    if (promo?.idVariante && this.produit.variantes?.length) {
+      const target = this.produit.variantes.find(v => v._id === promo.idVariante);
+      if (target) return target.prix.montant;
+    }
+    return this.prixMin;
+  }
+
+  get prixPromo(): number | null {
+    const promo = this.produit.promotion as any;
+    if (!promo) return null;
+    // if promotion targets a variant, ensure the current selected variant matches
+    if (promo.idVariante) {
+      const variant = this.produit.variantes?.[this.selectedIdx];
+      if (!variant || variant._id !== promo.idVariante) {
+        return null;
+      }
+    }
+    const base = this.prixSelected;
+    if (promo.type === 'pourcentage') {
+      return Math.max(0, Math.round(base * (1 - promo.valeur / 100)));
+    }
+    if (promo.type === 'montant') {
+      return Math.max(0, base - promo.valeur);
+    }
+    return null;
+  }
+
+  get devise(): string {
+    return this.produit.variantes?.[0]?.prix?.devise || 'Ar';
+  }
 
   get enStock(): boolean {
     if (!this.produit.variantes?.length) return false;
     return (this.selectedVariante?.stock.quantite ?? 0) > 0;
   }
 
-  get isSouhaite(): boolean { return this.souhaitService.estSouhaite(this.produit._id); }
-  get dansLePanier(): boolean { return this.panierService.estDansPanier(this.produit._id); }
+  get isSouhaite(): boolean {
+    return this.souhaitService.estSouhaite(this.produit._id);
+  }
+  get dansLePanier(): boolean {
+    return this.panierService.estDansPanier(this.produit._id);
+  }
 
   selectVar(idx: number): void {
     if ((this.produit.variantes?.[idx]?.stock.quantite ?? 0) === 0) return;
@@ -182,8 +478,16 @@ export class ProduitCardComponent {
     return [v.couleur, v.unite].filter(Boolean).join(' · ') || 'Variante';
   }
 
-  toggleSouhait(e: Event): void { e.stopPropagation(); this.souhaitService.basculer(this.produit); }
-  addToCart(): void { this.panierService.ajouter(this.produit, this.selectedIdx); }
-  onOpenDetail(): void { this.openDetail.emit(this.produit); }
+  toggleSouhait(e: Event): void {
+    e.stopPropagation();
+    if (!this.authService.isAuthenticated()) { this.router.navigate(['/client-login']); return; }
+    this.souhaitService.basculer(this.produit);
+  }
+  addToCart(): void {
+    if (!this.authService.isAuthenticated()) { this.router.navigate(['/client-login']); return; }
+    this.panierService.ajouter(this.produit, this.selectedIdx);
+  }
+  onOpenDetail(): void {
+    this.openDetail.emit(this.produit);
+  }
 }
-

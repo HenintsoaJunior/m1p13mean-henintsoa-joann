@@ -1,0 +1,329 @@
+<div class="page-container">
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-container">
+      <div class="filters-header">
+        <i class="fa-solid fa-filter"></i>
+        <span>Filtres</span>
+      </div>
+      <div class="filters-content">
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Rechercher une promotion..."
+            [(ngModel)]="searchTerm"
+            (input)="onFilterChange()"
+          />
+        </div>
+        <select [(ngModel)]="filterStatut" (change)="onFilterChange()" class="form-control">
+          <option value="">Tous les statuts</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="archive">Archivée</option>
+        </select>
+        <button
+          class="btn btn-danger"
+          (click)="searchTerm = ''; filterStatut = ''; onFilterChange()"
+        >
+          Effacer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table des promotions -->
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Liste des Promotions</h3>
+      <button class="btn btn-primary" (click)="goToCreate()">
+        <i class="fas fa-plus" style="color: white; margin-right: 8px"></i>
+        Nouvelle Promotion
+      </button>
+    </div>
+
+    <div *ngIf="loading" class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <span>Chargement en cours...</span>
+      </div>
+    </div>
+
+    <table *ngIf="!loading" class="data-table">
+      <thead>
+        <tr>
+          <th>Promotion</th>
+          <th>Valeur</th>
+          <th>Cible</th>
+          <th>Période</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (promotions.length === 0) {
+          <tr>
+            <td colspan="6" class="empty-state">
+              <i class="fas fa-tags" style="font-size: 64px; color: #ccc"></i>
+              <h3>Aucune promotion trouvée</h3>
+              <p>Commencez par créer votre première promotion</p>
+            </td>
+          </tr>
+        } @else {
+          @for (p of promotions; track p._id) {
+            <tr class="table-row" (click)="showDetails(p)" style="cursor: pointer">
+              <td>
+                <div class="promo-info">
+                  <div class="promo-type-icon">
+                    <i class="fas fa-percent" *ngIf="p.type === 'pourcentage'"></i>
+                    <i class="fas fa-tag" *ngIf="p.type !== 'pourcentage'"></i>
+                  </div>
+                  <div>
+                    <div class="promo-name">{{ p.type === 'pourcentage' ? 'Réduction en %' : 'Réduction fixe' }}</div>
+                    <div class="promo-slug">{{ getPromoTarget(p) }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="promo-valeur" [class.valeur-percent]="p.type === 'pourcentage'">
+                  {{ p.type === 'pourcentage' ? p.valeur + '%' : p.valeur + ' Ar' }}
+                </span>
+              </td>
+              <td>
+                <span class="text-secondary">{{ getPromoTarget(p) }}</span>
+              </td>
+              <td>
+                <div class="periode-dates">
+                  <div>{{ p.dateDebut | date:'dd/MM/yyyy' }}</div>
+                  <div class="text-secondary">→ {{ p.dateFin | date:'dd/MM/yyyy' }}</div>
+                </div>
+              </td>
+              <td>
+                <span
+                  class="statut-badge"
+                  [ngClass]="{
+                    'statut-actif': p.statut === 'active',
+                    'statut-rupture_stock': p.statut === 'inactive',
+                    'statut-archive': p.statut === 'archive',
+                  }"
+                >
+                  {{ getStatutLabel(p.statut) }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <button
+                    (click)="showDetails(p); $event.stopPropagation()"
+                    class="btn-icon btn-view"
+                    title="Voir détails"
+                  >
+                    <i class="fas fa-eye" style="color: white"></i>
+                  </button>
+                  <button
+                    (click)="goToEdit(p._id!); $event.stopPropagation()"
+                    class="btn-icon btn-edit"
+                    title="Modifier"
+                  >
+                    <i class="fas fa-edit" style="color: white"></i>
+                  </button>
+                  <button
+                    (click)="confirmDelete(p._id!); $event.stopPropagation()"
+                    class="btn-icon btn-delete"
+                    title="Supprimer"
+                  >
+                    <i class="fas fa-trash" style="color: white"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    <div class="pagination-container" *ngIf="totalPages >= 1">
+      <div class="pagination-info">
+        <span>Affichage page {{ currentPage }} sur {{ totalPages }} ({{ total }} résultats)</span>
+        <select
+          class="page-size-select"
+          [(ngModel)]="pageSize"
+          (ngModelChange)="onPageSizeChange()"
+        >
+          <option [value]="5">5 par page</option>
+          <option [value]="10">10 par page</option>
+          <option [value]="25">25 par page</option>
+        </select>
+      </div>
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button
+          class="pagination-btn"
+          (click)="goToPage(1)"
+          [disabled]="currentPage === 1"
+          title="Première page"
+        >
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+        <button
+          class="pagination-btn"
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          title="Page précédente"
+        >
+          <i class="fas fa-angle-left"></i>
+        </button>
+        @for (p of getPages(); track p) {
+          <button class="pagination-btn" [class.active]="p === currentPage" (click)="goToPage(p)">
+            {{ p }}
+          </button>
+        }
+        <button
+          class="pagination-btn"
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          title="Page suivante"
+        >
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button
+          class="pagination-btn"
+          (click)="goToPage(totalPages)"
+          [disabled]="currentPage === totalPages"
+          title="Dernière page"
+        >
+          <i class="fas fa-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div *ngIf="deleteConfirmId" class="modal-overlay" (click)="cancelDelete()">
+  <div class="modal-content modal-content-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header modal-header-danger">
+      <h2 class="modal-title">
+        <i class="fas fa-exclamation-triangle"></i> Confirmation de suppression
+      </h2>
+      <button class="btn-close" (click)="cancelDelete()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="delete-warning">
+        <i class="fas fa-trash-alt"></i>
+        <p>Êtes-vous sûr de vouloir supprimer cette promotion ?</p>
+      </div>
+      <div class="delete-info">
+        <i class="fas fa-info-circle"></i>
+        <p>Cette action est irréversible. La promotion sera définitivement supprimée.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="cancelDelete()">Annuler</button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="executeDelete()"
+        [disabled]="isDeleting"
+      >
+        @if (isDeleting) {
+          <i class="fas fa-spinner fa-spin"></i> Suppression...
+        } @else {
+          <i class="fas fa-trash"></i> Supprimer
+        }
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Détails de la promotion -->
+<div *ngIf="selectedPromo" class="modal-overlay" (click)="hideDetails()">
+  <div class="modal-content modal-content-md" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Détails de la Promotion</h2>
+      <button class="btn-close" (click)="hideDetails()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="promo-detail-section">
+        <!-- En-tête avec type et statut -->
+        <div class="info-header">
+          <div class="promo-type-display">
+            <span class="promo-type-icon-lg">
+              <i class="fas fa-percent" *ngIf="selectedPromo.type === 'pourcentage'"></i>
+              <i class="fas fa-tag" *ngIf="selectedPromo.type !== 'pourcentage'"></i>
+            </span>
+            <div>
+              <div class="promo-name-detail">
+                {{ selectedPromo.type === 'pourcentage' ? 'Réduction en pourcentage' : 'Réduction montant fixe' }}
+              </div>
+              <div class="promo-valeur-detail">
+                {{ selectedPromo.valeur }}{{ selectedPromo.type === 'pourcentage' ? '%' : ' Ar' }}
+              </div>
+            </div>
+          </div>
+          <span
+            class="statut-badge detail"
+            [ngClass]="{
+              'statut-actif': selectedPromo.statut === 'active',
+              'statut-rupture_stock': selectedPromo.statut === 'inactive',
+              'statut-archive': selectedPromo.statut === 'archive',
+            }"
+          >
+            {{ getStatutLabel(selectedPromo.statut) }}
+          </span>
+        </div>
+
+        <!-- Cible -->
+        <div class="info-block">
+          <div class="info-label"><i class="fas fa-crosshairs"></i> Cible de la promotion</div>
+          <div class="info-value">
+            @if (selectedPromo.idProduit) {
+              <div><i class="fas fa-box" style="color: var(--sidebar-primary, #3660a9); margin-right: 6px"></i>Produit : <strong>{{ getProduitName(selectedPromo.idProduit) }}</strong></div>
+            }
+            @if (selectedPromo.idVariante) {
+              <div><i class="fas fa-cubes" style="color: var(--sidebar-primary, #3660a9); margin-right: 6px"></i>Variante : <strong>{{ getVarianteName(selectedPromo.idProduit, selectedPromo.idVariante) }}</strong></div>
+            }
+            @if (selectedPromo.idCategorie) {
+              <div><i class="fas fa-layer-group" style="color: var(--sidebar-primary, #3660a9); margin-right: 6px"></i>Catégorie : <strong>{{ getCategorieName(selectedPromo.idCategorie) }}</strong></div>
+            }
+            @if (!selectedPromo.idProduit && !selectedPromo.idCategorie) {
+              <div><i class="fas fa-store" style="color: var(--sidebar-primary, #3660a9); margin-right: 6px"></i><strong>Toute la boutique</strong></div>
+            }
+          </div>
+        </div>
+
+        <!-- Période -->
+        <div class="info-block dates-block">
+          <div class="date-item">
+            <i class="fas fa-calendar-plus"></i>
+            <span>Début :</span>
+            <strong>{{ selectedPromo.dateDebut | date: 'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+          <div class="date-item">
+            <i class="fas fa-calendar-check"></i>
+            <span>Fin :</span>
+            <strong>{{ selectedPromo.dateFin | date: 'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="hideDetails()">Fermer</button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        (click)="confirmDelete(selectedPromo._id!); hideDetails()"
+      >
+        <i class="fas fa-trash"></i> Supprimer
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="goToEdit(selectedPromo._id!)"
+      >
+        <i class="fas fa-edit"></i> Modifier
+      </button>
+    </div>
+  </div>
+</div>

@@ -21,6 +21,9 @@ router.use("/commandes", require("./commandes"));
 // Mon Boutique (infos + localisation)
 router.use("/mon-boutique", require("./mon-boutique"));
 
+// Promotions - CRUD réservées à la boutique
+router.use("/promotions", require("./promotions"));
+
 router.use("/dashboard", require("./dashboard"));
 
 router.get("/", (req, res) => {

@@ -38,7 +38,7 @@ const commandeSchema = new mongoose.Schema(
     total: { type: Number, default: 0 },
     notes: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Commande", commandeSchema);

@@ -20,7 +20,7 @@
       </div>
       <div class="banner-item" *ngIf="appel.emplacement?.loyer_mensuel">
         <i class="fas fa-money-bill-wave"></i>
-        <span>{{ appel.emplacement?.loyer_mensuel | number:'1.0-0' }} MGA/mois</span>
+        <span>{{ appel.emplacement?.loyer_mensuel | number:'1.0-0' }} Ar/mois</span>
       </div>
       <div class="banner-item" *ngIf="appel.date_deadline">
         <i class="fas fa-calendar-alt"></i>
@@ -73,12 +73,12 @@
 
     <!-- Row 3: Montant (full width) -->
     <div class="form-group form-group-full">
-      <label class="form-label"><span class="required">*</span> Montant proposé (MGA)</label>
+      <label class="form-label"><span class="required">*</span> Montant proposé (Ar)</label>
       <div class="input-wrapper">
         <i class="fas fa-coins"></i>
         <input type="number" [(ngModel)]="montant" name="montant"
           placeholder="Ex: 500000" class="form-input" min="0" required />
-        <span class="input-suffix">MGA</span>
+        <span class="input-suffix">Ar</span>
       </div>
     </div>
 

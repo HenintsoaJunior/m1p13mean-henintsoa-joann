@@ -1,9 +1,11 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ProduitClient } from '../../services/produit-client.service';
 import { PanierService } from '../../services/panier.service';
 import { SouhaitService } from '../../services/souhait.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-produit-detail-modal',
@@ -33,10 +35,6 @@ import { SouhaitService } from '../../services/souhait.service';
           </button>
         </div>
 
-        <div class="boutique-chip" *ngIf="produit.idBoutique?.contact?.nom">
-          <i class="fas fa-store"></i>
-          {{ produit.idBoutique!.contact.nom }}
-        </div>
       </div>
 
       <!-- RIGHT: Info panel -->
@@ -50,6 +48,25 @@ import { SouhaitService } from '../../services/souhait.service';
         </div>
 
         <h1 class="prod-title">{{ produit.nom }}</h1>
+
+        <!-- Bloc promotion -->
+        <div class="promo-panel" *ngIf="produit.promotion">
+          <div class="promo-panel-header">
+            <span class="promo-panel-badge">
+              <i class="fas fa-tag"></i> PROMOTION
+            </span>
+            <span class="promo-panel-value">{{ promoLabel }}</span>
+          </div>
+          <div class="promo-panel-details">
+            <span class="promo-validity">
+              <i class="fas fa-calendar-alt"></i>
+              Du {{ formatDate(produit.promotion.dateDebut) }} au {{ formatDate(produit.promotion.dateFin) }}
+            </span>
+            <span class="promo-scope">
+              <i class="fas fa-bullseye"></i> {{ promoCible }}
+            </span>
+          </div>
+        </div>
 
         <p class="prod-desc" *ngIf="produit.description">{{ produit.description }}</p>
         <div class="desc-placeholder" *ngIf="!produit.description">
@@ -82,9 +99,15 @@ import { SouhaitService } from '../../services/souhait.service';
         </div>
 
         <!-- Price -->
-        <div class="price-block" *ngIf="selectedVariante" style="margin-top: 8px;">
-          <span class="price-main">{{ selectedVariante.prix.montant | number:'1.0-0' }}</span>
-          <span class="price-cur">{{ selectedVariante.prix.devise }}</span>
+        <div class="price-block" *ngIf="selectedVariante" style="margin-top: 8px;" [class.has-promo]="prixPromo !== null">
+          <div class="price-left">
+            <span *ngIf="prixPromo !== null" class="old-price">{{ selectedVariante.prix.montant | number:'1.0-0' }}</span>
+            <div class="price-main-wrap">
+              <span class="price-main" [class.promo-price]="prixPromo !== null">{{ (prixPromo !== null ? prixPromo : selectedVariante.prix.montant) | number:'1.0-0' }}</span>
+              <span class="price-cur">{{ selectedVariante.prix.devise }}</span>
+            </div>
+          </div>
+          <span class="price-discount-tag" *ngIf="prixPromo !== null">{{ promoLabel }}</span>
         </div>
 
         <!-- Quantity -->
@@ -101,6 +124,31 @@ import { SouhaitService } from '../../services/souhait.service';
               </button>
             </div>
           </div>
+        </div>
+
+        <!-- Boutique & Localisation compact -->
+        <div class="loc-compact" *ngIf="produit.idBoutique">
+          <span class="loc-chip boutique-chip">
+            <i class="fas fa-store"></i> {{ produit.idBoutique.contact.nom }}
+          </span>
+          <ng-container *ngIf="emplacement as emp">
+            <span class="loc-sep-dot">·</span>
+            <span class="loc-chip" *ngIf="emp.nom || emp.code">
+              <i class="fas fa-map-pin"></i> {{ emp.nom || emp.code }}
+            </span>
+            <span class="loc-sep-dot" *ngIf="etage">·</span>
+            <span class="loc-chip" *ngIf="etage as et">
+              <i class="fas fa-layer-group"></i> {{ et.nom }}
+            </span>
+            <span class="loc-sep-dot" *ngIf="batiment">·</span>
+            <span class="loc-chip" *ngIf="batiment as bat">
+              <i class="fas fa-building"></i> {{ bat.nom }}
+            </span>
+            <span class="loc-sep-dot" *ngIf="centre">·</span>
+            <span class="loc-chip centre-chip" *ngIf="centre as ctr">
+              <i class="fas fa-city"></i> {{ ctr.nom }}
+            </span>
+          </ng-container>
         </div>
 
         <!-- Actions -->
@@ -164,7 +212,7 @@ import { SouhaitService } from '../../services/souhait.service';
       flex: 1; border-radius: 14px; overflow: hidden;
       background: #e2e8f0; position: relative; min-height: 260px;
     }
-    .main-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .main-photo img { width: 100%; height: 100%; object-fit: contain; background: #f8fafc; padding: 8px; }
     .no-photo {
       width: 100%; height: 100%; min-height: 260px;
       display: flex; align-items: center; justify-content: center;
@@ -220,6 +268,37 @@ import { SouhaitService } from '../../services/souhait.service';
     .wish-toggle.wished i { color: #ef4444; }
 
     .prod-title { font-size: 22px; font-weight: 900; color: #0f172a; margin: 0; line-height: 1.25; }
+
+    /* Bloc promotion */
+    .promo-panel {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1.5px solid #fcd34d;
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .promo-panel-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .promo-panel-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #d97706; color: white;
+      font-size: 11px; font-weight: 800; letter-spacing: 0.06em;
+      padding: 3px 10px; border-radius: 20px; text-transform: uppercase;
+    }
+    .promo-panel-badge i { font-size: 10px; }
+    .promo-panel-value {
+      font-size: 22px; font-weight: 900; color: #92400e; letter-spacing: -0.5px;
+    }
+    .promo-panel-details {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .promo-validity, .promo-scope {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; color: #78350f; font-weight: 500;
+    }
+    .promo-validity i, .promo-scope i { font-size: 11px; color: #d97706; }
+
     .prod-desc { font-size: 13.5px; color: #64748b; line-height: 1.7; margin: 0; }
     .desc-placeholder {
       font-size: 13px; color: #94a3b8; font-style: italic;
@@ -309,21 +388,35 @@ import { SouhaitService } from '../../services/souhait.service';
 
     /* Price */
     .price-block {
-      display: flex; align-items: flex-end; gap: 8px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
       padding: 14px 18px;
       background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fc 100%);
       border-radius: 14px;
       border-left: 4px solid #3660a9;
     }
+    .price-block.has-promo {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border-left-color: #d97706;
+    }
+    .price-left { display: flex; flex-direction: column; gap: 2px; }
+    .price-main-wrap { display: flex; align-items: flex-end; gap: 8px; }
     .price-main {
       font-size: 36px; font-weight: 900; line-height: 1;
-      color: #1e3a7b;
-      letter-spacing: -0.5px;
+      color: #1e3a7b; letter-spacing: -0.5px;
     }
+    .price-main.promo-price { color: #92400e; }
     .price-cur {
       font-size: 15px; font-weight: 800; color: #3660a9;
-      padding-bottom: 4px;
-      text-transform: uppercase; letter-spacing: 0.05em;
+      padding-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .price-block.has-promo .price-cur { color: #d97706; }
+    .price-block .old-price {
+      text-decoration: line-through; color: #9ca3af; font-size: 14px; font-weight: 500;
+    }
+    .price-discount-tag {
+      background: #d97706; color: white;
+      font-size: 15px; font-weight: 900; letter-spacing: 0.02em;
+      padding: 6px 14px; border-radius: 8px; white-space: nowrap;
     }
 
     .qty-row-label {
@@ -359,6 +452,24 @@ import { SouhaitService } from '../../services/souhait.service';
     .btn-add:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
     .btn-add.in-cart { background: linear-gradient(135deg, #059669, #047857); }
 
+    /* Location compact */
+    .loc-compact {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+      padding: 7px 10px;
+      background: #f8fafc; border-radius: 10px;
+      border: 1px solid #e5e7eb;
+    }
+    .loc-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; color: #4b5563;
+    }
+    .loc-chip i { font-size: 10px; color: #9ca3af; }
+    .boutique-chip { font-weight: 700; color: #1e3a7b; }
+    .boutique-chip i { color: #3660a9; }
+    .centre-chip { color: #3660a9; }
+    .centre-chip i { color: #3660a9; }
+    .loc-sep-dot { color: #d1d5db; font-size: 12px; line-height: 1; }
+
     @media (max-width: 640px) {
       .modal-sheet { flex-direction: column; }
       .visual-panel { flex: none; max-height: 280px; }
@@ -374,7 +485,7 @@ export class ProduitDetailModalComponent implements OnInit {
   currentImageIdx = 0;
   qty = 1;
 
-  constructor(public panierService: PanierService, public souhaitService: SouhaitService) {}
+  constructor(public panierService: PanierService, public souhaitService: SouhaitService, private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     const firstInStock = this.produit.variantes?.findIndex(v => v.stock.quantite > 0) ?? -1;
@@ -391,6 +502,54 @@ export class ProduitDetailModalComponent implements OnInit {
   get isSouhaite(): boolean { return this.souhaitService.estSouhaite(this.produit._id); }
   get dansLePanier(): boolean { return this.panierService.estDansPanier(this.produit._id); }
 
+  /** Prix promotionnel pour la variante sélectionnée, si applicable */
+  get prixPromo(): number | null {
+    if (!this.produit.promotion || !this.selectedVariante) return null;
+    const promo = this.produit.promotion as any;
+    if (promo.idVariante && promo.idVariante !== this.selectedVariante._id) {
+      return null;
+    }
+    const base = this.selectedVariante.prix.montant;
+    if (promo.type === 'pourcentage') {
+      return Math.max(0, Math.round(base * (1 - promo.valeur / 100)));
+    }
+    if (promo.type === 'montant') {
+      return Math.max(0, base - promo.valeur);
+    }
+    return null;
+  }
+
+  /** Label affiché dans le badge promo, ex: "-20%" ou "-5 000 Ar" */
+  get promoLabel(): string {
+    const promo = this.produit.promotion as any;
+    if (!promo) return '';
+    return promo.type === 'pourcentage'
+      ? `-${promo.valeur}%`
+      : `-${promo.valeur.toLocaleString('fr-FR')} Ar`;
+  }
+
+  /** Description de la portée de la promotion */
+  get promoCible(): string {
+    const promo = this.produit.promotion as any;
+    if (!promo) return '';
+    if (promo.idVariante) return 'Variante spécifique';
+    if (promo.idProduit && !promo.idVariante) return 'Ce produit';
+    if (promo.idCategorie) return 'Toute la catégorie';
+    return 'Toute la boutique';
+  }
+
+  /** Formate une date ISO en "dd/mm/yyyy" */
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  get emplacement() { return (this.produit.idBoutique as any)?.appel_offre_id?.emplacement_id ?? null; }
+  get etage() { return this.emplacement?.etage_id ?? null; }
+  get batiment() { return this.etage?.batiment_id ?? null; }
+  get centre() { return this.batiment?.centre_id ?? null; }
+
   selectVariante(idx: number): void {
     if ((this.produit.variantes?.[idx]?.stock.quantite ?? 0) === 0) return;
     this.selectedIdx = idx; this.qty = 1;
@@ -401,11 +560,15 @@ export class ProduitDetailModalComponent implements OnInit {
   }
 
   addToCart(): void {
+    if (!this.authService.isAuthenticated()) { this.router.navigate(['/client-login']); return; }
     for (let i = 0; i < this.qty; i++) {
       this.panierService.ajouter(this.produit, this.selectedIdx);
     }
   }
 
-  toggleSouhait(): void { this.souhaitService.basculer(this.produit); }
+  toggleSouhait(): void {
+    if (!this.authService.isAuthenticated()) { this.router.navigate(['/client-login']); return; }
+    this.souhaitService.basculer(this.produit);
+  }
   onClose(): void { this.fermer.emit(); }
 }

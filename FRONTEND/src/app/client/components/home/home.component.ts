@@ -1,7 +1,9 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { AuthService } from '../../../services/auth.service';
 import { ToastService } from '../../../services/toast.service';
 import { AppelsOffreClientComponent } from '../appels-offre/appels-offre-client.component';
@@ -9,11 +11,14 @@ import { PanierService, PanierItem } from '../../services/panier.service';
 import { SouhaitService } from '../../services/souhait.service';
 import { ProduitClient } from '../../services/produit-client.service';
 import { ClientProduitListComponent } from '../produits/produit-list.component';
+import { FilterService } from '../../services/filter.service';
+import { CentreContactComponent } from '../centre-contact/centre-contact.component';
+import { CommandeClientService } from '../../services/commande-client.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, NgIf, AppelsOffreClientComponent, ClientProduitListComponent],
+  imports: [CommonModule, NgIf, FormsModule, AppelsOffreClientComponent, ClientProduitListComponent, CentreContactComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -21,6 +26,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
   private toastService = inject(ToastService);
+  private filterService = inject(FilterService);
+  private commandeService = inject(CommandeClientService);
   panierService = inject(PanierService);
   souhaitService = inject(SouhaitService);
 
@@ -32,16 +39,49 @@ export class HomeComponent implements OnInit, OnDestroy {
   panierItems: PanierItem[] = [];
   souhaitItems: ProduitClient[] = [];
 
+  // Checkout
+  showCheckout = false;
+  checkoutAdresse = '';
+  checkoutNotes = '';
+  checkoutLoading = false;
+  checkoutSuccess = false;
+  checkoutError = '';
+  checkoutReference = '';
+
   private subs = new Subscription();
+  private searchInput$ = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     this.subs.add(this.panierService.items$.subscribe(items => this.panierItems = items));
     this.subs.add(this.souhaitService.items$.subscribe(items => this.souhaitItems = items));
+
+    // Wire search input with debounce to FilterService
+    this.searchInput$.pipe(
+      debounceTime(350),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(q => this.filterService.setSearch(q));
   }
 
-  ngOnDestroy(): void { this.subs.unsubscribe(); }
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-  openSidebar(type: 'panier' | 'souhait'): void { this.activeSidebar = type; }
+  onSearchInput(event: Event): void {
+    const q = (event.target as HTMLInputElement).value;
+    this.searchInput$.next(q);
+  }
+
+  openSidebar(type: 'panier' | 'souhait'): void {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/client-login']);
+      return;
+    }
+    this.activeSidebar = type;
+  }
   closeSidebar(): void { this.activeSidebar = null; }
 
   get isLoggedIn(): boolean {
@@ -58,14 +98,26 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   get panierTotal(): number {
     return this.panierItems.reduce((total, item) => {
-      const variante = item.produit.variantes?.[item.varianteIndex];
-      const prix = variante?.prix?.montant ?? 0;
+      const prix = this.getPrixVariante(item);
       return total + prix * item.quantite;
     }, 0);
   }
 
   getPrixVariante(item: PanierItem): number {
-    return item.produit.variantes?.[item.varianteIndex]?.prix?.montant ?? 0;
+    const variante = item.produit.variantes?.[item.varianteIndex];
+    const prixBase = variante?.prix?.montant ?? 0;
+    
+    // Appliquer la promotion si elle existe
+    if (item.produit.promotion) {
+      const promo = item.produit.promotion;
+      if (promo.type === 'pourcentage') {
+        return Math.max(0, Math.round(prixBase * (1 - promo.valeur / 100)));
+      }
+      if (promo.type === 'montant') {
+        return Math.max(0, prixBase - promo.valeur);
+      }
+    }
+    return prixBase;
   }
 
   getLibelleVariante(item: PanierItem): string {
@@ -84,6 +136,51 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.souhaitService.basculer(produit);
   }
 
+  ouvrirCheckout(): void {
+    const user = this.authService.getCurrentUser();
+    this.checkoutAdresse = (user as any)?.adresse || '';
+    this.checkoutNotes = '';
+    this.checkoutError = '';
+    this.checkoutSuccess = false;
+    this.checkoutReference = '';
+    this.showCheckout = true;
+  }
+
+  fermerCheckout(): void {
+    this.showCheckout = false;
+  }
+
+  get checkoutUser() { return this.authService.getCurrentUser(); }
+
+  confirmerCommande(): void {
+    if (this.checkoutLoading) return;
+    this.checkoutLoading = true;
+    this.checkoutError = '';
+
+    const lignes = this.panierItems.map(item => {
+      const variante = item.produit.variantes?.[item.varianteIndex];
+      return {
+        idProduit: item.produit._id,
+        idVariante: variante?._id,
+        quantite: item.quantite,
+        prixUnitaire: this.getPrixVariante(item),
+      };
+    });
+
+    this.commandeService.passerCommande(lignes, this.checkoutAdresse, this.checkoutNotes).subscribe({
+      next: (res) => {
+        this.checkoutLoading = false;
+        this.checkoutSuccess = true;
+        this.checkoutReference = res?.data?.reference || '';
+        this.panierService.vider();
+      },
+      error: (e) => {
+        this.checkoutLoading = false;
+        this.checkoutError = e?.error?.message || 'Une erreur est survenue.';
+      }
+    });
+  }
+
   onProfileClick() {
     if (this.isLoggedIn) {
       this.showLogoutPopup = true;
@@ -94,7 +191,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   onLogout() {
     this.authService.logout();
-    this.router.navigate(['/client-login']);
+    this.router.navigate(['/']);
     this.showLogoutPopup = false;
   }
 

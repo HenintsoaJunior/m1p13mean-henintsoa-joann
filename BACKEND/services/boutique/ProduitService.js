@@ -1,8 +1,10 @@
 const ProduitRepository = require("../../repositories/boutique/ProduitRepository");
+const PromotionService = require("../../services/boutique/PromotionService");
 
 class ProduitService {
   constructor() {
     this.produitRepository = new ProduitRepository();
+    this.promoService = new PromotionService();
   }
 
   /**
@@ -116,7 +118,12 @@ class ProduitService {
     if (!produit) {
       throw new Error("Produit non trouvé");
     }
-    return produit.toJSON();
+    let result = produit.toJSON();
+    const promos = await this.promoService.annoterProduits([produit]);
+    if (promos[0]) {
+      result = promos[0];
+    }
+    return result;
   }
 
   /**
@@ -129,7 +136,12 @@ class ProduitService {
     if (!produit) {
       throw new Error("Produit non trouvé");
     }
-    return produit.toJSON();
+    let result = produit.toJSON();
+    const promos = await this.promoService.annoterProduits([produit]);
+    if (promos[0]) {
+      result = promos[0];
+    }
+    return result;
   }
 
   /**
@@ -138,8 +150,10 @@ class ProduitService {
    * @returns {Promise<Array>} Liste des produits
    */
   async obtenirProduitsParBoutique(idBoutique) {
-    const produits = await this.produitRepository.trouverParBoutique(idBoutique);
-    return produits.map(p => p.toJSON());
+    let produits = await this.produitRepository.trouverParBoutique(idBoutique);
+    produits = produits.map(p => p); // keep mongoose objects
+    produits = await this.promoService.annoterProduits(produits);
+    return produits;
   }
 
   /**
@@ -148,8 +162,10 @@ class ProduitService {
    * @returns {Promise<Array>} Liste des produits
    */
   async obtenirProduitsParCategorie(idCategorie) {
-    const produits = await this.produitRepository.trouverParCategorie(idCategorie);
-    return produits.map(p => p.toJSON());
+    let produits = await this.produitRepository.trouverParCategorie(idCategorie);
+    produits = produits.map(p => p);
+    produits = await this.promoService.annoterProduits(produits);
+    return produits;
   }
 
   /**
@@ -158,8 +174,10 @@ class ProduitService {
    * @returns {Promise<Array>} Liste des produits
    */
   async obtenirProduitsParStatut(statut) {
-    const produits = await this.produitRepository.trouverParStatut(statut);
-    return produits.map(p => p.toJSON());
+    let produits = await this.produitRepository.trouverParStatut(statut);
+    produits = produits.map(p => p);
+    produits = await this.promoService.annoterProduits(produits);
+    return produits;
   }
 
   /**
@@ -205,7 +223,14 @@ class ProduitService {
     const filtresValides = this.validerFiltresListe(filtres);
     const paginationValide = this.validerPagination(pagination);
 
-    return await this.produitRepository.obtenirListeAvecPagination(filtresValides, paginationValide);
+    const resultat = await this.produitRepository.obtenirListeAvecPagination(filtresValides, paginationValide);
+    if (resultat && Array.isArray(resultat.produits) && resultat.produits.length) {
+      // annoter chaque produit avec promotion active
+      resultat.produits = await this.promoService.annoterProduits(
+        resultat.produits.map(p => p)
+      );
+    }
+    return resultat;
   }
 
   // ========== MÉTHODES PRIVÉES DE VALIDATION ==========
@@ -235,7 +260,13 @@ class ProduitService {
       nettoyees.idBoutique = donnees.idBoutique;
     }
     if (donnees.idCategorie) {
-      nettoyees.idCategorie = donnees.idCategorie;
+      if (Array.isArray(donnees.idCategorie)) {
+        nettoyees.idCategorie = donnees.idCategorie.filter(Boolean);
+      } else if (typeof donnees.idCategorie === 'string') {
+        nettoyees.idCategorie = donnees.idCategorie.split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        nettoyees.idCategorie = [donnees.idCategorie];
+      }
     }
     if (donnees.nom) {
       nettoyees.nom = donnees.nom.trim();
@@ -256,7 +287,7 @@ class ProduitService {
         unite: variante.unite ? variante.unite.trim() : '',
         typeUnitePrincipal: variante.typeUnitePrincipal || null,
         prix: {
-          devise: (variante.prix?.devise || "MGA").toUpperCase().trim(),
+          devise: (variante.prix?.devise || "Ar").toUpperCase().trim(),
           montant: parseFloat(variante.prix?.montant) || 0,
         },
         stock: {

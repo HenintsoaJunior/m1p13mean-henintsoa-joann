@@ -4,6 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AppelsOffreService, AppelOffreDto } from '../../services/appels-offre.service';
 import { ToastService } from '../../../services/toast.service';
+import { AuthService } from '../../../services/auth.service';
 import { ResponseFormClientComponent } from './response-form-client.component';
 
 @Component({
@@ -35,6 +36,7 @@ export class AppelsOffreClientComponent implements OnInit {
   constructor(
     private appelsOffreSvc: AppelsOffreService,
     private toastService: ToastService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -76,6 +78,10 @@ export class AppelsOffreClientComponent implements OnInit {
   }
 
   openModal(appel: AppelOffreDto): void {
+    if (!this.authService.isAuthenticated()) {
+      this.router.navigate(['/client-login']);
+      return;
+    }
     this.selectedAppel = appel;
     this.showModal = true;
   }

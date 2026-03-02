@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { authentification, interdireAccesInterdit } = require("../../middleware/auth");
 const mongoose = require("mongoose");
+const Boutique = require("../../models/admin/Boutique");
 const Produit = require("../../models/boutique/Produit");
 const Commande = require("../../models/boutique/Commande");
 const MouvementStock = require("../../models/boutique/MouvementStock");
@@ -11,7 +12,9 @@ router.use(interdireAccesInterdit);
 
 router.get("/", async (req, res) => {
   try {
-    const idBoutique = req.utilisateur._id;
+    const boutique = await Boutique.findOne({ "contact.email": req.utilisateur.email });
+    if (!boutique) return res.status(404).json({ erreur: "Boutique introuvable" });
+    const idBoutique = boutique._id;
     const oid = mongoose.Types.ObjectId.createFromHexString(idBoutique.toString());
     const now = new Date();
 

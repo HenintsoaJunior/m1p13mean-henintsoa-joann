@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const boutiqueRepository = require("../../repositories/admin/BoutiqueRepository");
 const Boutique = require("../../models/admin/Boutique");
 const AppelOffre = require("../../models/admin/AppelOffre");
@@ -46,6 +45,44 @@ class BoutiqueService {
     return boutique;
   }
 
+  async reactiverBoutique(id) {
+    const boutique = await Boutique.findById(id).populate({
+      path: "appel_offre_id",
+      populate: { path: "emplacement_id" },
+    });
+    if (!boutique) throw new Error("Boutique non trouvée");
+
+    // 1. Boutique → active
+    boutique.statut = "active";
+    await boutique.save();
+
+    // 2. AppelOffre → attribue
+    if (boutique.appel_offre_id) {
+      await AppelOffre.findByIdAndUpdate(
+        boutique.appel_offre_id._id,
+        { statut: "attribue" }
+      );
+
+      // 3. Emplacement → occupe
+      if (boutique.appel_offre_id.emplacement_id) {
+        await Emplacement.findByIdAndUpdate(
+          boutique.appel_offre_id.emplacement_id._id,
+          { statut: "occupe" }
+        );
+      }
+    }
+
+    // 4. Utilisateur → actif = true
+    if (boutique.contact?.email) {
+      await Utilisateur.findOneAndUpdate(
+        { email: boutique.contact.email.toLowerCase().trim() },
+        { actif: true }
+      );
+    }
+
+    return boutique;
+  }
+
   async desactiverBoutique(id) {
     const boutique = await Boutique.findById(id).populate({
       path: "appel_offre_id",
@@ -53,49 +90,35 @@ class BoutiqueService {
     });
     if (!boutique) throw new Error("Boutique non trouvée");
 
-    const session = await mongoose.startSession();
-    try {
-      session.startTransaction();
+    // 1. Boutique → fermée
+    boutique.statut = "fermee";
+    await boutique.save();
 
-      // 1. Boutique → fermée
-      boutique.statut = "fermee";
-      await boutique.save({ session });
+    // 2. AppelOffre → fermé
+    if (boutique.appel_offre_id) {
+      await AppelOffre.findByIdAndUpdate(
+        boutique.appel_offre_id._id,
+        { statut: "ferme" }
+      );
 
-      // 2. AppelOffre → fermé
-      if (boutique.appel_offre_id) {
-        await AppelOffre.findByIdAndUpdate(
-          boutique.appel_offre_id._id,
-          { statut: "ferme" },
-          { session }
-        );
-
-        // 3. Emplacement → libre
-        if (boutique.appel_offre_id.emplacement_id) {
-          await Emplacement.findByIdAndUpdate(
-            boutique.appel_offre_id.emplacement_id._id,
-            { statut: "libre" },
-            { session }
-          );
-        }
-      }
-
-      // 4. Utilisateur → actif = false (relation par email)
-      if (boutique.contact?.email) {
-        await Utilisateur.findOneAndUpdate(
-          { email: boutique.contact.email.toLowerCase().trim() },
-          { actif: false },
-          { session }
+      // 3. Emplacement → libre
+      if (boutique.appel_offre_id.emplacement_id) {
+        await Emplacement.findByIdAndUpdate(
+          boutique.appel_offre_id.emplacement_id._id,
+          { statut: "libre" }
         );
       }
-
-      await session.commitTransaction();
-      return boutique;
-    } catch (err) {
-      await session.abortTransaction();
-      throw err;
-    } finally {
-      session.endSession();
     }
+
+    // 4. Utilisateur → actif = false (relation par email)
+    if (boutique.contact?.email) {
+      await Utilisateur.findOneAndUpdate(
+        { email: boutique.contact.email.toLowerCase().trim() },
+        { actif: false }
+      );
+    }
+
+    return boutique;
   }
 }
 

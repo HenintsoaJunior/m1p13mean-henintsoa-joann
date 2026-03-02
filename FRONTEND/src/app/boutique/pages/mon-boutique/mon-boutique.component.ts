@@ -111,7 +111,7 @@ export class MonBoutiqueComponent implements OnInit {
 
   private deconnecter(): void {
     this.authService.logout();
-    this.router.navigate(['/boutique-login']);
+    this.router.navigate(['/']);
   }
 
   get appelOffre(): any { return this.boutique?.appel_offre_id; }

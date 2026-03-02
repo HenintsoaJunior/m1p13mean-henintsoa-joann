@@ -169,22 +169,60 @@ const Produit = require("./models/boutique/Produit");
 
 app.get("/api/public/produits", async (req, res) => {
   try {
-    const { categorie, q, page = 1, limit = 20 } = req.query;
+    const { categorie, q, page = 1, limit = 20, promo } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const filter = { statut: "actif" };
-    if (categorie) filter.idCategorie = categorie;
-    if (q) filter.nom = { $regex: q, $options: "i" };
+    if (categorie) {
+      const cats = categorie.split(',').map(c => c.trim()).filter(Boolean);
+      filter.idCategorie = cats.length === 1 ? cats[0] : { $in: cats };
+    }
+    if (q) filter.$or = [
+      { nom: { $regex: q, $options: "i" } },
+      { description: { $regex: q, $options: "i" } }
+    ];
 
-    const [produits, total] = await Promise.all([
+    let [produits, total] = await Promise.all([
       Produit.find(filter)
         .populate("idCategorie", "nom slug")
-        .populate("idBoutique", "contact.nom statut")
+        .populate({
+          path: "idBoutique",
+          select: "contact statut appel_offre_id",
+          populate: {
+            path: "appel_offre_id",
+            select: "emplacement_id",
+            populate: {
+              path: "emplacement_id",
+              select: "nom code type",
+              populate: {
+                path: "etage_id",
+                select: "nom niveau",
+                populate: {
+                  path: "batiment_id",
+                  select: "nom",
+                  populate: { path: "centre_id", select: "nom" }
+                }
+              }
+            }
+          }
+        })
         .sort({ dateCreation: -1 })
         .skip(skip)
         .limit(parseInt(limit)),
       Produit.countDocuments(filter)
     ]);
+
+    // join promotions and optionally filter
+    const PromotionService = require("./services/boutique/PromotionService");
+    const promoService = new PromotionService();
+    produits = await promoService.annoterProduits(produits.map(p => p));
+
+    const withPromo = produits.filter(p => p.promotion);
+
+    if (promo === 'true' || promo === '1' || promo === true) {
+      produits = produits.filter(p => p.promotion);
+      total = produits.length;
+    }
 
     res.json({ success: true, produits, total, page: parseInt(page), limit: parseInt(limit) });
   } catch (error) {

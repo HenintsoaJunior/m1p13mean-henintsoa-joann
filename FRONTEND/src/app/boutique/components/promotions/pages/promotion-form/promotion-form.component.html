@@ -1,0 +1,211 @@
+<div class="promo-form-container">
+
+  <!-- ─── En-tête de page ─── -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <button type="button" class="back-btn" (click)="cancel()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div>
+        <h1 class="page-title">{{ editing ? 'Modifier la promotion' : 'Nouvelle promotion' }}</h1>
+        <p class="page-subtitle">{{ editing ? 'Mettez à jour les paramètres de cette promotion' : 'Définissez la portée et les conditions de votre promotion' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <form #f="ngForm" (ngSubmit)="submit()" class="form-body">
+
+    <div class="panels-grid">
+
+      <!-- ─── Panel 1 : Portée ─── -->
+      <div class="panel-container">
+        <div class="panel-header">
+          <div class="panel-icon">
+            <i class="fas fa-crosshairs"></i>
+          </div>
+          <div>
+            <h3 class="panel-title">Portée de la promotion</h3>
+            <p class="panel-subtitle">Définissez à quoi s'applique cette promotion</p>
+          </div>
+        </div>
+        <div class="panel-content">
+
+          <!-- Scope radio cards -->
+          <div class="form-group">
+            <label class="form-label">Appliquer à <span class="req">*</span></label>
+            <div class="scope-cards">
+              <label class="scope-card" [class.active]="scope === 'category'">
+                <input type="radio" name="scope" value="category" [(ngModel)]="scope" (change)="onScopeChange()" />
+                <span class="scope-card-icon"><i class="fas fa-layer-group"></i></span>
+                <span class="scope-card-label">
+                  <strong>Une catégorie</strong>
+                  <small>S'applique à tous les produits d'une catégorie</small>
+                </span>
+              </label>
+              <label class="scope-card" [class.active]="scope === 'product'">
+                <input type="radio" name="scope" value="product" [(ngModel)]="scope" (change)="onScopeChange()" />
+                <span class="scope-card-icon"><i class="fas fa-box"></i></span>
+                <span class="scope-card-label">
+                  <strong>Un produit</strong>
+                  <small>S'applique à un produit ou une variante spécifique</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Catégorie selector -->
+          <div *ngIf="scope === 'category'" class="form-group">
+            <label class="form-label">Catégorie <span class="req">*</span></label>
+            <select required [(ngModel)]="data.idCategorie" name="idCategorie" class="form-select">
+              <option value="">— Sélectionner une catégorie —</option>
+              <option *ngFor="let c of categories" [value]="c._id">{{ c.nom }}</option>
+            </select>
+          </div>
+
+          <!-- Produit + Variante selectors -->
+          <div *ngIf="scope === 'product'" class="form-group">
+            <label class="form-label">Produit <span class="req">*</span></label>
+            <select required [(ngModel)]="data.idProduit" name="idProduit" (change)="onProductChange()" class="form-select">
+              <option value="">— Sélectionner un produit —</option>
+              <option *ngFor="let p of produits" [value]="p._id">{{ p.nom }}</option>
+            </select>
+          </div>
+
+          <div *ngIf="scope === 'product' && variantes.length > 0" class="form-group">
+            <label class="form-label">Variante <span class="form-hint-inline">(optionnel — toutes par défaut)</span></label>
+            <select [(ngModel)]="data.idVariante" name="idVariante" class="form-select">
+              <option value="">— Toutes les variantes —</option>
+              <option *ngFor="let v of variantes" [value]="v._id">{{ getVarianteLabel(v) }}</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ─── Panel 2 : Détails ─── -->
+      <div class="panel-container">
+        <div class="panel-header">
+          <div class="panel-icon">
+            <i class="fas fa-tag"></i>
+          </div>
+          <div>
+            <h3 class="panel-title">Détails de la promotion</h3>
+            <p class="panel-subtitle">Type de réduction, valeur, période et statut</p>
+          </div>
+        </div>
+        <div class="panel-content">
+
+          <!-- Type de réduction cards -->
+          <div class="form-group">
+            <label class="form-label">Type de réduction <span class="req">*</span></label>
+            <div class="type-cards">
+              <label class="type-card" [class.active]="data.type === 'pourcentage'">
+                <input type="radio" name="type" value="pourcentage" [(ngModel)]="data.type" />
+                <span class="type-card-icon"><i class="fas fa-percent"></i></span>
+                <span class="type-card-label">
+                  <strong>Pourcentage</strong>
+                  <small>Ex : -20%</small>
+                </span>
+              </label>
+              <label class="type-card" [class.active]="data.type === 'montant'">
+                <input type="radio" name="type" value="montant" [(ngModel)]="data.type" />
+                <span class="type-card-icon"><i class="fas fa-money-bill-wave"></i></span>
+                <span class="type-card-label">
+                  <strong>Montant fixe</strong>
+                  <small>Ex : -5 000 Ar</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Valeur -->
+          <div class="form-group">
+            <label class="form-label">
+              Valeur de la réduction <span class="req">*</span>
+            </label>
+            <div class="value-input-block">
+              <span class="value-suffix">{{ data.type === 'pourcentage' ? '%' : 'Ar' }}</span>
+              <input
+                required
+                type="number"
+                [(ngModel)]="data.valeur"
+                name="valeur"
+                min="0"
+                [max]="data.type === 'pourcentage' ? 100 : null"
+                [placeholder]="data.type === 'pourcentage' ? 'Ex: 20' : 'Ex: 5000'"
+                class="value-input"
+              />
+            </div>
+            <span class="form-hint" *ngIf="data.type === 'pourcentage'">
+              <i class="fas fa-info-circle"></i> Entre 0 et 100%
+            </span>
+          </div>
+
+          <!-- Dates -->
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Date de début <span class="req">*</span></label>
+              <input
+                required
+                type="datetime-local"
+                [(ngModel)]="data.dateDebut"
+                name="dateDebut"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date de fin <span class="req">*</span></label>
+              <input
+                required
+                type="datetime-local"
+                [(ngModel)]="data.dateFin"
+                name="dateFin"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <!-- Statut -->
+          <div class="form-group">
+            <label class="form-label">Statut</label>
+            <div class="status-cards">
+              <label class="status-card" [class.selected-actif]="data.statut === 'active'">
+                <input type="radio" name="statut" value="active" [(ngModel)]="data.statut" />
+                <i class="fas fa-check-circle"></i>
+                <span>Active</span>
+              </label>
+              <label class="status-card" [class.selected-inactive]="data.statut === 'inactive'">
+                <input type="radio" name="statut" value="inactive" [(ngModel)]="data.statut" />
+                <i class="fas fa-pause-circle"></i>
+                <span>Inactive</span>
+              </label>
+              <label class="status-card" [class.selected-archive]="data.statut === 'archive'">
+                <input type="radio" name="statut" value="archive" [(ngModel)]="data.statut" />
+                <i class="fas fa-archive"></i>
+                <span>Archivée</span>
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ─── Navigation / Actions ─── -->
+    <div class="form-nav">
+      <div class="form-nav-inner">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">
+          <i class="fas fa-times"></i>
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="!f.valid">
+          <i class="fas fa-save" *ngIf="editing"></i>
+          <i class="fas fa-plus" *ngIf="!editing"></i>
+          {{ editing ? 'Enregistrer les modifications' : 'Créer la promotion' }}
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div>
