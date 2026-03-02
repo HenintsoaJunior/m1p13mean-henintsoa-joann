@@ -109,38 +109,163 @@
   <!-- Profile Popup -->
   <div class="popup-overlay" *ngIf="showLogoutPopup" (click)="closePopup()"></div>
   <div class="profile-popup" *ngIf="showLogoutPopup">
-    <div class="popup-content">
-      <div class="user-info" *ngIf="isLoggedIn; else loginForm">
-        <div class="user-header">
-          <div class="user-acronym">{{ getUserInitials() }}</div>
-          <div class="user-details">
-            <h3>{{ userName }}</h3>
-            <p>{{ getUserEmail() }}</p>
-          </div>
-          <button class="logout-icon" (click)="onLogout()">
-            <i class="fas fa-sign-out-alt" style="color: red"></i>
-          </button>
+
+    <!-- ── Connecté ── -->
+    <ng-container *ngIf="isLoggedIn; else loginPanel">
+
+      <!-- Header utilisateur -->
+      <div class="pp-header">
+        <div class="pp-avatar">{{ getUserInitials() }}</div>
+        <div class="pp-user-info">
+          <div class="pp-name">{{ userName }}</div>
+          <div class="pp-email">{{ getUserEmail() }}</div>
         </div>
-        <div class="user-orders">
-          <h4>Mes commandes</h4>
-          <p>Liste de vos commandes récentes...</p>
-        </div>
+        <button class="pp-logout-btn" (click)="onLogout()" title="Se déconnecter">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Déconnexion</span>
+        </button>
       </div>
-      <ng-template #loginForm>
-        <div class="login-container">
-          <h3>Connexion Client</h3>
-          <form class="login-form">
-            <input type="email" placeholder="Email" class="form-input" />
-            <input type="password" placeholder="Mot de passe" class="form-input" />
-            <button type="button" class="login-btn">Se connecter</button>
-          </form>
-          <div class="register-link">
-            <p>Pas encore de compte ?</p>
-            <button class="register-btn">S'inscrire</button>
+
+      <!-- Section commandes -->
+      <div class="pp-orders-section">
+
+        <!-- ── Vue liste ── -->
+        <ng-container *ngIf="!selectedCommande">
+          <div class="pp-section-title">
+            <i class="fas fa-shopping-bag"></i>
+            Mes commandes
           </div>
+
+          <div class="pp-loading" *ngIf="loadingCommandes">
+            <div class="pp-spinner"></div>
+            <span>Chargement...</span>
+          </div>
+
+          <div class="pp-empty" *ngIf="!loadingCommandes && mesCommandes.length === 0">
+            <i class="fas fa-inbox"></i>
+            <p>Aucune commande pour l'instant</p>
+          </div>
+
+          <div class="pp-orders-list" *ngIf="!loadingCommandes && mesCommandes.length > 0">
+            <div class="pp-order-item" *ngFor="let cmd of mesCommandes" (click)="voirDetailCommande(cmd)">
+              <div class="pp-order-left">
+                <div class="pp-order-ref">{{ cmd.reference || ('#' + (cmd._id | slice:0:8)) }}</div>
+                <div class="pp-order-date">{{ cmd.createdAt | date:'d MMM yyyy' }}</div>
+                <div class="pp-order-items-count">{{ cmd.lignes?.length || 0 }} article(s)</div>
+              </div>
+              <div class="pp-order-right">
+                <div class="pp-order-total">{{ cmd.total | number:'1.0-0' }} Ar</div>
+                <div class="pp-order-status" [class]="'status-' + cmd.statut">
+                  {{ getStatutLabel(cmd.statut) }}
+                </div>
+                <i class="fas fa-chevron-right pp-order-arrow"></i>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ── Vue détail commande ── -->
+        <ng-container *ngIf="selectedCommande">
+
+          <!-- Retour -->
+          <button class="pp-back-btn" (click)="retourListeCommandes()">
+            <i class="fas fa-arrow-left"></i> Mes commandes
+          </button>
+
+          <!-- Header commande -->
+          <div class="pp-detail-header">
+            <div class="pp-detail-ref">{{ selectedCommande.reference || ('#' + (selectedCommande._id | slice:0:8)) }}</div>
+            <div class="pp-order-status lg" [class]="'status-' + selectedCommande.statut">
+              {{ getStatutLabel(selectedCommande.statut) }}
+            </div>
+            <div class="pp-detail-date">
+              <i class="fas fa-calendar-alt"></i>
+              {{ selectedCommande.createdAt | date:'d MMMM yyyy à HH:mm' }}
+            </div>
+          </div>
+
+          <!-- Adresse livraison -->
+          <div class="pp-detail-block" *ngIf="selectedCommande.client?.adresse">
+            <div class="pp-detail-block-title"><i class="fas fa-map-marker-alt"></i> Livraison</div>
+            <div class="pp-detail-block-value">{{ selectedCommande.client.adresse }}</div>
+          </div>
+
+          <!-- Notes -->
+          <div class="pp-detail-block" *ngIf="selectedCommande.notes">
+            <div class="pp-detail-block-title"><i class="fas fa-sticky-note"></i> Note</div>
+            <div class="pp-detail-block-value">{{ selectedCommande.notes }}</div>
+          </div>
+
+          <!-- Articles -->
+          <div class="pp-section-title" style="margin-top: 4px;">
+            <i class="fas fa-list"></i> Articles ({{ selectedCommande.lignes?.length || 0 }})
+          </div>
+
+          <div class="pp-detail-lines">
+            <div class="pp-detail-line" *ngFor="let ligne of selectedCommande.lignes">
+              <div class="pdl-icon"><i class="fas fa-box"></i></div>
+              <div class="pdl-info">
+                <div class="pdl-name">{{ ligne.nomProduit || 'Produit' }}</div>
+                <div class="pdl-variant" *ngIf="ligne.couleur || ligne.unite">
+                  {{ ligne.couleur }}{{ ligne.couleur && ligne.unite ? ' / ' : '' }}{{ ligne.unite }}
+                </div>
+                <div class="pdl-qty-price">
+                  {{ ligne.quantite }} × {{ ligne.prixUnitaire | number:'1.0-0' }} Ar
+                </div>
+              </div>
+              <div class="pdl-subtotal">{{ ligne.sousTotal | number:'1.0-0' }} Ar</div>
+            </div>
+          </div>
+
+          <!-- Total -->
+          <div class="pp-detail-total">
+            <span>Total</span>
+            <strong>{{ selectedCommande.total | number:'1.0-0' }} Ar</strong>
+          </div>
+
+        </ng-container>
+
+      </div>
+
+    </ng-container>
+
+    <!-- ── Non connecté ── -->
+    <ng-template #loginPanel>
+      <div class="pp-login-header">
+        <div class="pp-login-icon"><i class="fas fa-user-circle"></i></div>
+        <div class="pp-login-title">Connexion</div>
+        <div class="pp-login-sub">Accédez à votre compte pour suivre vos commandes</div>
+      </div>
+
+      <div class="pp-login-body">
+        <div class="pp-form-group">
+          <label class="pp-form-label"><i class="fas fa-envelope"></i> Email</label>
+          <input type="email" [(ngModel)]="loginEmail" class="pp-form-input" placeholder="votre@email.com" />
         </div>
-      </ng-template>
-    </div>
+        <div class="pp-form-group">
+          <label class="pp-form-label"><i class="fas fa-lock"></i> Mot de passe</label>
+          <input type="password" [(ngModel)]="loginPassword" class="pp-form-input" placeholder="••••••••" (keyup.enter)="loginFromModal()" />
+        </div>
+
+        <div class="pp-login-error" *ngIf="loginError">
+          <i class="fas fa-exclamation-circle"></i> {{ loginError }}
+        </div>
+
+        <button class="pp-login-btn" (click)="loginFromModal()" [disabled]="loginLoading">
+          <span *ngIf="!loginLoading"><i class="fas fa-sign-in-alt"></i> Se connecter</span>
+          <span *ngIf="loginLoading"><i class="fas fa-spinner fa-spin"></i> Connexion...</span>
+        </button>
+
+        <div class="pp-divider"><span>ou</span></div>
+
+        <button class="pp-register-btn" (click)="goToRegister()">
+          <i class="fas fa-user-plus"></i> Créer un compte
+        </button>
+      </div>
+    </ng-template>
+
+    <!-- Close btn coin -->
+    <button class="pp-close" (click)="closePopup()"><i class="fas fa-times"></i></button>
   </div>
 
   <!-- Right Drawer Overlay -->

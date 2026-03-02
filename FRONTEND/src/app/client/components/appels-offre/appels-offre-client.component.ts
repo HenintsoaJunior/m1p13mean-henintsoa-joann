@@ -78,10 +78,6 @@ export class AppelsOffreClientComponent implements OnInit {
   }
 
   openModal(appel: AppelOffreDto): void {
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/client-login']);
-      return;
-    }
     this.selectedAppel = appel;
     this.showModal = true;
   }
