@@ -56,7 +56,7 @@ const produitSchema = new mongoose.Schema(
             type: String,
             uppercase: true,
             trim: true,
-            default: "MGA",
+            default: "Ar",
           },
           montant: {
             type: Number,

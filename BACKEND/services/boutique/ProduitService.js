@@ -281,7 +281,7 @@ class ProduitService {
         unite: variante.unite ? variante.unite.trim() : '',
         typeUnitePrincipal: variante.typeUnitePrincipal || null,
         prix: {
-          devise: (variante.prix?.devise || "MGA").toUpperCase().trim(),
+          devise: (variante.prix?.devise || "Ar").toUpperCase().trim(),
           montant: parseFloat(variante.prix?.montant) || 0,
         },
         stock: {
