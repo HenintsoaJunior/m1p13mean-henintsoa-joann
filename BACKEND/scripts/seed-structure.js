@@ -166,13 +166,11 @@ async function seedStructure() {
           position: {
             type: "polygone",
             coordonnees: [
-              [
-                [0, 0],
-                [10, 0],
-                [10, 10],
-                [0, 10],
-                [0, 0],
-              ],
+              [0, 0],
+              [10, 0],
+              [10, 10],
+              [0, 10],
+              [0, 0],
             ],
           },
           statut: ["libre", "occupe", "reserve"][Math.floor(Math.random() * 3)],

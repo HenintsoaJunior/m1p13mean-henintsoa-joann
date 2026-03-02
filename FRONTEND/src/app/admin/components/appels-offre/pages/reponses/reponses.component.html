@@ -1,60 +1,133 @@
-<div class="reponses-page">
-  <h2>Réponses - Appel d'offre</h2>
+<div class="page-container">
 
-  <div *ngIf="!appelId" class="notice">Aucun appel d'offre spécifié dans la route.</div>
+  <!-- En-tête -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <i class="fas fa-inbox title-icon"></i>
+        Réponses — Appel d'offre
+      </h1>
+      <p class="page-subtitle">Consultez et traitez les candidatures reçues</p>
+    </div>
+    <a routerLink="/admin/appels-offre" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i>
+      Retour
+    </a>
+  </div>
 
-  <div *ngIf="appelId">
-    <!-- admin should not create responses directly; only view/accept/refuse -->
-    <section class="list">
-      <h3>Liste des réponses</h3>
-      <div *ngIf="loading">Chargement...</div>
-      <ul>
-        <li *ngFor="let r of reponses">
-          <!-- Boutique Info -->
-          <div class="boutique-info">
-            <div class="info-header">
-              <strong class="nom-boutique">{{ r.nom_boutique || 'Non spécifié' }}</strong>
-              <span class="statut" [ngClass]="'status-' + r.statut">{{ r.statut | uppercase }}</span>
+  <!-- Aucun ID -->
+  <div *ngIf="!appelId" class="empty-state">
+    <div class="empty-icon"><i class="fas fa-exclamation-circle" style="font-size:56px;"></i></div>
+    <h3>Aucun appel d'offre spécifié</h3>
+    <p>L'identifiant de l'appel d'offre est manquant dans la route.</p>
+  </div>
+
+  <div *ngIf="appelId" class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">
+        <i class="fas fa-list title-icon" style="font-size:16px; margin-right:8px;"></i>
+        Liste des réponses
+        <span class="count-badge" *ngIf="!loading">{{ reponses.length }}</span>
+      </h3>
+    </div>
+
+    <!-- Spinner -->
+    <div *ngIf="loading" class="loading-container">
+      <div class="loading-spinner">
+        <div class="spinner-ring"></div>
+        <span>Chargement en cours...</span>
+      </div>
+    </div>
+
+    <!-- Tableau -->
+    <table *ngIf="!loading && reponses.length > 0" class="data-table">
+      <thead>
+        <tr>
+          <th>Boutique / Contact</th>
+          <th>Coordonnées</th>
+          <th>Montant proposé</th>
+          <th>Message</th>
+          <th>Date</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of reponses" class="table-row">
+
+          <!-- Boutique / Contact -->
+          <td>
+            <div class="boutique-cell">
+              <div class="boutique-avatar">
+                <i class="fas fa-store"></i>
+              </div>
+              <div>
+                <strong class="boutique-nom">{{ r.nom_boutique || 'Non spécifié' }}</strong>
+                <span class="boutique-email" *ngIf="r.email_proposeur">{{ r.email_proposeur }}</span>
+              </div>
             </div>
-            <div class="info-details">
-              <div class="detail-item" *ngIf="r.email_proposeur">
-                <i class="fas fa-envelope"></i>
-                <span>{{ r.email_proposeur }}</span>
-              </div>
-              <div class="detail-item" *ngIf="r.telephone_boutique">
-                <i class="fas fa-phone"></i>
-                <span>{{ r.telephone_boutique }}</span>
-              </div>
-              <div class="detail-item" *ngIf="r.adresse_boutique">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>{{ r.adresse_boutique }}</span>
-              </div>
-              <div class="detail-item">
-                <i class="fas fa-money-bill-wave"></i>
-                <strong>{{ r.montant_propose ? (r.montant_propose | number:'1.0-0') + ' Ar' : '—' }}</strong>
-              </div>
-              <div class="detail-item">
-                <i class="fas fa-calendar"></i>
-                <small>{{ r.cree_le | date:'short' }}</small>
-              </div>
+          </td>
+
+          <!-- Coordonnées -->
+          <td>
+            <div class="coords-cell">
+              <span *ngIf="r.telephone_boutique" class="coord-item">
+                <i class="fas fa-phone"></i> {{ r.telephone_boutique }}
+              </span>
+              <span *ngIf="r.adresse_boutique" class="coord-item">
+                <i class="fas fa-map-marker-alt"></i> {{ r.adresse_boutique }}
+              </span>
+              <span *ngIf="!r.telephone_boutique && !r.adresse_boutique" class="text-muted">—</span>
             </div>
-          </div>
-          
+          </td>
+
+          <!-- Montant -->
+          <td>
+            <span class="montant" *ngIf="r.montant_propose">
+              {{ r.montant_propose | number:'1.0-0' }} Ar
+            </span>
+            <span *ngIf="!r.montant_propose" class="text-muted">—</span>
+          </td>
+
           <!-- Message -->
-          <p class="msg">{{ r.message }}</p>
-          
+          <td class="msg-cell">
+            <span *ngIf="r.message" title="{{ r.message }}">
+              {{ r.message | slice:0:80 }}{{ (r.message?.length ?? 0) > 80 ? '…' : '' }}
+            </span>
+            <span *ngIf="!r.message" class="text-muted">—</span>
+          </td>
+
+          <!-- Date -->
+          <td class="date-cell">{{ r.cree_le | date:'dd/MM/yyyy' }}</td>
+
+          <!-- Statut -->
+          <td>
+            <span class="badge" [ngClass]="'badge-' + r.statut">
+              {{ getStatutLabel(r.statut) }}
+            </span>
+          </td>
+
           <!-- Actions -->
-          <div class="actions">
-            <button *ngIf="r.statut === 'propose'" class="btn btn-success" (click)="accept(r._id)">
-              <i class="fas fa-check"></i> Accepter
-            </button>
-            <button *ngIf="r.statut === 'propose'" class="btn btn-danger" (click)="refuse(r._id)">
-              <i class="fas fa-times"></i> Refuser
-            </button>
-            <span *ngIf="r.statut !== 'propose'" class="status-badge">{{ r.statut === 'accepte' ? '✓ Acceptée' : '✗ Refusée' }}</span>
-          </div>
-        </li>
-      </ul>
-    </section>
+          <td>
+            <div class="action-buttons" *ngIf="r.statut === 'propose'">
+              <button class="btn-icon btn-accept" (click)="accept(r._id)" title="Accepter">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="btn-icon btn-delete" (click)="refuse(r._id)" title="Refuser">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <span *ngIf="r.statut !== 'propose'" class="text-muted" style="font-size:12px;">—</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- État vide -->
+    <div *ngIf="!loading && reponses.length === 0" class="empty-state">
+      <div class="empty-icon"><i class="fas fa-inbox" style="font-size:56px;"></i></div>
+      <h3>Aucune réponse reçue</h3>
+      <p>Aucune candidature n'a encore été soumise pour cet appel d'offre.</p>
+    </div>
   </div>
 </div>
