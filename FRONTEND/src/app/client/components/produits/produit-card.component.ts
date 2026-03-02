@@ -369,9 +369,6 @@ import { SouhaitService } from '../../services/souhait.service';
 export class ProduitCardComponent {
   @Input() set produit(value: ProduitClient) {
     this._produit = value;
-    if (value?.promotion) {
-      console.log('[PROMO CARD]', value.nom, '→ promotion:', value.promotion);
-    }
   }
   get produit(): ProduitClient { return this._produit; }
   private _produit!: ProduitClient;
