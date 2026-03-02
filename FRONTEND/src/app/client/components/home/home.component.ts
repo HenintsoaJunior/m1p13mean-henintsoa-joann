@@ -58,14 +58,26 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   get panierTotal(): number {
     return this.panierItems.reduce((total, item) => {
-      const variante = item.produit.variantes?.[item.varianteIndex];
-      const prix = variante?.prix?.montant ?? 0;
+      const prix = this.getPrixVariante(item);
       return total + prix * item.quantite;
     }, 0);
   }
 
   getPrixVariante(item: PanierItem): number {
-    return item.produit.variantes?.[item.varianteIndex]?.prix?.montant ?? 0;
+    const variante = item.produit.variantes?.[item.varianteIndex];
+    const prixBase = variante?.prix?.montant ?? 0;
+    
+    // Appliquer la promotion si elle existe
+    if (item.produit.promotion) {
+      const promo = item.produit.promotion;
+      if (promo.type === 'pourcentage') {
+        return Math.max(0, Math.round(prixBase * (1 - promo.valeur / 100)));
+      }
+      if (promo.type === 'montant') {
+        return Math.max(0, prixBase - promo.valeur);
+      }
+    }
+    return prixBase;
   }
 
   getLibelleVariante(item: PanierItem): string {

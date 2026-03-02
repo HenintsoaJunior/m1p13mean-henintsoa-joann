@@ -1,0 +1,101 @@
+<div class="promo-form-container">
+  <div class="promo-form">
+    <h2>{{ editing ? 'Modifier' : 'Créer une' }} promotion</h2>
+    
+    <form #f="ngForm" (ngSubmit)="submit()">
+      <!-- Portée de la promotion -->
+      <div class="section">
+        <h3>📍 Portée de la promotion</h3>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="scope" value="boutique" [(ngModel)]="scope" (change)="onScopeChange()" />
+            <span class="radio-label">
+              <strong>Toute la boutique</strong>
+              <small>S'applique à tous les produits</small>
+            </span>
+          </label>
+          
+          <label class="radio-option">
+            <input type="radio" name="scope" value="category" [(ngModel)]="scope" (change)="onScopeChange()" />
+            <span class="radio-label">
+              <strong>Une catégorie</strong>
+              <small>S'applique à une catégorie spécifique</small>
+            </span>
+          </label>
+          
+          <label class="radio-option">
+            <input type="radio" name="scope" value="product" [(ngModel)]="scope" (change)="onScopeChange()" />
+            <span class="radio-label">
+              <strong>Un produit</strong>
+              <small>S'applique à un produit spécifique</small>
+            </span>
+          </label>
+        </div>
+        
+        <!-- Sélecteurs conditionnels -->
+        <div *ngIf="scope === 'category'" class="select-group">
+          <label>Choisir une catégorie
+            <select required [(ngModel)]="data.idCategorie" name="idCategorie">
+              <option value="">--- Sélectionner une catégorie ---</option>
+              <option *ngFor="let c of categories" [value]="c._id">{{ c.nom }}</option>
+            </select>
+          </label>
+        </div>
+        
+        <div *ngIf="scope === 'product'" class="select-group">
+          <label>Choisir un produit
+            <select required [(ngModel)]="data.idProduit" name="idProduit">
+              <option value="">--- Sélectionner un produit ---</option>
+              <option *ngFor="let p of produits" [value]="p._id">{{ p.nom }}</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- Détails de la promotion -->
+      <div class="section">
+        <h3>🎯 Détails de la promotion</h3>
+        
+        <div class="form-row">
+          <label>Type de réduction
+            <select required [(ngModel)]="data.type" name="type">
+              <option value="pourcentage">📊 Pourcentage (%)</option>
+              <option value="montant">💰 Montant fixe (Ar)</option>
+            </select>
+          </label>
+          
+          <label>Valeur
+            <input required type="number" [(ngModel)]="data.valeur" name="valeur" min="0" [placeholder]="data.type === 'pourcentage' ? 'Ex: 20' : 'Ex: 5000'" />
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label>Début
+            <input required type="date" [(ngModel)]="data.dateDebut" name="dateDebut" />
+          </label>
+          <label>Fin
+            <input required type="date" [(ngModel)]="data.dateFin" name="dateFin" />
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label>Statut
+            <select [(ngModel)]="data.statut" name="statut">
+              <option value="active">✅ Active</option>
+              <option value="inactive">⏸️ Inactive</option>
+              <option value="archive">📦 Archivée</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button type="submit" [disabled]="!f.valid" class="btn-primary">
+          {{ editing ? '💾 Enregistrer' : '✨ Créer la promotion' }}
+        </button>
+        <button type="button" (click)="cancel()" class="btn-secondary">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>

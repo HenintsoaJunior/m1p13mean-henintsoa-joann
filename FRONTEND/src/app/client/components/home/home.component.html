@@ -67,7 +67,7 @@
   <!-- Main content -->
   <main class="main-content">
     <app-produit-list *ngIf="activeTab === 'produits'"></app-produit-list>
-    <div *ngIf="activeTab === 'promotion'" class="welcome-section"></div>
+    <app-produit-list *ngIf="activeTab === 'promotion'" [promo]="true"></app-produit-list>
     <app-appels-offre-client *ngIf="activeTab === 'appels'"></app-appels-offre-client>
   </main>
 

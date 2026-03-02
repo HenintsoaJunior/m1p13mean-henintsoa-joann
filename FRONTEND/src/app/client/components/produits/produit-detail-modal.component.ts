@@ -83,7 +83,8 @@ import { SouhaitService } from '../../services/souhait.service';
 
         <!-- Price -->
         <div class="price-block" *ngIf="selectedVariante" style="margin-top: 8px;">
-          <span class="price-main">{{ selectedVariante.prix.montant | number:'1.0-0' }}</span>
+          <span *ngIf="prixPromo !== null" class="old-price">{{ selectedVariante.prix.montant | number:'1.0-0' }}</span>
+          <span class="price-main">{{ (prixPromo !== null ? prixPromo : selectedVariante.prix.montant) | number:'1.0-0' }}</span>
           <span class="price-cur">{{ selectedVariante.prix.devise }}</span>
         </div>
 
@@ -325,6 +326,7 @@ import { SouhaitService } from '../../services/souhait.service';
       padding-bottom: 4px;
       text-transform: uppercase; letter-spacing: 0.05em;
     }
+    .price-block .old-price { text-decoration: line-through; color: #9ca3af; margin-right: 6px; font-size: 20px; }
 
     .qty-row-label {
       display: flex; align-items: center; justify-content: space-between;
@@ -390,6 +392,20 @@ export class ProduitDetailModalComponent implements OnInit {
   get enStock(): boolean { return (this.selectedVariante?.stock.quantite ?? 0) > 0; }
   get isSouhaite(): boolean { return this.souhaitService.estSouhaite(this.produit._id); }
   get dansLePanier(): boolean { return this.panierService.estDansPanier(this.produit._id); }
+
+  /** Prix promotionnel pour la variante sélectionnée, si applicable */
+  get prixPromo(): number | null {
+    if (!this.produit.promotion || !this.selectedVariante) return null;
+    const base = this.selectedVariante.prix.montant;
+    const promo = this.produit.promotion;
+    if (promo.type === 'pourcentage') {
+      return Math.max(0, Math.round(base * (1 - promo.valeur / 100)));
+    }
+    if (promo.type === 'montant') {
+      return Math.max(0, base - promo.valeur);
+    }
+    return null;
+  }
 
   selectVariante(idx: number): void {
     if ((this.produit.variantes?.[idx]?.stock.quantite ?? 0) === 0) return;

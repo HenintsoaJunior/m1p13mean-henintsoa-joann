@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -74,7 +74,8 @@ import { ProduitDetailModalComponent } from './produit-detail-modal.component';
     .page-info { font-size: 13px; color: #6b7280; }
   `]
 })
-export class ClientProduitListComponent implements OnInit, OnDestroy {
+export class ClientProduitListComponent implements OnInit, OnDestroy, OnChanges {
+  @Input() promo = false; // si vrai, ne charge que les produits en promotion
   produits: ProduitClient[] = [];
   isLoading = false;
   currentPage = 1;
@@ -89,11 +90,16 @@ export class ClientProduitListComponent implements OnInit, OnDestroy {
   constructor(private produitService: ProduitClientService) {}
 
   ngOnInit(): void { this.charger(); }
+  ngOnChanges(changes: SimpleChanges): void { if (changes['promo']) { this.currentPage = 1; this.charger(); } }
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
   charger(): void {
     this.isLoading = true;
-    this.produitService.getProduits({ page: this.currentPage, limit: this.limit })
+    const params: any = { page: this.currentPage, limit: this.limit };
+    if (this.promo) {
+      params.promo = true;
+    }
+    this.produitService.getProduits(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => { this.produits = res.produits || []; this.total = res.total || 0; this.isLoading = false; },

@@ -169,14 +169,14 @@ const Produit = require("./models/boutique/Produit");
 
 app.get("/api/public/produits", async (req, res) => {
   try {
-    const { categorie, q, page = 1, limit = 20 } = req.query;
+    const { categorie, q, page = 1, limit = 20, promo } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const filter = { statut: "actif" };
     if (categorie) filter.idCategorie = categorie;
     if (q) filter.nom = { $regex: q, $options: "i" };
 
-    const [produits, total] = await Promise.all([
+    let [produits, total] = await Promise.all([
       Produit.find(filter)
         .populate("idCategorie", "nom slug")
         .populate("idBoutique", "contact.nom statut")
@@ -185,6 +185,15 @@ app.get("/api/public/produits", async (req, res) => {
         .limit(parseInt(limit)),
       Produit.countDocuments(filter)
     ]);
+
+    // join promotions and optionally filter
+    const PromotionService = require("./services/boutique/PromotionService");
+    const promoService = new PromotionService();
+    produits = await promoService.annoterProduits(produits.map(p => p));
+    if (promo === 'true' || promo === '1' || promo === true) {
+      produits = produits.filter(p => p.promotion);
+      total = produits.length;
+    }
 
     res.json({ success: true, produits, total, page: parseInt(page), limit: parseInt(limit) });
   } catch (error) {
