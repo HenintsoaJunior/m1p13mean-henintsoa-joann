@@ -174,16 +174,16 @@
 
 // --- Polygon panel (right column) ---
 .location-polygon-panel {
-  flex: 0 0 280px;
-  min-width: 220px;
+  flex: 0 0 220px;
+  min-width: 180px;
   border-left: 1px solid #e5e7eb;
   background: #f8fafc;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px 16px;
-  gap: 10px;
+  padding: 14px 12px;
+  gap: 8px;
 
   @media (max-width: 768px) {
     border-left: none;
@@ -194,20 +194,20 @@
 }
 
 .polygon-panel-header {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  i { color: #3660a9; }
+  gap: 5px;
+  i { color: #3660a9; font-size: 11px; }
 }
 
 .polygon-svg-wrapper {
   width: 100%;
-  max-width: 240px;
+  max-width: 180px;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -218,21 +218,21 @@
 .polygon-svg {
   width: 100%;
   height: auto;
-  min-height: 140px;
+  min-height: 110px;
   display: block;
 }
 
 .polygon-surface-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #3660a9;
   background: rgba(54,96,169,0.08);
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 20px;
   display: flex;
   align-items: center;
   gap: 5px;
-  i { font-size: 11px; }
+  i { font-size: 10px; }
 }
 
 .no-polygon {

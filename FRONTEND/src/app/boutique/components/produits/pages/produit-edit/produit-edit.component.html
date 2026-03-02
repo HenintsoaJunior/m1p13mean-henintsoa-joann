@@ -303,19 +303,17 @@
           <div class="panel-content">
             <!-- Options du produit -->
             <div class="attribute-section">
-              <h4 class="attribute-title">
-                <i class="fas fa-sliders-h"></i> Options du produit
-              </h4>
+              <h4 class="attribute-title"><i class="fas fa-sliders-h"></i> Options du produit</h4>
               <p class="attribute-description">
                 Personnalisez les attributs disponibles pour ce produit
               </p>
-              
+
               <div class="options-grid">
                 <!-- Option Couleur -->
                 <div class="option-card" [class.active]="produitOptions.avecCouleur">
                   <label class="option-toggle">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       [(ngModel)]="produitOptions.avecCouleur"
                       [ngModelOptions]="{ standalone: true }"
                     />
@@ -331,8 +329,8 @@
                 <!-- Option Unités -->
                 <div class="option-card" [class.active]="produitOptions.avecUnite">
                   <label class="option-toggle">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       [(ngModel)]="produitOptions.avecUnite"
                       [ngModelOptions]="{ standalone: true }"
                     />
@@ -349,136 +347,145 @@
 
             <!-- COULEURS (conditionnel) -->
             @if (produitOptions.avecCouleur) {
-            <div class="attribute-section">
-              <h4 class="attribute-title">
-                Couleurs disponibles <span class="attribute-hint">(sélection unique)</span>
-              </h4>
-              <div class="color-picker-block" formGroupName="attributs">
-                <div class="color-presets">
-                  @if (colorPresetsAvailable.length === 0) {
-                    <small class="form-hint">Aucune couleur disponible</small>
-                  } @else {
-                    @for (c of colorPresetsAvailable; track c.hex) {
-                      <div
-                        class="color-swatch"
-                        [class.selected]="isSingleColorSelected(c.hex)"
-                        [style.background]="c.display"
-                        [title]="c.name + ' - Cliquer pour sélectionner'"
-                        (click)="selectSingleColor(c.hex, c.name)"
-                      ></div>
+              <div class="attribute-section">
+                <h4 class="attribute-title">
+                  Couleurs disponibles <span class="attribute-hint">(sélection unique)</span>
+                </h4>
+                <div class="color-picker-block" formGroupName="attributs">
+                  <div class="color-presets">
+                    @if (colorPresetsAvailable.length === 0) {
+                      <small class="form-hint">Aucune couleur disponible</small>
+                    } @else {
+                      @for (c of colorPresetsAvailable; track c.hex) {
+                        <div
+                          class="color-swatch"
+                          [class.selected]="isSingleColorSelected(c.hex)"
+                          [style.background]="c.display"
+                          [title]="c.name + ' - Cliquer pour sélectionner'"
+                          (click)="selectSingleColor(c.hex, c.name)"
+                        ></div>
+                      }
                     }
+                  </div>
+
+                  <div class="color-custom-row">
+                    <input
+                      type="text"
+                      class="form-input color-text-input"
+                      placeholder="#000000 ou 'noir'"
+                      (blur)="updateColorFromText($any($event.target).value)"
+                    />
+                    <input
+                      type="color"
+                      class="color-native"
+                      value="#000000"
+                      (change)="updateColorFromPicker($any($event.target).value)"
+                      title="Ajouter une couleur personnalisée"
+                    />
+                  </div>
+
+                  @if (singleSelectedColor) {
+                    <div class="selected-colors-chips">
+                      <span class="color-chip">
+                        <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
+                        {{ singleSelectedColor.name }}
+                        <span class="color-chip-remove" (click)="clearSingleColor()">×</span>
+                      </span>
+                    </div>
+                  } @else {
+                    <small class="form-hint">Sélectionnez une couleur</small>
                   }
                 </div>
-
-                <div class="color-custom-row">
-                  <input
-                    type="text"
-                    class="form-input color-text-input"
-                    placeholder="#000000 ou 'noir'"
-                    (blur)="updateColorFromText($any($event.target).value)"
-                  />
-                  <input
-                    type="color"
-                    class="color-native"
-                    value="#000000"
-                    (change)="updateColorFromPicker($any($event.target).value)"
-                    title="Ajouter une couleur personnalisée"
-                  />
-                </div>
-
-                @if (singleSelectedColor) {
-                  <div class="selected-colors-chips">
-                    <span class="color-chip">
-                      <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
-                      {{ singleSelectedColor.name }}
-                      <span class="color-chip-remove" (click)="clearSingleColor()">×</span>
-                    </span>
-                  </div>
-                } @else {
-                  <small class="form-hint">Sélectionnez une couleur</small>
-                }
               </div>
-            </div>
             }
 
             <!-- UNITÉS (conditionnel) -->
             @if (produitOptions.avecUnite) {
-            <div class="attribute-section">
-              <h4 class="attribute-title">
-                Unités / Variantes disponibles <span class="attribute-hint">(sélection unique)</span>
-              </h4>
+              <div class="attribute-section">
+                <h4 class="attribute-title">
+                  Unités / Variantes disponibles
+                  <span class="attribute-hint">(sélection unique)</span>
+                </h4>
 
-              <!-- Type d'unité -->
-              <div class="unite-type-selector">
-                <label class="unite-type-label">Type d'unité :</label>
-                @if (typesUnites.length === 0) {
-                  <small class="form-hint">Aucun type d'unité disponible</small>
-                } @else {
-                  <div class="unite-type-options">
-                    @for (type of typesUnites; track type._id) {
-                    <label class="unite-type-radio" [class.active]="selectedTypeUniteId === type._id">
-                      <input type="radio" name="uniteType" [value]="type._id" [(ngModel)]="selectedTypeUniteId" [ngModelOptions]="{ standalone: true }" (change)="onTypeUniteChange(type._id!)" />
-                      <span class="unite-type-icon">{{ type.icon || '📏' }}</span>
-                      <span class="unite-type-name">{{ type.label }}</span>
-                      <span class="unite-type-desc">{{ type.description }}</span>
-                    </label>
-                    }
-                  </div>
-                }
-              </div>
-
-              <div class="size-presets">
-                @if (taillesAvailable.length === 0) {
-                  <small class="form-hint">Aucune unité disponible</small>
-                } @else {
-                  @for (taille of taillesAvailable; track taille._id) {
-                    <div
-                      class="size-tag"
-                      [class.selected]="isSingleSizeSelected(taille.label || taille.valeur)"
-                      (click)="selectSingleSize(taille.label || taille.valeur)"
-                    >
-                      {{ taille.label || taille.valeur }}
+                <!-- Type d'unité -->
+                <div class="unite-type-selector">
+                  <label class="unite-type-label">Type d'unité :</label>
+                  @if (typesUnites.length === 0) {
+                    <small class="form-hint">Aucun type d'unité disponible</small>
+                  } @else {
+                    <div class="unite-type-options">
+                      @for (type of typesUnites; track type._id) {
+                        <label
+                          class="unite-type-radio"
+                          [class.active]="selectedTypeUniteId === type._id"
+                        >
+                          <input
+                            type="radio"
+                            name="uniteType"
+                            [value]="type._id"
+                            [(ngModel)]="selectedTypeUniteId"
+                            [ngModelOptions]="{ standalone: true }"
+                            (change)="onTypeUniteChange(type._id!)"
+                          />
+                          <span class="unite-type-icon">{{ type.icon || '📏' }}</span>
+                          <span class="unite-type-name">{{ type.label }}</span>
+                          <span class="unite-type-desc">{{ type.description }}</span>
+                        </label>
+                      }
                     </div>
                   }
+                </div>
+
+                <div class="size-presets">
+                  @if (taillesAvailable.length === 0) {
+                    <small class="form-hint">Aucune unité disponible</small>
+                  } @else {
+                    @for (taille of taillesAvailable; track taille._id) {
+                      <div
+                        class="size-tag"
+                        [class.selected]="isSingleSizeSelected(taille.label || taille.valeur)"
+                        (click)="selectSingleSize(taille.label || taille.valeur)"
+                      >
+                        {{ taille.label || taille.valeur }}
+                      </div>
+                    }
+                  }
+                </div>
+
+                <div class="size-input-row">
+                  <input
+                    type="text"
+                    class="form-input"
+                    [(ngModel)]="customSizeInput"
+                    [ngModelOptions]="{ standalone: true }"
+                    placeholder="Unité personnalisée (ex: 46, 75cl, 1kg, carton...)"
+                    (keyup.enter)="addCustomSizeSingle()"
+                  />
+                  <button type="button" class="btn btn-secondary" (click)="addCustomSizeSingle()">
+                    + Ajouter
+                  </button>
+                </div>
+
+                @if (singleSelectedSize) {
+                  <div class="size-chips">
+                    <span class="size-chip">
+                      {{ singleSelectedSize }}
+                      <span class="size-chip-remove" (click)="clearSingleSize()">×</span>
+                    </span>
+                  </div>
+                } @else {
+                  <small class="form-hint">Sélectionnez une unité</small>
                 }
               </div>
-
-              <div class="size-input-row">
-                <input
-                  type="text"
-                  class="form-input"
-                  [(ngModel)]="customSizeInput"
-                  [ngModelOptions]="{ standalone: true }"
-                  placeholder="Unité personnalisée (ex: 46, 75cl, 1kg, carton...)"
-                  (keyup.enter)="addCustomSizeSingle()"
-                />
-                <button type="button" class="btn btn-secondary" (click)="addCustomSizeSingle()">
-                  + Ajouter
-                </button>
-              </div>
-
-              @if (singleSelectedSize) {
-                <div class="size-chips">
-                  <span class="size-chip">
-                    {{ singleSelectedSize }}
-                    <span class="size-chip-remove" (click)="clearSingleSize()">×</span>
-                  </span>
-                </div>
-              } @else {
-                <small class="form-hint">Sélectionnez une unité</small>
-              }
-            </div>
             }
 
             <!-- VARIANTES PAR COULEUR/TAILLE -->
             <div class="attribute-section">
               <div class="variantes-header">
-                <h4 class="attribute-title">
-                  <i class="fas fa-boxes"></i> Variantes du produit
-                </h4>
+                <h4 class="attribute-title"><i class="fas fa-boxes"></i> Variantes du produit</h4>
                 <p class="variantes-description">
-                  Sélectionnez une couleur et/ou une unité, puis cliquez sur "+" pour ajouter la variante.
-                  Chaque variante a son propre prix et son propre stock.
+                  Sélectionnez une couleur et/ou une unité, puis cliquez sur "+" pour ajouter la
+                  variante. Chaque variante a son propre prix et son propre stock.
                 </p>
               </div>
 
@@ -494,7 +501,7 @@
                         @if (produitOptions.avecUnite) {
                           <th>Unité</th>
                         }
-                        <th>Prix (€)</th>
+                        <th>Prix (MGA)</th>
                         <th>Stock</th>
                         <th>Action</th>
                       </tr>
@@ -504,7 +511,10 @@
                         @if (produitOptions.avecCouleur) {
                           <td class="variante-couleur">
                             @if (singleSelectedColor) {
-                              <span class="color-dot" [style.background]="singleSelectedColor.hex"></span>
+                              <span
+                                class="color-dot"
+                                [style.background]="singleSelectedColor.hex"
+                              ></span>
                               {{ singleSelectedColor.name }}
                             } @else {
                               <span class="text-muted">—</span>
@@ -533,7 +543,13 @@
                         </td>
                         <td>
                           <div class="stock-stepper-mini">
-                            <button type="button" class="stock-btn-mini" (click)="updateSingleStock(-1)">−</button>
+                            <button
+                              type="button"
+                              class="stock-btn-mini"
+                              (click)="updateSingleStock(-1)"
+                            >
+                              −
+                            </button>
                             <input
                               type="number"
                               class="stock-input-mini"
@@ -541,7 +557,13 @@
                               [ngModelOptions]="{ standalone: true }"
                               min="0"
                             />
-                            <button type="button" class="stock-btn-mini" (click)="updateSingleStock(1)">+</button>
+                            <button
+                              type="button"
+                              class="stock-btn-mini"
+                              (click)="updateSingleStock(1)"
+                            >
+                              +
+                            </button>
                           </div>
                         </td>
                         <td>
@@ -572,75 +594,95 @@
                         @if (produitOptions.avecUnite) {
                           <th>Unité</th>
                         }
-                        <th>Prix (€)</th>
+                        <th>Prix (MGA)</th>
                         <th>Stock</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       @for (variante of variantes; track variante; let i = $index) {
-                      <tr>
-                        @if (produitOptions.avecCouleur) {
+                        <tr>
+                          @if (produitOptions.avecCouleur) {
+                            <td>
+                              @if (variante.couleur) {
+                                <span class="variante-couleur">
+                                  <span
+                                    class="color-dot"
+                                    [style.background]="variante.couleurHex"
+                                  ></span>
+                                  {{ variante.couleur }}
+                                </span>
+                              } @else {
+                                <span class="text-muted">—</span>
+                              }
+                            </td>
+                          }
+                          @if (produitOptions.avecUnite) {
+                            <td>
+                              @if (variante.unite) {
+                                <span class="variante-unite">{{ variante.unite }}</span>
+                              } @else {
+                                <span class="text-muted">—</span>
+                              }
+                            </td>
+                          }
                           <td>
-                            @if (variante.couleur) {
-                              <span class="variante-couleur">
-                                <span class="color-dot" [style.background]="variante.couleurHex"></span>
-                                {{ variante.couleur }}
-                              </span>
-                            } @else {
-                              <span class="text-muted">—</span>
-                            }
-                          </td>
-                        }
-                        @if (produitOptions.avecUnite) {
-                          <td>
-                            @if (variante.unite) {
-                              <span class="variante-unite">{{ variante.unite }}</span>
-                            } @else {
-                              <span class="text-muted">—</span>
-                            }
-                          </td>
-                        }
-                        <td>
-                          <input
-                            type="number"
-                            class="form-input-small"
-                            [value]="variante.prix"
-                            (input)="updateVariantePrix(i, $any($event.target).value)"
-                            placeholder="0.00"
-                            min="0"
-                            step="0.01"
-                          />
-                        </td>
-                        <td>
-                          <div class="stock-stepper-mini">
-                            <button type="button" class="stock-btn-mini" (click)="decrementVarianteStock(i)">−</button>
                             <input
                               type="number"
-                              class="stock-input-mini"
-                              [value]="variante.quantite"
-                              (input)="updateVarianteStock(i, $any($event.target).value)"
+                              class="form-input-small"
+                              [value]="variante.prix"
+                              (input)="updateVariantePrix(i, $any($event.target).value)"
+                              placeholder="0.00"
                               min="0"
+                              step="0.01"
                             />
-                            <button type="button" class="stock-btn-mini" (click)="incrementVarianteStock(i)">+</button>
-                          </div>
-                        </td>
-                        <td>
-                          <button
-                            type="button"
-                            class="btn-icon btn-danger"
-                            (click)="removeVariante(i)"
-                            title="Supprimer la variante"
-                          >
-                            <i class="fas fa-trash"></i>
-                          </button>
-                        </td>
-                      </tr>
+                          </td>
+                          <td>
+                            <div class="stock-stepper-mini">
+                              <button
+                                type="button"
+                                class="stock-btn-mini"
+                                (click)="decrementVarianteStock(i)"
+                              >
+                                −
+                              </button>
+                              <input
+                                type="number"
+                                class="stock-input-mini"
+                                [value]="variante.quantite"
+                                (input)="updateVarianteStock(i, $any($event.target).value)"
+                                min="0"
+                              />
+                              <button
+                                type="button"
+                                class="stock-btn-mini"
+                                (click)="incrementVarianteStock(i)"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </td>
+                          <td>
+                            <button
+                              type="button"
+                              class="btn-icon btn-danger"
+                              (click)="removeVariante(i)"
+                              title="Supprimer la variante"
+                            >
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
                       }
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td [attr.colspan]="produitOptions.avecCouleur && produitOptions.avecUnite ? '4' : '3'" class="total-label">
+                        <td
+                          [attr.colspan]="
+                            produitOptions.avecCouleur && produitOptions.avecUnite ? '4' : '3'
+                          "
+                          class="total-label"
+                        >
                           <strong>Total stock :</strong>
                         </td>
                         <td class="total-value">
@@ -665,7 +707,9 @@
             </div>
             <div>
               <h3 class="panel-title">Récapitulatif</h3>
-              <p class="panel-subtitle">Vérifiez les informations avant de mettre à jour le produit</p>
+              <p class="panel-subtitle">
+                Vérifiez les informations avant de mettre à jour le produit
+              </p>
             </div>
           </div>
 
@@ -683,7 +727,10 @@
                 </div>
                 <div class="summary-row" style="display: block">
                   <span>Description</span>
-                  <span class="summary-val" style="display: block; margin-top: 8px; white-space: pre-wrap; line-height: 1.5">
+                  <span
+                    class="summary-val"
+                    style="display: block; margin-top: 8px; white-space: pre-wrap; line-height: 1.5"
+                  >
                     {{ produitForm.get('description')?.value || 'Aucune description' }}
                   </span>
                 </div>
@@ -729,7 +776,10 @@
                         <div class="variante-summary-header">
                           <div class="variante-summary-identity">
                             @if (v.couleurHex) {
-                              <span class="color-dot-small" [style.background]="v.couleurHex"></span>
+                              <span
+                                class="color-dot-small"
+                                [style.background]="v.couleurHex"
+                              ></span>
                             }
                             <span class="variante-name">
                               {{ v.couleur || 'Sans couleur' }}
@@ -746,16 +796,14 @@
                               <i class="fas fa-tag"></i> Prix
                             </span>
                             <span class="variante-detail-value">
-                              {{ v.prix | number:'1.2-2' }} €
+                              {{ v.prix | number: '1.2-2' }} €
                             </span>
                           </div>
                           <div class="variante-detail">
                             <span class="variante-detail-label">
                               <i class="fas fa-box"></i> Stock
                             </span>
-                            <span class="variante-detail-value">
-                              {{ v.quantite }} un.
-                            </span>
+                            <span class="variante-detail-value"> {{ v.quantite }} un. </span>
                           </div>
                         </div>
                       </div>
@@ -765,9 +813,7 @@
                         <span class="total-label">
                           <i class="fas fa-calculator"></i> Stock total
                         </span>
-                        <span class="total-value">
-                          {{ getTotalStock() }} unités
-                        </span>
+                        <span class="total-value"> {{ getTotalStock() }} unités </span>
                       </div>
                     }
                   </div>
@@ -789,8 +835,8 @@
             </div>
 
             <div class="summary-notice">
-              ℹ️ En cliquant sur <strong>« Mettre à jour »</strong>, les modifications seront immédiatement
-              appliquées selon le statut défini.
+              ℹ️ En cliquant sur <strong>« Mettre à jour »</strong>, les modifications seront
+              immédiatement appliquées selon le statut défini.
             </div>
           </div>
         </div>

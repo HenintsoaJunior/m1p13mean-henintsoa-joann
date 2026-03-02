@@ -175,6 +175,9 @@
 
   <div class="modal-body detail-body">
 
+    <!-- Contenu scrollable -->
+    <div class="detail-scroll-content">
+
     <!-- En-tête style boutique-header -->
     <div class="detail-boutique-header">
       <div class="detail-avatar">
@@ -338,7 +341,9 @@
       </div>
     </div>
 
-    <!-- CTA -->
+    </div><!-- /detail-scroll-content -->
+
+    <!-- CTA fixe en bas -->
     <div class="detail-cta">
       <button class="btn-cancel" (click)="closeDetailModal()">Fermer</button>
       <button class="btn-submit-from-detail" (click)="closeDetailModal(); openModal(detailAppel!)">
