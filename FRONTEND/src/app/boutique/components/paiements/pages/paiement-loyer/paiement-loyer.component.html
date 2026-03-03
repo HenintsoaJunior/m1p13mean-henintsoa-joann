@@ -1,0 +1,302 @@
+<div class="page-container">
+
+  <!-- En-tête -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="header-icon">
+        <i class="fas fa-credit-card"></i>
+      </div>
+      <div>
+        <h1 class="page-title">Paiement du loyer</h1>
+        <p class="page-subtitle">Gérez vos paiements mensuels de loyer en ligne</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carte statut mois courant -->
+  @if (moisCourant) {
+    <div class="loyer-status-card" [ngClass]="'loyer-status-' + moisCourant.statut">
+      <div class="loyer-status-left">
+        <div class="loyer-status-icon">
+          @if (moisCourant.statut === 'paye') {
+            <i class="fas fa-check-circle"></i>
+          } @else if (moisCourant.statut === 'en_attente') {
+            <i class="fas fa-clock"></i>
+          } @else {
+            <i class="fas fa-home"></i>
+          }
+        </div>
+        <div class="loyer-status-info">
+          <span class="loyer-status-label">Loyer — {{ getMoisLabel(moisCourant.mois_courant) }}</span>
+          @if (moisCourant.emplacement) {
+            <span class="loyer-status-emplacement">
+              <i class="fas fa-map-marker-alt"></i>
+              {{ moisCourant.emplacement.nom }} ({{ moisCourant.emplacement.code }})
+            </span>
+          }
+        </div>
+      </div>
+      <div class="loyer-status-right">
+        <span class="loyer-montant">{{ moisCourant.montant_loyer | number:'1.0-0' }} Ar</span>
+        <span class="statut-badge statut-{{ moisCourant.statut }}">
+          @if (moisCourant.statut === 'paye') {
+            <i class="fas fa-check-circle"></i> Payé
+          } @else if (moisCourant.statut === 'en_attente') {
+            <i class="fas fa-clock"></i> En attente
+          } @else {
+            <i class="fas fa-circle"></i> Non payé
+          }
+        </span>
+      </div>
+    </div>
+  }
+
+  <!-- Onglets -->
+  <div class="tabs-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'payer'" (click)="activeTab = 'payer'">
+      <i class="fas fa-credit-card"></i>
+      Payer le loyer
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'historique'" (click)="activeTab = 'historique'; chargerHistorique()">
+      <i class="fas fa-history"></i>
+      Historique
+    </button>
+  </div>
+
+  <!-- ===== ONGLET PAYER ===== -->
+  @if (activeTab === 'payer') {
+    <div class="content-card">
+
+      @if (paiementSuccess) {
+        <!-- Succès -->
+        <div class="success-state">
+          <div class="success-icon-wrap">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>Paiement effectué avec succès !</h3>
+          <p>Une facture PDF a été envoyée à votre adresse email.</p>
+          <button class="btn btn-primary" (click)="paiementSuccess = false; setMoisCourant()">
+            <i class="fas fa-plus"></i>
+            Nouveau paiement
+          </button>
+        </div>
+
+      } @else if (clientSecret) {
+        <!-- Formulaire Stripe Card -->
+        <div class="panel-header">
+          <div class="panel-icon-wrap">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div>
+            <h3 class="panel-title">Paiement sécurisé</h3>
+            <p class="panel-subtitle">Vos coordonnées bancaires sont traitées directement par Stripe</p>
+          </div>
+        </div>
+
+        <!-- Récapitulatif -->
+        <div class="recap-box">
+          <div class="recap-title">
+            <i class="fas fa-receipt"></i>
+            Récapitulatif
+          </div>
+          <div class="recap-rows">
+            <div class="recap-row">
+              <span>Mois concerné</span>
+              <strong>{{ getMoisLabel(moisSelectionne) }}</strong>
+            </div>
+            @if (moisCourant?.emplacement) {
+              <div class="recap-row">
+                <span>Emplacement</span>
+                <strong>{{ moisCourant.emplacement.nom }} ({{ moisCourant.emplacement.code }})</strong>
+              </div>
+            }
+            <div class="recap-row recap-total">
+              <span>Montant du loyer</span>
+              <strong class="recap-amount">{{ moisCourant?.montant_loyer | number:'1.0-0' }} Ar</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stripe Card Element -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-credit-card"></i>
+            Informations de carte bancaire
+          </label>
+          <div id="stripe-card-element" class="stripe-card-mount"></div>
+          @if (cardError) {
+            <div class="field-error">
+              <i class="fas fa-exclamation-circle"></i>
+              {{ cardError }}
+            </div>
+          }
+          <div class="test-card-hint">
+            <i class="fas fa-info-circle"></i>
+            <span>Carte de test : <strong>4242 4242 4242 4242</strong> — Exp. <strong>04/27</strong> — CVC <strong>100</strong> — Code postal <strong>10000</strong></span>
+          </div>
+        </div>
+
+        <div class="secure-notice">
+          <i class="fas fa-shield-alt"></i>
+          Paiement sécurisé 256-bit SSL via Stripe. Vos données bancaires ne sont jamais stockées sur nos serveurs.
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-primary btn-pay" (click)="confirmerPaiement()" [disabled]="isPaying">
+            @if (isPaying) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Traitement en cours...
+            } @else {
+              <i class="fas fa-lock"></i>
+              Confirmer le paiement — {{ moisCourant?.montant_loyer | number:'1.0-0' }} Ar
+            }
+          </button>
+          <button class="btn btn-secondary" (click)="annulerPaiement()">
+            Annuler
+          </button>
+        </div>
+
+      } @else {
+        <!-- Formulaire sélection mois -->
+        <div class="panel-header">
+          <div class="panel-icon-wrap">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
+          <div>
+            <h3 class="panel-title">Initier un paiement</h3>
+            <p class="panel-subtitle">Sélectionnez le mois pour lequel vous souhaitez payer le loyer</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <i class="fas fa-calendar"></i>
+            Mois concerné
+          </label>
+          <select [(ngModel)]="moisSelectionne" class="form-control">
+            @for (option of getMoisOptions(); track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        @if (moisCourant) {
+          <div class="recap-box">
+            <div class="recap-title">
+              <i class="fas fa-receipt"></i>
+              Récapitulatif
+            </div>
+            <div class="recap-rows">
+              <div class="recap-row">
+                <span>Mois sélectionné</span>
+                <strong>{{ getMoisLabel(moisSelectionne) }}</strong>
+              </div>
+              @if (moisCourant.emplacement) {
+                <div class="recap-row">
+                  <span>Emplacement</span>
+                  <strong>{{ moisCourant.emplacement.nom }} ({{ moisCourant.emplacement.code }})</strong>
+                </div>
+              }
+              <div class="recap-row recap-total">
+                <span>Montant du loyer</span>
+                <strong class="recap-amount">{{ moisCourant.montant_loyer | number:'1.0-0' }} Ar</strong>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (isLoading) {
+          <div class="loading-container">
+            <div class="loading-spinner">
+              <div class="spinner-ring"></div>
+              <span>Préparation du paiement...</span>
+            </div>
+          </div>
+        } @else {
+          <div class="form-actions">
+            <button
+              class="btn btn-primary btn-pay"
+              (click)="initierPaiement()"
+              [disabled]="!moisSelectionne || moisCourant?.statut === 'paye'">
+              @if (moisCourant?.statut === 'paye') {
+                <i class="fas fa-check-circle"></i>
+                Loyer déjà payé pour ce mois
+              } @else {
+                <i class="fas fa-credit-card"></i>
+                Procéder au paiement par carte
+              }
+            </button>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <!-- ===== ONGLET HISTORIQUE ===== -->
+  @if (activeTab === 'historique') {
+    <div class="table-container">
+      <div class="table-header">
+        <h3 class="table-title">
+          <i class="fas fa-history"></i>
+          Historique des paiements
+        </h3>
+      </div>
+
+      @if (historique.length === 0) {
+        <div class="empty-state">
+          <i class="fas fa-receipt"></i>
+          <h3>Aucun paiement enregistré</h3>
+          <p>Vos paiements de loyer apparaîtront ici</p>
+        </div>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Mois</th>
+              <th>Montant</th>
+              <th>Date de paiement</th>
+              <th>Statut</th>
+              <th>Référence Stripe</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of historique; track p._id) {
+              <tr class="table-row">
+                <td><strong>{{ getMoisLabel(p.mois_loyer) }}</strong></td>
+                <td class="montant-cell">{{ p.montant | number:'1.0-0' }} Ar</td>
+                <td>{{ p.date_paiement ? (p.date_paiement | date:'dd/MM/yyyy') : '-' }}</td>
+                <td>
+                  <span class="statut-badge statut-paiement-{{ p.statut }}">
+                    @if (p.statut === 'paye') {
+                      <i class="fas fa-check-circle"></i> Payé
+                    } @else if (p.statut === 'en_attente') {
+                      <i class="fas fa-clock"></i> En attente
+                    } @else {
+                      <i class="fas fa-times-circle"></i> Échoué
+                    }
+                  </span>
+                </td>
+                <td class="ref-cell">{{ p.stripe_payment_intent_id || '-' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (pagination.pages > 1) {
+          <div class="pagination-container">
+            <span class="pagination-info">Page {{ currentPage }} / {{ pagination.pages }}</span>
+            <div class="pagination-controls">
+              <button class="pagination-btn" (click)="chargerHistorique(currentPage - 1)" [disabled]="currentPage <= 1">
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button class="pagination-btn" (click)="chargerHistorique(currentPage + 1)" [disabled]="currentPage >= pagination.pages">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+
+</div>

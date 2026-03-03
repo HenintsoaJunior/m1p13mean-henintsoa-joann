@@ -1,0 +1,573 @@
+// ─── Variables ───
+$primary: #3660a9;
+$primary-light: rgba(54, 96, 169, 0.1);
+$green: #059669;
+$green-light: rgba(5, 150, 105, 0.1);
+$amber: #d97706;
+$amber-light: rgba(217, 119, 6, 0.1);
+$red: #dc2626;
+$red-light: rgba(220, 38, 38, 0.1);
+$border: #e5e7eb;
+$text: #111827;
+$text-muted: #6b7280;
+$bg: #f8fafc;
+
+// ─── Page container ───
+.page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 40px;
+}
+
+// ─── En-tête ───
+.page-header {
+  background: linear-gradient(135deg, $primary 0%, #4e7fd4 100%);
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 220px; height: 220px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 50%;
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    right: 100px; bottom: -80px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+  }
+}
+
+.page-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.header-icon {
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  i { color: white; font-size: 24px; }
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 4px;
+}
+.page-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+  margin: 0;
+}
+
+// ─── Statut loyer ───
+.loyer-status-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px 24px;
+  background: white;
+  border: 1px solid $border;
+  border-left: 5px solid $primary;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+
+  &.loyer-status-paye { border-left-color: $green; }
+  &.loyer-status-en_attente { border-left-color: $amber; }
+  &.loyer-status-echoue { border-left-color: $red; }
+}
+
+.loyer-status-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.loyer-status-icon {
+  width: 48px; height: 48px;
+  background: $primary-light;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  i { color: $primary; font-size: 22px; }
+
+  .loyer-status-paye & { background: $green-light; i { color: $green; } }
+  .loyer-status-en_attente & { background: $amber-light; i { color: $amber; } }
+  .loyer-status-echoue & { background: $red-light; i { color: $red; } }
+}
+
+.loyer-status-label {
+  display: block;
+  font-weight: 600;
+  font-size: 15px;
+  color: $text;
+}
+.loyer-status-emplacement {
+  display: block;
+  font-size: 12px;
+  color: $text-muted;
+  margin-top: 3px;
+  i { margin-right: 4px; }
+}
+
+.loyer-status-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.loyer-montant {
+  font-size: 26px;
+  font-weight: 800;
+  color: $primary;
+  letter-spacing: -0.5px;
+}
+
+// ─── Onglets ───
+.tabs-bar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid $border;
+  background: white;
+  padding: 0 4px;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: $text-muted;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  i { font-size: 14px; }
+
+  &.active {
+    color: $primary;
+    border-bottom-color: $primary;
+    font-weight: 600;
+  }
+
+  &:hover:not(.active) {
+    color: $text;
+    background: rgba($primary, 0.04);
+  }
+}
+
+// ─── Content card ───
+.content-card {
+  background: white;
+  border: 1px solid $border;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+// ─── Panel header ───
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid $border;
+}
+
+.panel-icon-wrap {
+  width: 44px; height: 44px;
+  background: $primary-light;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  i { color: $primary; font-size: 18px; }
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 4px;
+}
+.panel-subtitle {
+  font-size: 13px;
+  color: $text-muted;
+  margin: 0;
+}
+
+// ─── Form ───
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  i { color: $primary; font-size: 13px; }
+}
+
+// ─── Stripe card mount ───
+.stripe-card-mount {
+  border: 1.5px solid #d1d5db;
+  padding: 16px;
+  background: white;
+  transition: border-color 0.2s;
+
+  &:focus-within { border-color: $primary; }
+}
+
+.field-error {
+  font-size: 12px;
+  color: $red;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  i { font-size: 13px; }
+}
+
+.test-card-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #fffbeb;
+  border: 1px dashed #f59e0b;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #92400e;
+  i { color: #f59e0b; font-size: 13px; flex-shrink: 0; }
+  strong { font-weight: 700; letter-spacing: 0.3px; }
+}
+
+.secure-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: $text-muted;
+  background: #f9fafb;
+  padding: 12px 16px;
+  border: 1px solid $border;
+  i { color: $green; font-size: 14px; }
+}
+
+// ─── Récapitulatif ───
+.recap-box {
+  background: #f0f5ff;
+  border: 1px solid rgba($primary, 0.2);
+  padding: 20px;
+}
+
+.recap-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: $primary;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recap-rows { display: flex; flex-direction: column; gap: 8px; }
+
+.recap-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #374151;
+
+  &.recap-total {
+    border-top: 1px solid rgba($primary, 0.2);
+    padding-top: 10px;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+}
+
+.recap-amount {
+  font-size: 20px;
+  font-weight: 800;
+  color: $primary;
+}
+
+// ─── Boutons ───
+.form-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-pay {
+  flex: 1;
+  justify-content: center;
+  font-size: 15px;
+  padding: 14px 24px;
+}
+
+// ─── Succès ───
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px;
+  gap: 16px;
+  text-align: center;
+}
+
+.success-icon-wrap {
+  width: 80px; height: 80px;
+  background: $green-light;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  i { color: $green; font-size: 40px; }
+}
+
+.success-state h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: $green;
+  margin: 0;
+}
+
+.success-state p {
+  font-size: 14px;
+  color: $text-muted;
+  margin: 0;
+}
+
+// ─── Statut badges ───
+.statut-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statut-paye, .statut-paiement-paye {
+  background: $green-light;
+  color: #065f46;
+  border: 1px solid rgba($green, 0.3);
+}
+.statut-en_attente, .statut-paiement-en_attente {
+  background: $amber-light;
+  color: #92400e;
+  border: 1px solid rgba($amber, 0.3);
+}
+.statut-echoue, .statut-paiement-echoue {
+  background: $red-light;
+  color: #7f1d1d;
+  border: 1px solid rgba($red, 0.3);
+}
+.statut-non_paye {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+// ─── Table ───
+.table-container {
+  background: white;
+  border: 1px solid $border;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.table-header {
+  padding: 20px 24px 0;
+}
+
+.table-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 16px;
+  i { color: $primary; }
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead tr {
+    border-top: 1px solid $border;
+    border-bottom: 2px solid $border;
+    background: #f9fafb;
+  }
+
+  th {
+    padding: 12px 20px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  td {
+    padding: 14px 20px;
+    font-size: 14px;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .table-row:hover td { background: #fafbfc; }
+}
+
+.montant-cell {
+  font-weight: 700;
+  color: $primary;
+}
+
+.ref-cell {
+  font-size: 11px;
+  font-family: monospace;
+  color: $text-muted;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ─── Empty state ───
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  gap: 12px;
+  color: $text-muted;
+
+  i { font-size: 52px; color: #d1d5db; }
+  h3 { font-size: 16px; font-weight: 600; color: #374151; margin: 0; }
+  p { font-size: 13px; margin: 0; }
+}
+
+// ─── Loading ───
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 160px;
+
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+
+    .spinner-ring {
+      width: 40px; height: 40px;
+      border: 3px solid #e8edf5;
+      border-top-color: $primary;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    span {
+      font-size: 13px;
+      color: $text-muted;
+    }
+  }
+}
+
+// ─── Pagination ───
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background: #f9fafb;
+  border-top: 1px solid $border;
+}
+.pagination-info { font-size: 13px; color: $text-muted; }
+.pagination-controls { display: flex; gap: 4px; }
+.pagination-btn {
+  width: 34px; height: 34px;
+  border: 1px solid $border;
+  background: white;
+  color: #374151;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s;
+  &:hover:not(:disabled) { background: #f3f4f6; border-color: #9ca3af; }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 220px;
+
+  .loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+
+    .spinner-ring {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e8edf5;
+      border-top-color: #3660a9;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    span {
+      font-size: 14px;
+      font-weight: 500;
+      color: #64748b;
+      letter-spacing: 0.3px;
+    }
+  }
+}
+@media (max-width: 640px) {
+  .content-card { padding: 20px 16px; }
+  .loyer-status-card { flex-direction: column; align-items: flex-start; }
+  .loyer-status-right { align-items: flex-start; }
+  .page-header { padding: 20px; }
+  .form-actions { flex-direction: column; .btn-pay { width: 100%; } }
+}

@@ -6,6 +6,20 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ⚠️ Webhook Stripe : doit être AVANT express.json() pour avoir le raw body
+app.post("/api/webhook/stripe", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  try {
+    const PaiementLoyerService = require("./services/boutique/PaiementLoyerService");
+    const service = new PaiementLoyerService();
+    await service.traiterWebhook(req.body, sig);
+    res.json({ received: true });
+  } catch (err) {
+    console.error("Webhook error:", err.message);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));

@@ -43,6 +43,8 @@ import { AppelsOffreListComponent } from './admin/components/appels-offre/pages/
 import { ReponsesComponent } from './admin/components/appels-offre/pages/reponses/reponses.component';
 import { ListBoutiquesComponent } from './admin/components/boutiques/pages/list-boutiques/list-boutiques.component';
 import { MonBoutiqueComponent } from './boutique/pages/mon-boutique/mon-boutique.component';
+import { PaiementLoyerComponent } from './boutique/components/paiements/pages/paiement-loyer/paiement-loyer.component';
+import { PaiementsLoyerAdminComponent } from './admin/components/paiements/pages/paiements-list/paiements-list.component';
 
 // Client components - Appels d'offre
 import { AppelsOffreClientComponent } from './client/components/appels-offre/appels-offre-client.component';
@@ -88,6 +90,7 @@ export const routes: Routes = [
       { path: 'centres', component: CentresListComponent },
       { path: 'utilisateurs', component: ListUtilisateurComponent },
       { path: 'boutiques', component: ListBoutiquesComponent },
+      { path: 'paiements-loyer', component: PaiementsLoyerAdminComponent },
       { path: 'activity-history', component: ActivityHistoryComponent },
       { path: 'appels', component: AppelsOffreListComponent },
       { path: 'appels/:id/reponses', component: ReponsesComponent },
@@ -112,6 +115,7 @@ export const routes: Routes = [
       { path: 'promotions/nouveau', component: PromotionFormComponent },
       { path: 'promotions/edit/:id', component: PromotionFormComponent },
       { path: 'mon-boutique', component: MonBoutiqueComponent },
+      { path: 'paiement-loyer', component: PaiementLoyerComponent },
     ],
   },
   {

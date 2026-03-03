@@ -13,5 +13,7 @@ router.use("/etages", require("./etages"));
 router.use("/emplacements", require("./emplacements"));
 router.use("/appels-offre", require("./appelsOffre"));
 router.use("/boutiques", require("./boutiques"));
+router.use("/paiements", require("./paiements"));
+router.use("/dashboard", require("./dashboard"));
 
 module.exports = router;

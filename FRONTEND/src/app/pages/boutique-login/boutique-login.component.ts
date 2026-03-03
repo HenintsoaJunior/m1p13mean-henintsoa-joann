@@ -24,8 +24,8 @@ export class BoutiqueLoginComponent {
 
   constructor() {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      email: ['rakotoarimananahentsa@gmail.com', [Validators.required, Validators.email]],
+      password: ['boutique1234', [Validators.required, Validators.minLength(6)]],
       remember: [false],
     });
   }

@@ -1,49 +1,201 @@
-<div class="admin-dashboard">
-  <div class="dashboard-header">
-    <h1>Tableau de bord Administration</h1>
-    <p>Vue d'ensemble de la plateforme</p>
+<div class="dashboard">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <h1><i class="fas fa-tachometer-alt"></i> Tableau de bord</h1>
+      <p>Vue d'ensemble de la plateforme</p>
+    </div>
+    <button class="btn-refresh" (click)="loadDashboard()" [disabled]="loading">
+      <i class="fas fa-sync-alt" [class.spinning]="loading"></i>
+      Actualiser
+    </button>
   </div>
 
-  <!-- Statistiques -->
-  <div class="stats-grid">
-    <app-card class="stat-card">
-      <div class="stat-number">{{ stats.totalUsers }}</div>
-      <div class="stat-label">Utilisateurs totaux</div>
-    </app-card>
+  <!-- Loading -->
+  @if (loading) {
+    <div class="dash-loading">
+      <div class="spinner"></div>
+      <span>Chargement des statistiques...</span>
+    </div>
+  }
 
-    <app-card class="stat-card">
-      <div class="stat-number">{{ stats.totalBoutiques }}</div>
-      <div class="stat-label">Boutiques actives</div>
-    </app-card>
+  <!-- Error -->
+  @if (error && !loading) {
+    <div class="dash-error">
+      <i class="fas fa-exclamation-triangle"></i>
+      {{ error }}
+    </div>
+  }
 
-    <app-card class="stat-card">
-      <div class="stat-number">{{ stats.totalCommandes }}</div>
-      <div class="stat-label">Commandes ce mois</div>
-    </app-card>
+  @if (data && !loading) {
 
-    <app-card class="stat-card">
-      <div class="stat-number">{{ stats.chiffreAffaires }}€</div>
-      <div class="stat-label">Chiffre d'affaires</div>
-    </app-card>
-  </div>
-
-  <!-- Tableaux -->
-  <div class="tables-section">
-    <app-card title="Dernières activités" class="table-card">
-      <app-table [columns]="activitiesColumns" [data]="activitiesData" [hasActions]="true">
-        <div slot="actions" class="table-actions">
-          <button class="btn-view">Voir</button>
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-icon"><i class="fas fa-store"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ kpis.totalBoutiquesActives || 0 }}</div>
+          <div class="kpi-label">Boutiques actives</div>
+          <div class="kpi-sub">{{ kpis.totalBoutiqueEnAttente || 0 }} en attente de validation</div>
         </div>
-      </app-table>
-    </app-card>
+      </div>
 
-    <app-card title="Boutiques récentes" class="table-card">
-      <app-table [columns]="boutiquesColumns" [data]="boutiquesData" [hasActions]="true">
-        <div slot="actions" class="table-actions">
-          <button class="btn-validate">Valider</button>
-          <button class="btn-reject">Rejeter</button>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-icon"><i class="fas fa-map-marker-alt"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ kpis.emplacementsOccupes || 0 }} / {{ kpis.totalEmplacements || 0 }}</div>
+          <div class="kpi-label">Emplacements occupés</div>
+          <div class="kpi-sub">{{ kpis.tauxOccupation || 0 }}% de taux d'occupation</div>
         </div>
-      </app-table>
-    </app-card>
-  </div>
+      </div>
+
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-icon"><i class="fas fa-money-bill-wave"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ formatMontant(kpis.loyersMoisTotal) }}</div>
+          <div class="kpi-label">Loyers encaissés ce mois</div>
+          <div class="kpi-sub">{{ kpis.loyersMoisCount || 0 }} paiement(s) confirmé(s)</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-indigo">
+        <div class="kpi-icon"><i class="fas fa-users"></i></div>
+        <div class="kpi-body">
+          <div class="kpi-value">{{ kpis.totalUtilisateurs || 0 }}</div>
+          <div class="kpi-label">Utilisateurs</div>
+          <div class="kpi-sub">comptes enregistrés</div>
+        </div>
+      </div>
+
+      <!-- Loyers mois courant statut -->
+      @if (data.loyersMoisStatut) {
+        <div class="kpi-card kpi-teal">
+          <div class="kpi-icon"><i class="fas fa-receipt"></i></div>
+          <div class="kpi-body">
+            <div class="kpi-value">{{ data.loyersMoisStatut.payes }} / {{ data.loyersMoisStatut.total }}</div>
+            <div class="kpi-label">Loyers payés ce mois</div>
+            <div class="kpi-sub">{{ data.loyersMoisStatut.non_payes }} boutique(s) n'ont pas encore payé</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Row 1: Loyers 6 mois (bar+line) | Boutiques par statut (doughnut) -->
+    <div class="charts-row">
+      <div class="chart-card chart-large">
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-bar"></i> Loyers des 6 derniers mois</h3>
+          <span class="chart-badge">Montants & paiements</span>
+        </div>
+        <div class="chart-body">
+          @if (!data.loyersParMois || data.loyersParMois.length === 0) {
+            <div class="empty-chart">
+              <i class="fas fa-inbox"></i>
+              <span>Aucune donnée de loyer</span>
+            </div>
+          } @else {
+            <canvas #loyersCanvas></canvas>
+          }
+        </div>
+      </div>
+
+      <div class="chart-card chart-small">
+        <div class="chart-header">
+          <h3><i class="fas fa-chart-pie"></i> Boutiques par statut</h3>
+          <span class="chart-badge">Répartition</span>
+        </div>
+        <div class="chart-body chart-doughnut-body">
+          @if (!data.boutiquesParStatut || data.boutiquesParStatut.length === 0) {
+            <div class="empty-chart">
+              <i class="fas fa-store-slash"></i>
+              <span>Aucune boutique</span>
+            </div>
+          } @else {
+            <canvas #boutiquesCanvas></canvas>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Emplacements par type (bar) | Appels d'offre (doughnut) -->
+    <div class="charts-row charts-row-reverse">
+      <div class="chart-card chart-small">
+        <div class="chart-header">
+          <h3><i class="fas fa-th-large"></i> Emplacements par type</h3>
+          <span class="chart-badge">Inventaire</span>
+        </div>
+        <div class="chart-body">
+          @if (!data.emplacementsParType || data.emplacementsParType.length === 0) {
+            <div class="empty-chart">
+              <i class="fas fa-map"></i>
+              <span>Aucun emplacement</span>
+            </div>
+          } @else {
+            <canvas #emplacementsCanvas></canvas>
+          }
+        </div>
+      </div>
+
+      <div class="chart-card chart-large">
+        <div class="chart-header">
+          <h3><i class="fas fa-bullhorn"></i> Appels d'offre par statut</h3>
+          <span class="chart-badge">Répartition</span>
+        </div>
+        <div class="chart-body chart-doughnut-body">
+          @if (!data.appelsParStatut || data.appelsParStatut.length === 0) {
+            <div class="empty-chart">
+              <i class="fas fa-inbox"></i>
+              <span>Aucun appel d'offre</span>
+            </div>
+          } @else {
+            <canvas #appelsCanvas></canvas>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Dernières boutiques -->
+    @if (data.dernieresBoutiques && data.dernieresBoutiques.length > 0) {
+      <div class="table-card">
+        <div class="chart-header">
+          <h3><i class="fas fa-store"></i> Dernières boutiques inscrites</h3>
+          <span class="chart-badge">10 dernières</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Boutique</th>
+                <th>Email</th>
+                <th>Emplacement</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (b of data.dernieresBoutiques; track b._id) {
+                <tr>
+                  <td class="td-nom">{{ b.contact?.nom || '—' }}</td>
+                  <td class="td-email">{{ b.contact?.email || '—' }}</td>
+                  <td class="td-emplacement">
+                    {{ b.appel_offre_id?.emplacement_id?.code || '—' }}
+                    @if (b.appel_offre_id?.emplacement_id?.nom) {
+                      <span class="emp-nom"> · {{ b.appel_offre_id.emplacement_id.nom }}</span>
+                    }
+                  </td>
+                  <td>
+                    <span class="statut-badge" [class]="'statut-' + b.statut">
+                      {{ boutiqueStatutLabel(b.statut) }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+  }
 </div>
+
