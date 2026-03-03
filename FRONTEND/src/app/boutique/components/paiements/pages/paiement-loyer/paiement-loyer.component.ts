@@ -25,6 +25,7 @@ export class PaiementLoyerComponent implements OnInit, OnDestroy {
   // Données mois courant
   moisCourant: any = null;
   moisSelectionne = '';
+  dateDebut: Date | null = null;
 
   // Stripe
   private stripe: Stripe | null = null;
@@ -63,6 +64,9 @@ export class PaiementLoyerComponent implements OnInit, OnDestroy {
     try {
       const res = await this.paiementService.getStatutMoisCourant().toPromise();
       this.moisCourant = res.data;
+      if (res.data?.date_debut) {
+        this.dateDebut = new Date(res.data.date_debut);
+      }
     } catch (err: any) {
       console.error('Erreur chargement statut:', err.message);
     }
@@ -185,6 +189,11 @@ export class PaiementLoyerComponent implements OnInit, OnDestroy {
     const now = new Date();
     for (let i = 0; i < 12; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      // Exclure les mois avant le début de la boutique dans le centre
+      if (this.dateDebut) {
+        const debutSansDia = new Date(this.dateDebut.getFullYear(), this.dateDebut.getMonth(), 1);
+        if (d < debutSansDia) break;
+      }
       const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       options.push({ value, label: this.getMoisLabel(value) });
     }

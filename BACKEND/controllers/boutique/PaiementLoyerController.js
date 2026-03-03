@@ -94,6 +94,7 @@ const getStatutMoisCourant = async (req, res) => {
     });
 
     const emplacement = boutique.appel_offre_id?.emplacement_id;
+    const dateDebut = boutique.appel_offre_id?.date_appel || null;
 
     res.json({
       success: true,
@@ -103,6 +104,7 @@ const getStatutMoisCourant = async (req, res) => {
         emplacement: emplacement ? { nom: emplacement.nom, code: emplacement.code } : null,
         paiement: paiement || null,
         statut: paiement?.statut || "non_paye",
+        date_debut: dateDebut,
       },
     });
   } catch (error) {
