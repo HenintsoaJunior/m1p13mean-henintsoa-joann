@@ -1,0 +1,451 @@
+{
+  "collections": {
+    "utilisateurs": {
+      "model": "Utilisateur",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "email": { "type": "String", "required": true, "unique": true, "lowercase": true },
+        "mot_de_passe": { "type": "String", "required": true, "minlength": 6 },
+        "prenom": { "type": "String", "required": true, "trim": true, "maxlength": 50 },
+        "nom": { "type": "String", "required": true, "trim": true, "maxlength": 50 },
+        "telephone": { "type": "String", "trim": true },
+        "role": { "type": "String", "enum": ["admin", "boutique", "client"], "default": "client" },
+        "actif": { "type": "Boolean", "default": true },
+        "token_reinitialisation_mdp": { "type": "String", "default": null },
+        "expiration_reinitialisation_mdp": { "type": "Date", "default": null },
+        "cree_le": { "type": "Date", "default": "Date.now" },
+        "modifie_le": { "type": "Date", "default": "Date.now" }
+      },
+      "indexes": [
+        { "fields": { "email": 1 } },
+        { "fields": { "role": 1 } }
+      ]
+    },
+    "centres": {
+      "model": "Centre",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "nom": { "type": "String", "required": true, "trim": true },
+        "slug": { "type": "String", "required": true, "unique": true, "lowercase": true },
+        "adresse": {
+          "type": "Object",
+          "fields": {
+            "rue": { "type": "String" },
+            "ville": { "type": "String" },
+            "code_postal": { "type": "String" },
+            "pays": { "type": "String" },
+            "coordonnees": {
+              "type": "Object",
+              "fields": {
+                "type": { "type": "String", "enum": ["Point"], "default": "Point" },
+                "coordinates": { "type": "[Number]", "default": [0, 0] }
+              }
+            }
+          }
+        },
+        "description": { "type": "String" },
+        "image_url": { "type": "String", "default": "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800&h=600&fit=crop" },
+        "horaires_ouverture": { "type": "Map<String, String>" },
+        "email_contact": { "type": "String" },
+        "telephone_contact": { "type": "String" },
+        "cree_le": { "type": "Date", "default": "Date.now" },
+        "modifie_le": { "type": "Date", "default": "Date.now" }
+      },
+      "indexes": [
+        { "fields": { "adresse.coordonnees": "2dsphere" } },
+        { "fields": { "slug": 1 } }
+      ]
+    },
+    "batiments": {
+      "model": "Batiment",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "centre_id": { "type": "ObjectId", "ref": "Centre", "required": true },
+        "nom": { "type": "String", "required": true, "trim": true },
+        "description": { "type": "String" },
+        "nombre_etages": { "type": "Number", "default": 0 },
+        "cree_le": { "type": "Date", "default": "Date.now" },
+        "modifie_le": { "type": "Date", "default": "Date.now" }
+      },
+      "indexes": [
+        { "fields": { "centre_id": 1 } }
+      ]
+    },
+    "etages": {
+      "model": "Etage",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "batiment_id": { "type": "ObjectId", "ref": "Batiment" },
+        "nom": { "type": "String", "required": true, "trim": true },
+        "niveau": { "type": "Number", "required": true },
+        "surface_totale_m2": { "type": "Number" },
+        "hauteur_sous_plafond_m": { "type": "Number" },
+        "cree_le": { "type": "Date", "default": "Date.now" },
+        "modifie_le": { "type": "Date", "default": "Date.now" }
+      },
+      "indexes": [
+        { "fields": { "batiment_id": 1, "niveau": 1 } }
+      ]
+    },
+    "emplacements": {
+      "model": "Emplacement",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "etage_id": { "type": "ObjectId", "ref": "Etage", "required": true },
+        "code": { "type": "String", "required": true, "trim": true },
+        "type": { "type": "String", "enum": ["box", "kiosque", "zone_loisirs", "zone_commune", "pop_up", "autre"], "required": true },
+        "nom": { "type": "String", "trim": true },
+        "surface_m2": { "type": "Number" },
+        "position": {
+          "type": "Object",
+          "fields": {
+            "type": { "type": "String", "enum": ["polygone", "point"] },
+            "coordonnees": { "type": "[[Number]]" }
+          }
+        },
+        "statut": { "type": "String", "enum": ["libre", "occupe", "reserve", "en_travaux", "en_negociation"], "default": "libre" },
+        "loyer_mensuel": { "type": "Number" },
+        "cree_le": { "type": "Date", "default": "Date.now" },
+        "modifie_le": { "type": "Date", "default": "Date.now" }
+      },
+      "indexes": [
+        { "fields": { "etage_id": 1, "code": 1 } },
+        { "fields": { "statut": 1 } }
+      ]
+    },
+    "appeloffres": {
+      "model": "AppelOffre",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "emplacement_id": { "type": "ObjectId", "ref": "Emplacement", "required": true },
+        "date_appel": { "type": "Date", "default": "Date.now" },
+        "description": { "type": "String", "required": true },
+        "statut": { "type": "String", "enum": ["ouvert", "ferme", "attribue"], "default": "ouvert" }
+      },
+      "indexes": [
+        { "fields": { "emplacement_id": 1, "statut": 1 } },
+        { "fields": { "date_appel": -1 } }
+      ]
+    },
+    "boutiques": {
+      "model": "Boutique",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "appel_offre_id": { "type": "ObjectId", "ref": "AppelOffre", "required": true },
+        "contact": {
+          "type": "Object",
+          "fields": {
+            "nom": { "type": "String", "required": true },
+            "telephone": { "type": "String" },
+            "email": { "type": "String" },
+            "adresse": { "type": "String" }
+          }
+        },
+        "statut": { "type": "String", "enum": ["active", "en_attente", "fermee"], "default": "en_attente" }
+      },
+      "indexes": [
+        { "fields": { "appel_offre_id": 1 } },
+        { "fields": { "statut": 1 } }
+      ]
+    },
+    "reponseappeloffres": {
+      "model": "ReponseAppelOffre",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "appel_offre_id": { "type": "ObjectId", "ref": "AppelOffre", "required": true },
+        "boutique_id": { "type": "ObjectId", "ref": "Boutique" },
+        "utilisateur_id": { "type": "ObjectId", "ref": "Utilisateur" },
+        "montant_propose": { "type": "Number", "required": true },
+        "email_proposeur": { "type": "String", "required": true },
+        "nom_boutique": { "type": "String", "required": true },
+        "telephone_boutique": { "type": "String" },
+        "adresse_boutique": { "type": "String" },
+        "message": { "type": "String", "trim": true, "maxlength": 1000 },
+        "statut": { "type": "String", "enum": ["propose", "accepte", "refuse"], "default": "propose" },
+        "cree_le": { "type": "Date", "default": "Date.now" },
+        "modifie_le": { "type": "Date", "default": "Date.now" }
+      },
+      "indexes": [
+        { "fields": { "appel_offre_id": 1 } },
+        { "fields": { "boutique_id": 1 } }
+      ]
+    },
+    "paiementloyers": {
+      "model": "PaiementLoyer",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "boutique_id": { "type": "ObjectId", "ref": "Boutique", "required": true },
+        "emplacement_id": { "type": "ObjectId", "ref": "Emplacement", "required": true },
+        "stripe_payment_intent_id": { "type": "String", "unique": true, "sparse": true },
+        "montant": { "type": "Number", "required": true },
+        "mois_loyer": { "type": "String", "required": true, "pattern": "YYYY-MM" },
+        "statut": { "type": "String", "enum": ["en_attente", "paye", "echoue"], "default": "en_attente" },
+        "date_paiement": { "type": "Date" },
+        "facture_envoyee": { "type": "Boolean", "default": false },
+        "cree_le": { "type": "Date", "default": "Date.now" },
+        "modifie_le": { "type": "Date", "default": "Date.now" }
+      },
+      "indexes": [
+        { "fields": { "boutique_id": 1, "mois_loyer": 1 } },
+        { "fields": { "statut": 1 } },
+        { "fields": { "stripe_payment_intent_id": 1 } }
+      ]
+    },
+    "logs": {
+      "model": "Log",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "utilisateurId": { "type": "String", "required": true },
+        "action": { "type": "String", "enum": ["CREATE", "UPDATE", "DELETE"], "required": true },
+        "entite": { "type": "String", "required": true },
+        "entiteId": { "type": "String", "default": null },
+        "ancienneValeur": { "type": "Mixed", "default": null },
+        "nouvelleValeur": { "type": "Mixed", "default": null },
+        "dateHeure": { "type": "Date", "default": "Date.now" },
+        "adresseIp": { "type": "String", "default": "" },
+        "navigateur": { "type": "String", "default": "" }
+      }
+    },
+    "categories": {
+      "model": "Categorie",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "idBoutique": { "type": "ObjectId", "ref": "Boutique", "default": null },
+        "nom": { "type": "String", "required": true, "trim": true, "maxlength": 100 },
+        "slug": { "type": "String", "required": true, "unique": true, "lowercase": true },
+        "description": { "type": "String", "trim": true, "maxlength": 500 },
+        "idCategorieParent": { "type": "ObjectId", "ref": "Categorie", "default": null },
+        "urlImage": { "type": "String", "trim": true },
+        "dateCreation": { "type": "Date", "default": "Date.now" },
+        "dateMiseAJour": { "type": "Date", "default": "Date.now" }
+      },
+      "indexes": [
+        { "fields": { "slug": 1 } },
+        { "fields": { "idCategorieParent": 1 } }
+      ]
+    },
+    "marques": {
+      "model": "Marque",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "nom": { "type": "String", "required": true, "unique": true, "trim": true },
+        "slug": { "type": "String", "required": true, "unique": true, "lowercase": true },
+        "description": { "type": "String", "trim": true, "maxlength": 1000 },
+        "logo": { "type": "String", "trim": true },
+        "siteWeb": { "type": "String", "trim": true },
+        "estActif": { "type": "Boolean", "default": true },
+        "createdAt": { "type": "Date", "auto": true },
+        "updatedAt": { "type": "Date", "auto": true }
+      },
+      "indexes": [
+        { "fields": { "nom": 1 } },
+        { "fields": { "slug": 1 } }
+      ]
+    },
+    "couleurs": {
+      "model": "Couleur",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "nom": { "type": "String", "required": true, "trim": true },
+        "codeHex": { "type": "String", "required": true, "unique": true, "uppercase": true, "pattern": "#RRGGBB" },
+        "codeRgb": {
+          "type": "Object",
+          "fields": {
+            "rouge": { "type": "Number", "min": 0, "max": 255 },
+            "vert": { "type": "Number", "min": 0, "max": 255 },
+            "bleu": { "type": "Number", "min": 0, "max": 255 }
+          }
+        },
+        "categorie": { "type": "String", "enum": ["neutre", "chaud", "froid", "vif", "pastel", "metallique", "fluo", "autre"], "default": "autre" },
+        "estActif": { "type": "Boolean", "default": true },
+        "createdAt": { "type": "Date", "auto": true },
+        "updatedAt": { "type": "Date", "auto": true }
+      },
+      "indexes": [
+        { "fields": { "codeHex": 1 }, "unique": true },
+        { "fields": { "nom": 1 } },
+        { "fields": { "categorie": 1 } }
+      ]
+    },
+    "typeunites": {
+      "model": "TypeUnite",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "nom": { "type": "String", "required": true, "unique": true, "lowercase": true, "enum": ["standard", "liquide", "poids", "conditionnement", "personnalise"] },
+        "label": { "type": "String", "required": true, "trim": true },
+        "description": { "type": "String", "trim": true },
+        "icon": { "type": "String", "default": "📏" },
+        "valeurs": { "type": "[String]", "default": [] },
+        "estActif": { "type": "Boolean", "default": true },
+        "createdAt": { "type": "Date", "auto": true },
+        "updatedAt": { "type": "Date", "auto": true }
+      },
+      "indexes": [
+        { "fields": { "nom": 1 } }
+      ]
+    },
+    "tailles": {
+      "model": "Taille",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "valeur": { "type": "String", "required": true, "trim": true, "lowercase": true },
+        "label": { "type": "String", "trim": true },
+        "typeUnite": { "type": "ObjectId", "ref": "TypeUnite", "required": true },
+        "ordre": { "type": "Number", "default": 0 },
+        "estStandard": { "type": "Boolean", "default": false },
+        "estActif": { "type": "Boolean", "default": true },
+        "createdAt": { "type": "Date", "auto": true },
+        "updatedAt": { "type": "Date", "auto": true }
+      },
+      "indexes": [
+        { "fields": { "valeur": 1, "typeUnite": 1 }, "unique": true },
+        { "fields": { "typeUnite": 1 } },
+        { "fields": { "estStandard": 1 } }
+      ]
+    },
+    "produits": {
+      "model": "Produit",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "idBoutique": { "type": "ObjectId", "ref": "Boutique", "required": true },
+        "idCategorie": { "type": "[ObjectId]", "ref": "Categorie", "required": true },
+        "nom": { "type": "String", "required": true, "trim": true, "maxlength": 200 },
+        "slug": { "type": "String", "required": true, "lowercase": true, "trim": true },
+        "description": { "type": "String", "trim": true, "maxlength": 2000 },
+        "images": { "type": "[String]", "default": [] },
+        "variantes": {
+          "type": "Array",
+          "items": {
+            "couleur": { "type": "String", "trim": true },
+            "couleurHex": { "type": "String", "trim": true },
+            "unite": { "type": "String", "trim": true },
+            "typeUnitePrincipal": { "type": "ObjectId", "ref": "TypeUnite" },
+            "prix": {
+              "devise": { "type": "String", "uppercase": true, "default": "Ar" },
+              "montant": { "type": "Number", "required": true, "min": 0, "default": 0 }
+            },
+            "stock": {
+              "quantite": { "type": "Number", "required": true, "min": 0, "default": 0 }
+            }
+          }
+        },
+        "statut": { "type": "String", "enum": ["actif", "rupture_stock", "archive"], "default": "actif" },
+        "dateCreation": { "type": "Date", "auto": true },
+        "dateMiseAJour": { "type": "Date", "auto": true }
+      },
+      "indexes": [
+        { "fields": { "idBoutique": 1, "slug": 1 } },
+        { "fields": { "idCategorie": 1 } },
+        { "fields": { "statut": 1 } }
+      ]
+    },
+    "mouvementstocks": {
+      "model": "MouvementStock",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "idBoutique": { "type": "ObjectId", "ref": "Boutique", "required": true },
+        "idProduit": { "type": "ObjectId", "ref": "Produit", "required": true },
+        "idVariante": { "type": "ObjectId", "default": null },
+        "type": { "type": "String", "enum": ["entree", "sortie"], "required": true },
+        "quantite": { "type": "Number", "required": true, "min": 1 },
+        "motif": { "type": "String", "enum": ["achat_fournisseur", "retour_client", "ajustement_inventaire", "vente", "perte", "transfert", "autre"], "required": true },
+        "note": { "type": "String", "trim": true, "maxlength": 500, "default": "" },
+        "stockAvant": { "type": "Number", "required": true, "min": 0 },
+        "stockApres": { "type": "Number", "required": true, "min": 0 },
+        "utilisateur": { "type": "ObjectId", "ref": "Utilisateur", "required": true },
+        "dateCreation": { "type": "Date", "auto": true },
+        "dateMiseAJour": { "type": "Date", "auto": true }
+      },
+      "indexes": [
+        { "fields": { "idBoutique": 1, "dateCreation": -1 } },
+        { "fields": { "idProduit": 1, "dateCreation": -1 } }
+      ]
+    },
+    "promotions": {
+      "model": "Promotion",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "idBoutique": { "type": "ObjectId", "ref": "Boutique", "required": true },
+        "idProduit": { "type": "ObjectId", "ref": "Produit" },
+        "idVariante": { "type": "String", "default": null },
+        "idCategorie": { "type": "ObjectId", "ref": "Categorie" },
+        "type": { "type": "String", "enum": ["pourcentage", "montant"], "required": true },
+        "valeur": { "type": "Number", "required": true, "min": 0 },
+        "dateDebut": { "type": "Date", "required": true },
+        "dateFin": { "type": "Date", "required": true },
+        "statut": { "type": "String", "enum": ["active", "inactive", "archive"], "default": "active" },
+        "dateCreation": { "type": "Date", "auto": true },
+        "dateMiseAJour": { "type": "Date", "auto": true }
+      },
+      "indexes": [
+        { "fields": { "idBoutique": 1 } },
+        { "fields": { "idProduit": 1 } },
+        { "fields": { "idVariante": 1 } },
+        { "fields": { "idCategorie": 1 } },
+        { "fields": { "statut": 1 } }
+      ]
+    },
+    "commandes": {
+      "model": "Commande",
+      "fields": {
+        "_id": { "type": "ObjectId", "auto": true },
+        "idBoutique": { "type": "ObjectId", "ref": "Boutique", "required": true },
+        "reference": { "type": "String", "unique": true },
+        "client": {
+          "type": "Object",
+          "fields": {
+            "nom": { "type": "String", "required": true },
+            "prenom": { "type": "String" },
+            "email": { "type": "String" },
+            "telephone": { "type": "String" },
+            "adresse": { "type": "String" }
+          }
+        },
+        "lignes": {
+          "type": "Array",
+          "items": {
+            "idProduit": { "type": "ObjectId", "ref": "Produit" },
+            "idVariante": { "type": "ObjectId" },
+            "nomProduit": { "type": "String" },
+            "couleur": { "type": "String" },
+            "unite": { "type": "String" },
+            "prixUnitaire": { "type": "Number", "required": true },
+            "quantite": { "type": "Number", "required": true, "min": 1 },
+            "sousTotal": { "type": "Number" }
+          }
+        },
+        "statut": { "type": "String", "enum": ["en_attente", "confirmee", "expediee", "livree", "annulee"], "default": "en_attente" },
+        "total": { "type": "Number", "default": 0 },
+        "notes": { "type": "String" },
+        "createdAt": { "type": "Date", "auto": true },
+        "updatedAt": { "type": "Date", "auto": true }
+      }
+    }
+  },
+  "relations": [
+    { "from": "batiments.centre_id", "to": "centres._id" },
+    { "from": "etages.batiment_id", "to": "batiments._id" },
+    { "from": "emplacements.etage_id", "to": "etages._id" },
+    { "from": "appeloffres.emplacement_id", "to": "emplacements._id" },
+    { "from": "boutiques.appel_offre_id", "to": "appeloffres._id" },
+    { "from": "reponseappeloffres.appel_offre_id", "to": "appeloffres._id" },
+    { "from": "reponseappeloffres.boutique_id", "to": "boutiques._id" },
+    { "from": "reponseappeloffres.utilisateur_id", "to": "utilisateurs._id" },
+    { "from": "paiementloyers.boutique_id", "to": "boutiques._id" },
+    { "from": "paiementloyers.emplacement_id", "to": "emplacements._id" },
+    { "from": "categories.idBoutique", "to": "boutiques._id" },
+    { "from": "categories.idCategorieParent", "to": "categories._id" },
+    { "from": "tailles.typeUnite", "to": "typeunites._id" },
+    { "from": "produits.idBoutique", "to": "boutiques._id" },
+    { "from": "produits.idCategorie[]", "to": "categories._id" },
+    { "from": "produits.variantes[].typeUnitePrincipal", "to": "typeunites._id" },
+    { "from": "mouvementstocks.idBoutique", "to": "boutiques._id" },
+    { "from": "mouvementstocks.idProduit", "to": "produits._id" },
+    { "from": "mouvementstocks.utilisateur", "to": "utilisateurs._id" },
+    { "from": "promotions.idBoutique", "to": "boutiques._id" },
+    { "from": "promotions.idProduit", "to": "produits._id" },
+    { "from": "promotions.idCategorie", "to": "categories._id" },
+    { "from": "commandes.idBoutique", "to": "boutiques._id" },
+    { "from": "commandes.lignes[].idProduit", "to": "produits._id" }
+  ]
+}
