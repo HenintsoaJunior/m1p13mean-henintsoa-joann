@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaiementService, PaiementLoyer } from '../../services/paiement.service';
 import { ToastService } from '../../../../../services/toast.service';
+import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
 import { environment } from '../../../../../../environments/environment';
 import { loadStripe, Stripe, StripeElements, StripeCardElement } from '@stripe/stripe-js';
 
 @Component({
   selector: 'app-paiement-loyer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoaderComponent],
   templateUrl: './paiement-loyer.component.html',
   styleUrls: ['./paiement-loyer.component.scss'],
 })

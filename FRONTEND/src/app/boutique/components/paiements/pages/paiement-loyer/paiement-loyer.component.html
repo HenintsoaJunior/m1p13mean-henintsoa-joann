@@ -202,12 +202,7 @@
         }
 
         @if (isLoading) {
-          <div class="loading-container">
-            <div class="loading-spinner">
-              <div class="spinner-ring"></div>
-              <span>Préparation du paiement...</span>
-            </div>
-          </div>
+          <app-loader [isLoading]="true" loadingText="Préparation du paiement..."></app-loader>
         } @else {
           <div class="form-actions">
             <button

@@ -1,10 +1,5 @@
 <div class="plan-centre-container">
-  <div *ngIf="isLoading" class="loading-container">
-    <div class="loading-spinner">
-      <div class="spinner-ring"></div>
-      <span>Chargement en cours...</span>
-    </div>
-  </div>
+  <app-loader [isLoading]="isLoading" loadingText="Chargement en cours..."></app-loader>
 
   <!-- Liste des centres -->
   <div class="centres-list-view" *ngIf="!isLoading && showCentresList">

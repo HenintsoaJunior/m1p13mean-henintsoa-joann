@@ -93,12 +93,7 @@
       </div>
 
       @if (isLoading) {
-        <div class="loading-container">
-          <div class="loading-spinner">
-            <div class="spinner-ring"></div>
-            <span>Chargement en cours...</span>
-          </div>
-        </div>
+        <app-loader [isLoading]="true" loadingText="Chargement en cours..."></app-loader>
       } @else if (boutiques.length === 0) {
         <div class="empty-state">
           <i class="fas fa-store-slash"></i>
@@ -206,12 +201,7 @@
       </div>
 
       @if (isLoading) {
-        <div class="loading-container">
-          <div class="loading-spinner">
-            <div class="spinner-ring"></div>
-            <span>Chargement en cours...</span>
-          </div>
-        </div>
+        <app-loader [isLoading]="true" loadingText="Chargement en cours..."></app-loader>
       } @else if (paiements.length === 0) {
         <div class="empty-state">
           <i class="fas fa-receipt"></i>

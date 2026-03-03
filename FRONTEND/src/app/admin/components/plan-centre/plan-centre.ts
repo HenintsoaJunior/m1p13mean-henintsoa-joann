@@ -5,11 +5,12 @@ import { Centre, Batiment, Etage, Emplacement } from '../../../shared/interfaces
 import { CentreService } from '../../../shared/services/centre.service';
 import { SidebarService } from '../../../services/sidebar.service';
 import { BreadcrumbService } from '../../../shared/services/breadcrumb.service';
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
 @Component({
   selector: 'app-plan-centre',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule, HttpClientModule, LoaderComponent],
   templateUrl: './plan-centre.html',
   styleUrls: ['./plan-centre.css'],
 })
