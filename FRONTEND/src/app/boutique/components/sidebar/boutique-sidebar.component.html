@@ -119,6 +119,20 @@
 
         <div class="nav-indicator" *ngIf="currentRoute === '/boutique/mon-boutique'"></div>
       </a>
+
+      <a
+        routerLink="/boutique/paiement-loyer"
+        routerLinkActive="active"
+        class="nav-item"
+        [attr.title]="isCollapsed ? 'Paiement loyer' : null"
+        (click)="closeSidebar()"
+      >
+        <div class="nav-icon">
+          <i class="fas fa-credit-card"></i>
+        </div>
+        <span class="nav-text" *ngIf="!isCollapsed">Paiement loyer</span>
+        <div class="nav-indicator" *ngIf="currentRoute === '/boutique/paiement-loyer'"></div>
+      </a>
     </div>
   </nav>
 

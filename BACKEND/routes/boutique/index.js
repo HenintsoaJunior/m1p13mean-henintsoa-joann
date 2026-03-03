@@ -26,6 +26,9 @@ router.use("/promotions", require("./promotions"));
 
 router.use("/dashboard", require("./dashboard"));
 
+// Paiement de loyer
+router.use("/paiements", require("./paiements"));
+
 router.get("/", (req, res) => {
   res.json({ message: "Espace boutique - API disponible" });
 });

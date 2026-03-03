@@ -62,6 +62,60 @@ class EmailService {
     }
   }
 
+  /**
+   * Envoyer la facture de loyer par email avec le PDF en pièce jointe
+   */
+  async envoyerFactureLoyer(destinataire, boutique, paiement, pdfBuffer) {
+    const nomBoutique = boutique?.contact?.nom || "Boutique";
+    const mois = paiement.mois_loyer;
+    const sujet = `Facture de loyer - ${mois}`;
+    const contenu = `
+      <h2>Confirmation de paiement de loyer</h2>
+      <p>Bonjour ${nomBoutique},</p>
+      <p>Votre paiement de loyer pour le mois de <strong>${mois}</strong> a bien été reçu et confirmé.</p>
+      <ul>
+        <li><strong>Montant :</strong> ${paiement.montant.toFixed(2)} €</li>
+        <li><strong>Date :</strong> ${new Date(paiement.date_paiement).toLocaleDateString('fr-FR')}</li>
+        <li><strong>Référence :</strong> ${paiement.stripe_payment_intent_id}</li>
+      </ul>
+      <p>Veuillez trouver votre facture en pièce jointe.</p>
+      <p>Cordialement,</p>
+    `;
+    try {
+      const nodemailer = require('nodemailer');
+      const host = process.env.SMTP_HOST;
+      if (!host) {
+        console.warn('SMTP non configuré — facture simulée pour:', destinataire);
+        return;
+      }
+      const port = parseInt(process.env.SMTP_PORT || '587', 10);
+      const secure = (process.env.SMTP_SECURE === 'true');
+      const user = process.env.SMTP_USER || undefined;
+      const pass = process.env.SMTP_PASS || undefined;
+      const from = process.env.EMAIL_FROM || 'no-reply@example.com';
+      const transporterOptions = { host, port, secure };
+      if (user) transporterOptions.auth = { user, pass };
+      const transporter = nodemailer.createTransport(transporterOptions);
+      await transporter.sendMail({
+        from,
+        to: destinataire,
+        subject: sujet,
+        html: contenu,
+        attachments: [
+          {
+            filename: `facture-loyer-${mois}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
+      });
+      console.log(`Facture loyer envoyée à ${destinataire}`);
+    } catch (err) {
+      console.error("Erreur envoi facture loyer:", err);
+      throw err;
+    }
+  }
+
   async notifierChangementMotDePasse(utilisateur) {
     console.log(`🔔 Notification changement mot de passe à ${utilisateur.email}`);
     const template = this.genererTemplateNotificationChangement(utilisateur);

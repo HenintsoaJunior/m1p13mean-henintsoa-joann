@@ -1,0 +1,243 @@
+<div class="container mx-auto p-6 max-w-4xl">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">Paiement du loyer</h1>
+
+  <!-- Statut mois courant -->
+  @if (moisCourant) {
+    <div class="bg-white rounded-xl shadow-sm border mb-6 p-6">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-700">Loyer du mois en cours</h2>
+          <p class="text-gray-500 text-sm mt-1">{{ getMoisLabel(moisCourant.mois_courant) }}</p>
+          @if (moisCourant.emplacement) {
+            <p class="text-gray-500 text-sm">Emplacement : {{ moisCourant.emplacement.nom }} ({{ moisCourant.emplacement.code }})</p>
+          }
+        </div>
+        <div class="text-right">
+          <p class="text-3xl font-bold text-blue-600">{{ moisCourant.montant_loyer | number:'1.2-2' }} €</p>
+          <span class="inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium"
+            [ngClass]="getStatutClass(moisCourant.statut)">
+            {{ getStatutLabel(moisCourant.statut) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Onglets -->
+  <div class="flex border-b border-gray-200 mb-6">
+    <button
+      (click)="activeTab = 'payer'"
+      class="px-6 py-3 text-sm font-medium border-b-2 transition-colors"
+      [class.border-blue-600]="activeTab === 'payer'"
+      [class.text-blue-600]="activeTab === 'payer'"
+      [class.border-transparent]="activeTab !== 'payer'"
+      [class.text-gray-500]="activeTab !== 'payer'">
+      Payer le loyer
+    </button>
+    <button
+      (click)="activeTab = 'historique'; chargerHistorique()"
+      class="px-6 py-3 text-sm font-medium border-b-2 transition-colors"
+      [class.border-blue-600]="activeTab === 'historique'"
+      [class.text-blue-600]="activeTab === 'historique'"
+      [class.border-transparent]="activeTab !== 'historique'"
+      [class.text-gray-500]="activeTab !== 'historique'">
+      Historique
+    </button>
+  </div>
+
+  <!-- Onglet Payer -->
+  @if (activeTab === 'payer') {
+    <div class="bg-white rounded-xl shadow-sm border p-6">
+
+      @if (paiementSuccess) {
+        <!-- Succès -->
+        <div class="text-center py-10">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-green-700 mb-2">Paiement réussi !</h3>
+          <p class="text-gray-600">Une facture PDF vous a été envoyée par email.</p>
+          <button (click)="paiementSuccess = false; setMoisCourant()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Nouveau paiement
+          </button>
+        </div>
+      } @else if (clientSecret) {
+        <!-- Formulaire Stripe Card -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Saisir les informations de carte</h3>
+
+          <!-- Récapitulatif -->
+          <div class="bg-blue-50 rounded-lg p-4 mb-6">
+            <h4 class="font-medium text-blue-900 mb-2">Récapitulatif</h4>
+            <div class="flex justify-between text-sm">
+              <span class="text-blue-700">Mois :</span>
+              <span class="font-medium text-blue-900">{{ getMoisLabel(moisSelectionne) }}</span>
+            </div>
+            @if (moisCourant?.emplacement) {
+              <div class="flex justify-between text-sm mt-1">
+                <span class="text-blue-700">Emplacement :</span>
+                <span class="font-medium text-blue-900">{{ moisCourant.emplacement.nom }}</span>
+              </div>
+            }
+            <div class="flex justify-between text-sm mt-1 border-t border-blue-200 pt-2">
+              <span class="text-blue-700 font-semibold">Montant total :</span>
+              <span class="font-bold text-blue-900 text-lg">{{ moisCourant?.montant_loyer | number:'1.2-2' }} €</span>
+            </div>
+          </div>
+
+          <!-- Stripe Card Element -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Carte bancaire</label>
+            <div id="stripe-card-element" class="border border-gray-300 rounded-lg p-4 bg-white"></div>
+            @if (cardError) {
+              <p class="text-red-600 text-sm mt-2">{{ cardError }}</p>
+            }
+          </div>
+
+          <p class="text-xs text-gray-400 mb-4 flex items-center gap-1">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+            Paiement sécurisé via Stripe. Vos données bancaires ne sont jamais stockées sur nos serveurs.
+          </p>
+
+          <div class="flex gap-3">
+            <button
+              (click)="confirmerPaiement()"
+              [disabled]="isPaying"
+              class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-60 font-medium transition-colors">
+              @if (isPaying) {
+                <span>Traitement en cours...</span>
+              } @else {
+                <span>Confirmer le paiement - {{ moisCourant?.montant_loyer | number:'1.2-2' }} €</span>
+              }
+            </button>
+            <button (click)="annulerPaiement()" class="px-4 py-3 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+              Annuler
+            </button>
+          </div>
+        </div>
+      } @else {
+        <!-- Formulaire sélection mois -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Initier un paiement de loyer</h3>
+
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Mois concerné</label>
+            <select
+              [(ngModel)]="moisSelectionne"
+              class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              @for (option of getMoisOptions(); track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+
+          @if (moisCourant) {
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+              <h4 class="text-sm font-medium text-gray-600 mb-3">Récapitulatif</h4>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">Mois sélectionné</span>
+                  <span class="font-medium">{{ getMoisLabel(moisSelectionne) }}</span>
+                </div>
+                @if (moisCourant.emplacement) {
+                  <div class="flex justify-between">
+                    <span class="text-gray-600">Emplacement</span>
+                    <span class="font-medium">{{ moisCourant.emplacement.nom }} ({{ moisCourant.emplacement.code }})</span>
+                  </div>
+                }
+                <div class="flex justify-between border-t pt-2">
+                  <span class="font-semibold">Montant du loyer</span>
+                  <span class="font-bold text-blue-600 text-lg">{{ moisCourant.montant_loyer | number:'1.2-2' }} €</span>
+                </div>
+              </div>
+            </div>
+          }
+
+          <button
+            (click)="initierPaiement()"
+            [disabled]="isLoading || !moisSelectionne || moisCourant?.statut === 'paye'"
+            class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-60 font-medium transition-colors">
+            @if (isLoading) {
+              Chargement...
+            } @else if (moisCourant?.statut === 'paye') {
+              ✓ Loyer déjà payé pour ce mois
+            } @else {
+              Procéder au paiement par carte
+            }
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Onglet Historique -->
+  @if (activeTab === 'historique') {
+    <div class="bg-white rounded-xl shadow-sm border">
+      @if (historique.length === 0) {
+        <div class="text-center py-12 text-gray-500">
+          <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+          Aucun paiement enregistré
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b">
+              <tr>
+                <th class="text-left px-6 py-3 text-gray-600 font-medium">Mois</th>
+                <th class="text-left px-6 py-3 text-gray-600 font-medium">Montant</th>
+                <th class="text-left px-6 py-3 text-gray-600 font-medium">Date paiement</th>
+                <th class="text-left px-6 py-3 text-gray-600 font-medium">Statut</th>
+                <th class="text-left px-6 py-3 text-gray-600 font-medium">Référence Stripe</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (p of historique; track p._id) {
+                <tr class="hover:bg-gray-50">
+                  <td class="px-6 py-4 font-medium">{{ getMoisLabel(p.mois_loyer) }}</td>
+                  <td class="px-6 py-4">{{ p.montant | number:'1.2-2' }} €</td>
+                  <td class="px-6 py-4 text-gray-600">
+                    {{ p.date_paiement ? (p.date_paiement | date:'dd/MM/yyyy') : '-' }}
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium" [ngClass]="getStatutClass(p.statut)">
+                      {{ getStatutLabel(p.statut) }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-gray-400 text-xs font-mono truncate max-w-[200px]">
+                    {{ p.stripe_payment_intent_id || '-' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        @if (pagination.pages > 1) {
+          <div class="flex items-center justify-between px-6 py-4 border-t">
+            <span class="text-sm text-gray-600">Page {{ currentPage }} / {{ pagination.pages }}</span>
+            <div class="flex gap-2">
+              <button
+                (click)="chargerHistorique(currentPage - 1)"
+                [disabled]="currentPage <= 1"
+                class="px-3 py-1 border rounded text-sm disabled:opacity-40 hover:bg-gray-50">
+                ← Précédent
+              </button>
+              <button
+                (click)="chargerHistorique(currentPage + 1)"
+                [disabled]="currentPage >= pagination.pages"
+                class="px-3 py-1 border rounded text-sm disabled:opacity-40 hover:bg-gray-50">
+                Suivant →
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>
