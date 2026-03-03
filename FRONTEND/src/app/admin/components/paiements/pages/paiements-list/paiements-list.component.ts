@@ -3,12 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaiementService } from '../../../../../boutique/components/paiements/services/paiement.service';
 import { ToastService } from '../../../../../services/toast.service';
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
 
 @Component({
   selector: 'app-paiements-loyer-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoaderComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './paiements-list.component.html',
   styleUrls: ['./paiements-list.component.scss'],
 })
