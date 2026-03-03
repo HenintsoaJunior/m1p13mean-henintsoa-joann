@@ -1,4 +1,8 @@
-<aside class="modern-sidebar" [class.sidebar-collapsed]="isCollapsed" [class.sidebar-open]="isMobileView && isSidebarOpen">
+<aside
+  class="modern-sidebar"
+  [class.sidebar-collapsed]="isCollapsed"
+  [class.sidebar-open]="isMobileView && isSidebarOpen"
+>
   <!-- Header sans toggle -->
   <div class="sidebar-header">
     <div class="brand-section">
@@ -122,24 +126,6 @@
         </div>
         <span class="nav-text" *ngIf="!isCollapsed">Loyers</span>
         <div class="nav-indicator" *ngIf="currentRoute === '/admin/paiements-loyer'"></div>
-      </a>
-    </div>
-
-    <div class="nav-section">
-      <p class="section-title" *ngIf="!isCollapsed">ANALYTIQUES</p>
-
-      <a
-        routerLink="/admin/reports"
-        routerLinkActive="active"
-        class="nav-item"
-        [attr.title]="isCollapsed ? 'Rapports' : null"
-        (click)="isMobileView && closeSidebar()"
-      >
-        <div class="nav-icon">
-          <i class="fas fa-chart-bar"></i>
-        </div>
-        <span class="nav-text" *ngIf="!isCollapsed">Rapports</span>
-        <div class="nav-indicator" *ngIf="currentRoute === '/admin/reports'"></div>
       </a>
     </div>
 
