@@ -35,8 +35,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   activeTab = 'produits';
 
   // Login in profile modal
-  loginEmail = '';
-  loginPassword = '';
+  loginEmail = 'client@gmail.com';
+  loginPassword = 'client1234';
   loginLoading = false;
   loginError = '';
 
@@ -197,8 +197,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.showLogoutPopup = true;
       this.chargerMesCommandes();
     } else {
-      this.loginEmail = '';
-      this.loginPassword = '';
+      this.loginEmail = 'client@gmail.com';
+      this.loginPassword = 'client1234';
       this.loginError = '';
       this.showLogoutPopup = true;
     }
