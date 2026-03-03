@@ -11,6 +11,7 @@ import { loadStripe, Stripe, StripeElements, StripeCardElement } from '@stripe/s
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './paiement-loyer.component.html',
+  styleUrls: ['./paiement-loyer.component.scss'],
 })
 export class PaiementLoyerComponent implements OnInit, OnDestroy {
   private paiementService = inject(PaiementService);

@@ -25,15 +25,15 @@ class PaiementLoyerService {
       }
       // Retourner l'intent existant en attente
       const intent = await this.stripe.paymentIntents.retrieve(
-        existant.stripe_payment_intent_id
+        existant.stripe_payment_intent_id,
       );
       return { clientSecret: intent.client_secret, paiement: existant };
     }
 
-    // Créer le PaymentIntent Stripe (montant en centimes)
+    // Créer le PaymentIntent Stripe (MGA est une devise zero-decimal, pas de centimes)
     const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: Math.round(montant * 100),
-      currency: "eur",
+      amount: Math.round(montant), // MGA = zero-decimal currency
+      currency: "mga",
       metadata: {
         boutique_id: boutiqueId.toString(),
         mois_loyer: moisLoyer,
@@ -84,7 +84,7 @@ class PaiementLoyerService {
     const paiement = await PaiementLoyer.findOneAndUpdate(
       { stripe_payment_intent_id: paymentIntentObj.id },
       { statut: "paye", date_paiement: new Date() },
-      { new: true }
+      { new: true },
     ).populate({
       path: "boutique_id",
       populate: {
@@ -103,7 +103,12 @@ class PaiementLoyerService {
         const email = boutique?.contact?.email;
 
         if (email) {
-          await this.emailService.envoyerFactureLoyer(email, boutique, paiement, pdfBuffer);
+          await this.emailService.envoyerFactureLoyer(
+            email,
+            boutique,
+            paiement,
+            pdfBuffer,
+          );
           paiement.facture_envoyee = true;
           await paiement.save();
         }
@@ -121,7 +126,7 @@ class PaiementLoyerService {
   async echouerPaiement(paymentIntentId) {
     await PaiementLoyer.findOneAndUpdate(
       { stripe_payment_intent_id: paymentIntentId },
-      { statut: "echoue" }
+      { statut: "echoue" },
     );
   }
 
@@ -182,10 +187,18 @@ class PaiementLoyerService {
       const moisLabel = this.formatMois(paiement.mois_loyer);
 
       // En-tête
-      doc.fontSize(20).font("Helvetica-Bold").text("FACTURE DE LOYER", { align: "center" });
+      doc
+        .fontSize(20)
+        .font("Helvetica-Bold")
+        .text("FACTURE DE LOYER", { align: "center" });
       doc.moveDown();
-      doc.fontSize(12).font("Helvetica").text(`Facture N° : ${paiement._id}`, { align: "right" });
-      doc.text(`Date : ${new Date().toLocaleDateString("fr-FR")}`, { align: "right" });
+      doc
+        .fontSize(12)
+        .font("Helvetica")
+        .text(`Facture N° : ${paiement._id}`, { align: "right" });
+      doc.text(`Date : ${new Date().toLocaleDateString("fr-FR")}`, {
+        align: "right",
+      });
       doc.moveDown(2);
 
       // Informations boutique
@@ -196,7 +209,9 @@ class PaiementLoyerService {
       doc.moveDown(2);
 
       // Détails paiement
-      doc.font("Helvetica-Bold").text("Détails du paiement :", { underline: true });
+      doc
+        .font("Helvetica-Bold")
+        .text("Détails du paiement :", { underline: true });
       doc.moveDown(0.5);
 
       const tableTop = doc.y;
@@ -205,24 +220,38 @@ class PaiementLoyerService {
       doc.text("Période", 300, tableTop);
       doc.text("Montant", 450, tableTop);
 
-      doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
+      doc
+        .moveTo(50, tableTop + 15)
+        .lineTo(550, tableTop + 15)
+        .stroke();
       doc.font("Helvetica");
       const rowY = tableTop + 25;
       doc.text("Loyer emplacement", 50, rowY);
       doc.text(moisLabel, 300, rowY);
-      doc.text(`${paiement.montant.toFixed(2)} €`, 450, rowY);
+      doc.text(`${paiement.montant.toLocaleString("fr-FR")} Ar`, 450, rowY);
 
-      doc.moveTo(50, rowY + 20).lineTo(550, rowY + 20).stroke();
+      doc
+        .moveTo(50, rowY + 20)
+        .lineTo(550, rowY + 20)
+        .stroke();
       doc.font("Helvetica-Bold");
       doc.text("TOTAL", 300, rowY + 30);
-      doc.text(`${paiement.montant.toFixed(2)} €`, 450, rowY + 30);
+      doc.text(`${paiement.montant.toLocaleString("fr-FR")} Ar`, 450, rowY + 30);
       doc.moveDown(4);
 
       // Statut
-      doc.font("Helvetica-Bold").fillColor("green").text(`✓ PAYÉ - ${new Date(paiement.date_paiement).toLocaleDateString("fr-FR")}`);
+      doc
+        .font("Helvetica-Bold")
+        .fillColor("green")
+        .text(
+          `✓ PAYÉ - ${new Date(paiement.date_paiement).toLocaleDateString("fr-FR")}`,
+        );
       doc.fillColor("black");
       doc.moveDown();
-      doc.font("Helvetica").fontSize(10).text(`Référence Stripe : ${paiement.stripe_payment_intent_id}`);
+      doc
+        .font("Helvetica")
+        .fontSize(10)
+        .text(`Référence Stripe : ${paiement.stripe_payment_intent_id}`);
 
       doc.end();
     });

@@ -9,6 +9,7 @@ import { ToastService } from '../../../../../services/toast.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './paiements-list.component.html',
+  styleUrls: ['./paiements-list.component.scss'],
 })
 export class PaiementsLoyerAdminComponent implements OnInit {
   private paiementService: PaiementService = inject(PaiementService);

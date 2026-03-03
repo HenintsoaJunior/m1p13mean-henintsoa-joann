@@ -13,9 +13,9 @@ class EmailService {
     console.log(`📧 Email de bienvenue envoyé à ${utilisateur.email}`);
     const template = this.genererTemplateBienvenue(utilisateur);
     try {
-      await this.envoyerEmail(utilisateur.email, 'Bienvenue !', template);
+      await this.envoyerEmail(utilisateur.email, "Bienvenue !", template);
     } catch (err) {
-      console.error('Erreur envoi bienvenue:', err);
+      console.error("Erreur envoi bienvenue:", err);
     }
   }
 
@@ -30,9 +30,13 @@ class EmailService {
     console.log(`📧 Envoi identifiants à ${destinataire}`);
     const template = this.genererTemplateIdentifiants(utilisateur, motDePasse);
     try {
-      await this.envoyerEmail(destinataire, 'Vos identifiants boutique', template);
+      await this.envoyerEmail(
+        destinataire,
+        "Vos identifiants boutique",
+        template,
+      );
     } catch (err) {
-      console.error('Erreur envoi identifiants:', err);
+      console.error("Erreur envoi identifiants:", err);
     }
   }
 
@@ -43,22 +47,34 @@ class EmailService {
    * @returns {Promise<void>}
    */
   async envoyerTokenReinitialisation(utilisateur, token) {
-    console.log(`🔐 Token de réinitialisation envoyé à ${utilisateur.email}: ${token}`);
+    console.log(
+      `🔐 Token de réinitialisation envoyé à ${utilisateur.email}: ${token}`,
+    );
     const template = this.genererTemplateReinitialisation(utilisateur, token);
     try {
-      await this.envoyerEmail(utilisateur.email, 'Réinitialisation de mot de passe', template);
+      await this.envoyerEmail(
+        utilisateur.email,
+        "Réinitialisation de mot de passe",
+        template,
+      );
     } catch (err) {
-      console.error('Erreur envoi token reset:', err);
+      console.error("Erreur envoi token reset:", err);
     }
   }
 
   async confirmerReinitialisationMotDePasse(utilisateur) {
-    console.log(`✅ Confirmation réinitialisation envoyée à ${utilisateur.email}`);
+    console.log(
+      `✅ Confirmation réinitialisation envoyée à ${utilisateur.email}`,
+    );
     const template = this.genererTemplateConfirmationReset(utilisateur);
     try {
-      await this.envoyerEmail(utilisateur.email, 'Mot de passe réinitialisé', template);
+      await this.envoyerEmail(
+        utilisateur.email,
+        "Mot de passe réinitialisé",
+        template,
+      );
     } catch (err) {
-      console.error('Erreur envoi confirmation reset:', err);
+      console.error("Erreur envoi confirmation reset:", err);
     }
   }
 
@@ -74,25 +90,28 @@ class EmailService {
       <p>Bonjour ${nomBoutique},</p>
       <p>Votre paiement de loyer pour le mois de <strong>${mois}</strong> a bien été reçu et confirmé.</p>
       <ul>
-        <li><strong>Montant :</strong> ${paiement.montant.toFixed(2)} €</li>
-        <li><strong>Date :</strong> ${new Date(paiement.date_paiement).toLocaleDateString('fr-FR')}</li>
+        <li><strong>Montant :</strong> ${paiement.montant.toLocaleString('fr-FR')} Ar</li>
+        <li><strong>Date :</strong> ${new Date(paiement.date_paiement).toLocaleDateString("fr-FR")}</li>
         <li><strong>Référence :</strong> ${paiement.stripe_payment_intent_id}</li>
       </ul>
       <p>Veuillez trouver votre facture en pièce jointe.</p>
       <p>Cordialement,</p>
     `;
     try {
-      const nodemailer = require('nodemailer');
+      const nodemailer = require("nodemailer");
       const host = process.env.SMTP_HOST;
       if (!host) {
-        console.warn('SMTP non configuré — facture simulée pour:', destinataire);
+        console.warn(
+          "SMTP non configuré — facture simulée pour:",
+          destinataire,
+        );
         return;
       }
-      const port = parseInt(process.env.SMTP_PORT || '587', 10);
-      const secure = (process.env.SMTP_SECURE === 'true');
+      const port = parseInt(process.env.SMTP_PORT || "587", 10);
+      const secure = process.env.SMTP_SECURE === "true";
       const user = process.env.SMTP_USER || undefined;
       const pass = process.env.SMTP_PASS || undefined;
-      const from = process.env.EMAIL_FROM || 'no-reply@example.com';
+      const from = process.env.EMAIL_FROM || "no-reply@example.com";
       const transporterOptions = { host, port, secure };
       if (user) transporterOptions.auth = { user, pass };
       const transporter = nodemailer.createTransport(transporterOptions);
@@ -105,7 +124,7 @@ class EmailService {
           {
             filename: `facture-loyer-${mois}.pdf`,
             content: pdfBuffer,
-            contentType: 'application/pdf',
+            contentType: "application/pdf",
           },
         ],
       });
@@ -117,12 +136,18 @@ class EmailService {
   }
 
   async notifierChangementMotDePasse(utilisateur) {
-    console.log(`🔔 Notification changement mot de passe à ${utilisateur.email}`);
+    console.log(
+      `🔔 Notification changement mot de passe à ${utilisateur.email}`,
+    );
     const template = this.genererTemplateNotificationChangement(utilisateur);
     try {
-      await this.envoyerEmail(utilisateur.email, 'Mot de passe modifié', template);
+      await this.envoyerEmail(
+        utilisateur.email,
+        "Mot de passe modifié",
+        template,
+      );
     } catch (err) {
-      console.error('Erreur envoi notification changement:', err);
+      console.error("Erreur envoi notification changement:", err);
     }
   }
 
@@ -149,7 +174,7 @@ class EmailService {
   genererTemplateIdentifiants(utilisateur, motDePasse) {
     return `
       <h1>Votre compte boutique</h1>
-      <p>Bonjour ${utilisateur.prenom || 'Utilisateur'},</p>
+      <p>Bonjour ${utilisateur.prenom || "Utilisateur"},</p>
       <p>Votre compte boutique a été créé automatiquement suite à votre réponse à l'appel d'offre.</p>
       <p><strong>Email:</strong> ${utilisateur.email}</p>
       <p><strong>Mot de passe temporaire:</strong> ${motDePasse}</p>
@@ -215,21 +240,26 @@ class EmailService {
    */
   async envoyerEmail(destinataire, sujet, contenu) {
     try {
-      const nodemailer = require('nodemailer');
+      const nodemailer = require("nodemailer");
       const host = process.env.SMTP_HOST;
       if (!host) {
-        console.warn('SMTP non configuré — email simulé. Contenu:', { destinataire, sujet });
-        console.log('--- Email HTML ---');
+        console.warn("SMTP non configuré — email simulé. Contenu:", {
+          destinataire,
+          sujet,
+        });
+        console.log("--- Email HTML ---");
         console.log(contenu);
-        console.log('------------------');
+        console.log("------------------");
         return;
       }
 
-      const port = parseInt(process.env.SMTP_PORT || '587', 10);
-      const secure = (process.env.SMTP_SECURE === 'true');
+      const port = parseInt(process.env.SMTP_PORT || "587", 10);
+      const secure = process.env.SMTP_SECURE === "true";
       const user = process.env.SMTP_USER || undefined;
       const pass = process.env.SMTP_PASS || undefined;
-      const from = process.env.EMAIL_FROM || `no-reply@${process.env.BOUTIQUE_EMAIL_DOMAIN || 'example.com'}`;
+      const from =
+        process.env.EMAIL_FROM ||
+        `no-reply@${process.env.BOUTIQUE_EMAIL_DOMAIN || "example.com"}`;
 
       const transporterOptions = { host, port, secure };
       if (user) transporterOptions.auth = { user, pass };
@@ -245,11 +275,10 @@ class EmailService {
 
       console.log(`Email envoyé: ${destinataire} - ${sujet}`);
     } catch (err) {
-      console.error('Erreur lors de lEnvoi d\'email:', err);
+      console.error("Erreur lors de lEnvoi d'email:", err);
       throw err;
     }
   }
 }
-
 
 module.exports = EmailService;
