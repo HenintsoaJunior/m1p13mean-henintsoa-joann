@@ -24,8 +24,8 @@ export class AdminLoginComponent {
 
   constructor() {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      email: ['admin@gmail.com', [Validators.required, Validators.email]],
+      password: ['admin1234', [Validators.required, Validators.minLength(6)]],
     });
   }
 

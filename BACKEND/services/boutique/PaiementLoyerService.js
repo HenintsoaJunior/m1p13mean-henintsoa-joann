@@ -176,7 +176,7 @@ class PaiementLoyerService {
     return new Promise((resolve, reject) => {
       const PDFDocument = require("pdfkit");
       const chunks = [];
-      const doc = new PDFDocument({ margin: 50 });
+      const doc = new PDFDocument({ margin: 0, size: "A4" });
 
       doc.on("data", (chunk) => chunks.push(chunk));
       doc.on("end", () => resolve(Buffer.concat(chunks)));
@@ -184,74 +184,117 @@ class PaiementLoyerService {
 
       const boutique = paiement.boutique_id;
       const nomBoutique = boutique?.contact?.nom || "Boutique";
-      const moisLabel = this.formatMois(paiement.mois_loyer);
+      const emailBoutique = boutique?.contact?.email || "";
+      const telephoneBoutique = boutique?.contact?.telephone || "";
+      const adresseBoutique = boutique?.contact?.adresse || "";
 
-      // En-tête
-      doc
-        .fontSize(20)
-        .font("Helvetica-Bold")
-        .text("FACTURE DE LOYER", { align: "center" });
-      doc.moveDown();
-      doc
-        .fontSize(12)
-        .font("Helvetica")
-        .text(`Facture N° : ${paiement._id}`, { align: "right" });
-      doc.text(`Date : ${new Date().toLocaleDateString("fr-FR")}`, {
-        align: "right",
-      });
-      doc.moveDown(2);
+      // Formatage des données
+      const [annee, moisNum] = paiement.mois_loyer.split("-");
+      const moisNoms = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+      const moisLabel = `${moisNoms[parseInt(moisNum) - 1]} ${annee}`;
+      const datePaiement = new Date(paiement.date_paiement);
+      const dateFr = `${String(datePaiement.getDate()).padStart(2,"0")} ${moisNoms[datePaiement.getMonth()]} ${datePaiement.getFullYear()}`;
+      const dateEmission = new Date();
+      const dateEmissionFr = `${String(dateEmission.getDate()).padStart(2,"0")} ${moisNoms[dateEmission.getMonth()]} ${dateEmission.getFullYear()}`;
+      const factureNum = `FAC-${paiement._id.toString().slice(-8).toUpperCase()}`;
+      // Montant MGA : séparateur milliers par espace → "150 000 Ar"
+      const montantNum = Math.round(paiement.montant);
+      const montantStr = montantNum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u202f");
+      const montantFormate = `${montantStr} Ar`;
 
-      // Informations boutique
-      doc.font("Helvetica-Bold").text("Destinataire :");
-      doc.font("Helvetica").text(nomBoutique);
-      if (boutique?.contact?.email) doc.text(boutique.contact.email);
-      if (boutique?.contact?.adresse) doc.text(boutique.contact.adresse);
-      doc.moveDown(2);
+      const W = 595;
+      const BLUE = "#3660a9";
+      const DARK = "#1e3a5f";
+      const GRAY = "#6b7280";
+      const LIGHT = "#f8fafc";
+      const BORDER = "#e5e7eb";
 
-      // Détails paiement
-      doc
-        .font("Helvetica-Bold")
-        .text("Détails du paiement :", { underline: true });
-      doc.moveDown(0.5);
+      // ══ EN-TÊTE BLEU ══
+      doc.rect(0, 0, W, 110).fill(BLUE);
+      doc.rect(0, 105, W, 5).fill(DARK);
+      doc.fillColor("white").font("Helvetica-Bold").fontSize(26)
+        .text("FACTURE DE LOYER", 50, 22, { width: 340 });
+      doc.font("Helvetica").fontSize(11).fillColor("rgba(255,255,255,0.80)")
+        .text("Paiement d'emplacement · Centre Commercial", 50, 58);
+      doc.font("Helvetica-Bold").fontSize(11).fillColor("white")
+        .text(factureNum, 390, 22, { width: 160, align: "right" });
+      doc.font("Helvetica").fontSize(9).fillColor("rgba(255,255,255,0.70)")
+        .text(`Emise le ${dateEmissionFr}`, 390, 42, { width: 160, align: "right" })
+        .text(`Periode : ${moisLabel}`, 390, 58, { width: 160, align: "right" });
 
-      const tableTop = doc.y;
-      doc.font("Helvetica-Bold");
-      doc.text("Description", 50, tableTop);
-      doc.text("Période", 300, tableTop);
-      doc.text("Montant", 450, tableTop);
+      // ══ DESTINATAIRE ══
+      const infoY = 130;
+      doc.roundedRect(50, infoY, 230, 120, 8).fillAndStroke("#ffffff", BORDER);
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(GRAY)
+        .text("DESTINATAIRE", 66, infoY + 14);
+      doc.moveTo(66, infoY + 26).lineTo(268, infoY + 26).lineWidth(0.5).stroke(BORDER);
+      doc.font("Helvetica-Bold").fontSize(13).fillColor("#111827")
+        .text(nomBoutique, 66, infoY + 34, { width: 200 });
+      doc.font("Helvetica").fontSize(9).fillColor("#374151");
+      let cy = infoY + 54;
+      if (emailBoutique)     { doc.text(emailBoutique, 66, cy); cy += 15; }
+      if (telephoneBoutique) { doc.text(telephoneBoutique, 66, cy); cy += 15; }
+      if (adresseBoutique)   { doc.text(adresseBoutique, 66, cy, { width: 200 }); }
 
-      doc
-        .moveTo(50, tableTop + 15)
-        .lineTo(550, tableTop + 15)
-        .stroke();
-      doc.font("Helvetica");
-      const rowY = tableTop + 25;
-      doc.text("Loyer emplacement", 50, rowY);
-      doc.text(moisLabel, 300, rowY);
-      doc.text(`${paiement.montant.toLocaleString("fr-FR")} Ar`, 450, rowY);
+      // ══ STATUT PAYÉ ══
+      doc.roundedRect(315, infoY, 230, 120, 8).fillAndStroke("#f0fdf4", "#86efac");
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(GRAY)
+        .text("STATUT DU PAIEMENT", 331, infoY + 14);
+      doc.moveTo(331, infoY + 26).lineTo(533, infoY + 26).lineWidth(0.5).stroke("#86efac");
+      // Badge vert
+      doc.roundedRect(331, infoY + 34, 80, 26, 13).fill("#16a34a");
+      doc.font("Helvetica-Bold").fontSize(11).fillColor("white")
+        .text("\u2713 PAYE", 331, infoY + 40, { width: 80, align: "center" });
+      doc.font("Helvetica").fontSize(10).fillColor("#374151")
+        .text(`Date : ${dateFr}`, 331, infoY + 70);
+      doc.fontSize(9).fillColor(GRAY)
+        .text("Confirme via Stripe", 331, infoY + 88);
 
-      doc
-        .moveTo(50, rowY + 20)
-        .lineTo(550, rowY + 20)
-        .stroke();
-      doc.font("Helvetica-Bold");
-      doc.text("TOTAL", 300, rowY + 30);
-      doc.text(`${paiement.montant.toLocaleString("fr-FR")} Ar`, 450, rowY + 30);
-      doc.moveDown(4);
+      // ══ TABLEAU ══
+      const tY = infoY + 140;
+      doc.rect(50, tY, W - 100, 28).fill(DARK);
+      doc.font("Helvetica-Bold").fontSize(9).fillColor("white")
+        .text("DESCRIPTION", 66, tY + 10)
+        .text("PERIODE", 285, tY + 10)
+        .text("MONTANT", 420, tY + 10, { width: 120, align: "right" });
 
-      // Statut
-      doc
-        .font("Helvetica-Bold")
-        .fillColor("green")
-        .text(
-          `✓ PAYÉ - ${new Date(paiement.date_paiement).toLocaleDateString("fr-FR")}`,
-        );
-      doc.fillColor("black");
-      doc.moveDown();
-      doc
-        .font("Helvetica")
-        .fontSize(10)
-        .text(`Référence Stripe : ${paiement.stripe_payment_intent_id}`);
+      // Ligne données
+      doc.rect(50, tY + 28, W - 100, 42).fill(LIGHT);
+      doc.font("Helvetica").fontSize(11).fillColor("#111827")
+        .text("Loyer emplacement", 66, tY + 39)
+        .text(moisLabel, 285, tY + 39);
+      doc.font("Helvetica-Bold").fontSize(11).fillColor(BLUE)
+        .text(montantFormate, 420, tY + 39, { width: 120, align: "right" });
+
+      // Ligne total
+      doc.rect(50, tY + 70, W - 100, 46).fill(DARK);
+      doc.font("Helvetica-Bold").fontSize(12).fillColor("white")
+        .text("TOTAL A PAYER", 285, tY + 83);
+      doc.font("Helvetica-Bold").fontSize(17).fillColor("#fbbf24")
+        .text(montantFormate, 370, tY + 80, { width: 170, align: "right" });
+
+      // ══ RÉFÉRENCE STRIPE ══
+      const refY = tY + 136;
+      doc.roundedRect(50, refY, W - 100, 40, 6).fillAndStroke(LIGHT, BORDER);
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(GRAY)
+        .text("REFERENCE STRIPE", 66, refY + 8);
+      doc.font("Helvetica").fontSize(8.5).fillColor("#374151")
+        .text(paiement.stripe_payment_intent_id || "—", 66, refY + 22, { width: W - 132 });
+
+      // ══ NOTE ══
+      const noteY = refY + 58;
+      doc.roundedRect(50, noteY, W - 100, 46, 6).fillAndStroke("#fffbeb", "#fde68a");
+      doc.font("Helvetica-Bold").fontSize(9).fillColor("#92400e").text("Note :", 66, noteY + 10);
+      doc.font("Helvetica").fontSize(9).fillColor("#78350f")
+        .text("Ce paiement a ete confirme et enregistre. Conservez ce document comme justificatif officiel de paiement de loyer.", 66, noteY + 24, { width: W - 132 });
+
+      // ══ PIED DE PAGE ══
+      doc.rect(0, 782, W, 60).fill(LIGHT);
+      doc.moveTo(0, 782).lineTo(W, 782).lineWidth(0.5).stroke(BORDER);
+      doc.font("Helvetica").fontSize(8).fillColor(GRAY)
+        .text("Document genere automatiquement — Centre Commercial · Paiement securise SSL 256-bit via Stripe", 50, 796, { align: "center", width: W - 100 });
+      doc.font("Helvetica-Bold").fontSize(8).fillColor(BLUE)
+        .text(`Facture N\u00b0 ${factureNum}`, 50, 812, { align: "center", width: W - 100 });
 
       doc.end();
     });
