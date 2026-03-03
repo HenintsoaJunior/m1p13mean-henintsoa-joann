@@ -6,7 +6,6 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ⚠️ Webhook Stripe : doit être AVANT express.json() pour avoir le raw body
 app.post("/api/webhook/stripe", express.raw({ type: "application/json" }), async (req, res) => {
   const sig = req.headers["stripe-signature"];
   try {
