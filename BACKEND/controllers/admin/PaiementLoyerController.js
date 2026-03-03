@@ -47,20 +47,29 @@ const getBoutiquesStatutLoyer = async (req, res) => {
       paiementsMap[p.boutique_id.toString()] = p;
     });
 
-    const result = boutiques.map((boutique) => {
-      const paiement = paiementsMap[boutique._id.toString()] || null;
-      const emplacement = boutique.appel_offre_id?.emplacement_id;
-      return {
-        boutique_id: boutique._id,
-        nom: boutique.contact?.nom,
-        email: boutique.contact?.email,
-        emplacement: emplacement ? { nom: emplacement.nom, code: emplacement.code } : null,
-        loyer_mensuel: emplacement?.loyer_mensuel || 0,
-        mois_loyer: moisCourant,
-        statut_paiement: paiement?.statut || "non_paye",
-        paiement: paiement,
-      };
-    });
+    const result = boutiques
+      .filter((boutique) => {
+        // Exclure les boutiques qui n'existaient pas encore ce mois-là
+        const dateDebut = boutique.appel_offre_id?.date_appel;
+        if (!dateDebut) return true;
+        const debut = new Date(dateDebut);
+        const debutMois = `${debut.getFullYear()}-${String(debut.getMonth() + 1).padStart(2, '0')}`;
+        return debutMois <= moisCourant;
+      })
+      .map((boutique) => {
+        const paiement = paiementsMap[boutique._id.toString()] || null;
+        const emplacement = boutique.appel_offre_id?.emplacement_id;
+        return {
+          boutique_id: boutique._id,
+          nom: boutique.contact?.nom,
+          email: boutique.contact?.email,
+          emplacement: emplacement ? { nom: emplacement.nom, code: emplacement.code } : null,
+          loyer_mensuel: emplacement?.loyer_mensuel || 0,
+          mois_loyer: moisCourant,
+          statut_paiement: paiement?.statut || "non_paye",
+          paiement: paiement,
+        };
+      });
 
     const stats = {
       total: result.length,
