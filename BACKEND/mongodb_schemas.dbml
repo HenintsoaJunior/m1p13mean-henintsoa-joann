@@ -1,0 +1,282 @@
+// =============================================================
+// DBML Schema — m1p13mean-henintsoa-joann
+// Copiez-collez sur https://dbdiagram.io
+// =============================================================
+
+Table utilisateurs {
+  _id          ObjectId  [pk, note: 'auto']
+  email        varchar   [not null, unique]
+  mot_de_passe varchar   [not null, note: 'bcrypt, minlength:6']
+  prenom       varchar   [not null, note: 'maxlength:50']
+  nom          varchar   [not null, note: 'maxlength:50']
+  telephone    varchar
+  role         varchar   [default: 'client', note: 'enum: admin | boutique | client']
+  actif        boolean   [default: true]
+  token_reinitialisation_mdp        varchar [default: null]
+  expiration_reinitialisation_mdp   datetime [default: null]
+  cree_le      datetime  [default: `now()`]
+  modifie_le   datetime  [default: `now()`]
+}
+
+Table centres {
+  _id                          ObjectId [pk, note: 'auto']
+  nom                          varchar  [not null]
+  slug                         varchar  [not null, unique]
+  adresse_rue                  varchar
+  adresse_ville                varchar
+  adresse_code_postal          varchar
+  adresse_pays                 varchar
+  adresse_coordonnees_type     varchar  [default: 'Point']
+  adresse_coordonnees          varchar  [note: '[lng, lat] — 2dsphere index']
+  description                  text
+  image_url                    varchar
+  horaires_ouverture           varchar  [note: 'Map<String,String>']
+  email_contact                varchar
+  telephone_contact            varchar
+  cree_le                      datetime [default: `now()`]
+  modifie_le                   datetime [default: `now()`]
+}
+
+Table batiments {
+  _id           ObjectId [pk, note: 'auto']
+  centre_id     ObjectId [not null]
+  nom           varchar  [not null]
+  description   text
+  nombre_etages int      [default: 0]
+  cree_le       datetime [default: `now()`]
+  modifie_le    datetime [default: `now()`]
+}
+
+Table etages {
+  _id                   ObjectId [pk, note: 'auto']
+  batiment_id           ObjectId
+  nom                   varchar  [not null]
+  niveau                int      [not null]
+  surface_totale_m2     float
+  hauteur_sous_plafond_m float
+  cree_le               datetime [default: `now()`]
+  modifie_le            datetime [default: `now()`]
+}
+
+Table emplacements {
+  _id               ObjectId [pk, note: 'auto']
+  etage_id          ObjectId [not null]
+  code              varchar  [not null]
+  type              varchar  [not null, note: 'enum: box | kiosque | zone_loisirs | zone_commune | pop_up | autre']
+  nom               varchar
+  surface_m2        float
+  position_type     varchar  [note: 'enum: polygone | point']
+  position_coordonnees varchar [note: '[[Number]]']
+  statut            varchar  [default: 'libre', note: 'enum: libre | occupe | reserve | en_travaux | en_negociation']
+  loyer_mensuel     float
+  cree_le           datetime [default: `now()`]
+  modifie_le        datetime [default: `now()`]
+}
+
+Table appeloffres {
+  _id            ObjectId [pk, note: 'auto']
+  emplacement_id ObjectId [not null]
+  date_appel     datetime [default: `now()`]
+  description    text     [not null]
+  statut         varchar  [default: 'ouvert', note: 'enum: ouvert | ferme | attribue']
+}
+
+Table boutiques {
+  _id             ObjectId [pk, note: 'auto']
+  appel_offre_id  ObjectId [not null]
+  contact_nom     varchar  [not null]
+  contact_telephone varchar
+  contact_email   varchar
+  contact_adresse varchar
+  statut          varchar  [default: 'en_attente', note: 'enum: active | en_attente | fermee']
+}
+
+Table reponseappeloffres {
+  _id              ObjectId [pk, note: 'auto']
+  appel_offre_id   ObjectId [not null]
+  boutique_id      ObjectId
+  utilisateur_id   ObjectId
+  montant_propose  float    [not null]
+  email_proposeur  varchar  [not null]
+  nom_boutique     varchar  [not null]
+  telephone_boutique varchar
+  adresse_boutique varchar
+  message          text     [note: 'maxlength:1000']
+  statut           varchar  [default: 'propose', note: 'enum: propose | accepte | refuse']
+  cree_le          datetime [default: `now()`]
+  modifie_le       datetime [default: `now()`]
+}
+
+Table paiementloyers {
+  _id                      ObjectId [pk, note: 'auto']
+  boutique_id              ObjectId [not null]
+  emplacement_id           ObjectId [not null]
+  stripe_payment_intent_id varchar  [unique, note: 'sparse']
+  montant                  float    [not null]
+  mois_loyer               varchar  [not null, note: 'format: YYYY-MM']
+  statut                   varchar  [default: 'en_attente', note: 'enum: en_attente | paye | echoue']
+  date_paiement            datetime
+  facture_envoyee          boolean  [default: false]
+  cree_le                  datetime [default: `now()`]
+  modifie_le               datetime [default: `now()`]
+}
+
+Table logs {
+  _id            ObjectId [pk, note: 'auto']
+  utilisateurId  varchar  [not null]
+  action         varchar  [not null, note: 'enum: CREATE | UPDATE | DELETE']
+  entite         varchar  [not null]
+  entiteId       varchar  [default: null]
+  ancienneValeur json     [default: null]
+  nouvelleValeur json     [default: null]
+  dateHeure      datetime [default: `now()`]
+  adresseIp      varchar  [default: '']
+  navigateur     varchar  [default: '']
+}
+
+Table categories {
+  _id               ObjectId [pk, note: 'auto']
+  idBoutique        ObjectId [note: 'null = catégorie globale']
+  nom               varchar  [not null, note: 'maxlength:100']
+  slug              varchar  [not null, unique]
+  description       text     [note: 'maxlength:500']
+  idCategorieParent ObjectId [note: 'self-ref']
+  urlImage          varchar
+  dateCreation      datetime [default: `now()`]
+  dateMiseAJour     datetime [default: `now()`]
+}
+
+Table marques {
+  _id         ObjectId [pk, note: 'auto']
+  nom         varchar  [not null, unique]
+  slug        varchar  [not null, unique]
+  description text     [note: 'maxlength:1000']
+  logo        varchar
+  siteWeb     varchar
+  estActif    boolean  [default: true]
+  createdAt   datetime [default: `now()`]
+  updatedAt   datetime [default: `now()`]
+}
+
+Table couleurs {
+  _id           ObjectId [pk, note: 'auto']
+  nom           varchar  [not null]
+  codeHex       varchar  [not null, unique, note: 'format: #RRGGBB']
+  codeRgb_rouge int      [note: '0-255']
+  codeRgb_vert  int      [note: '0-255']
+  codeRgb_bleu  int      [note: '0-255']
+  categorie     varchar  [default: 'autre', note: 'enum: neutre | chaud | froid | vif | pastel | metallique | fluo | autre']
+  estActif      boolean  [default: true]
+  createdAt     datetime [default: `now()`]
+  updatedAt     datetime [default: `now()`]
+}
+
+Table typeunites {
+  _id         ObjectId [pk, note: 'auto']
+  nom         varchar  [not null, unique, note: 'enum: standard | liquide | poids | conditionnement | personnalise']
+  label       varchar  [not null]
+  description text
+  icon        varchar  [default: '📏']
+  valeurs     varchar  [note: '[String]']
+  estActif    boolean  [default: true]
+  createdAt   datetime [default: `now()`]
+  updatedAt   datetime [default: `now()`]
+}
+
+Table tailles {
+  _id         ObjectId [pk, note: 'auto']
+  valeur      varchar  [not null]
+  label       varchar
+  typeUnite   ObjectId [not null]
+  ordre       int      [default: 0]
+  estStandard boolean  [default: false]
+  estActif    boolean  [default: true]
+  createdAt   datetime [default: `now()`]
+  updatedAt   datetime [default: `now()`]
+}
+
+Table produits {
+  _id           ObjectId [pk, note: 'auto']
+  idBoutique    ObjectId [not null]
+  idCategorie   varchar  [not null, note: '[ObjectId] -> categories']
+  nom           varchar  [not null, note: 'maxlength:200']
+  slug          varchar  [not null]
+  description   text     [note: 'maxlength:2000']
+  images        varchar  [note: '[String]']
+  variantes     json     [note: '[{ couleur, couleurHex, unite, typeUnitePrincipal, prix.devise, prix.montant, stock.quantite }]']
+  statut        varchar  [default: 'actif', note: 'enum: actif | rupture_stock | archive']
+  dateCreation  datetime [default: `now()`]
+  dateMiseAJour datetime [default: `now()`]
+}
+
+Table mouvementstocks {
+  _id           ObjectId [pk, note: 'auto']
+  idBoutique    ObjectId [not null]
+  idProduit     ObjectId [not null]
+  idVariante    ObjectId [default: null]
+  type          varchar  [not null, note: 'enum: entree | sortie']
+  quantite      int      [not null, note: 'min:1']
+  motif         varchar  [not null, note: 'enum: achat_fournisseur | retour_client | ajustement_inventaire | vente | perte | transfert | autre']
+  note          text     [note: 'maxlength:500']
+  stockAvant    int      [not null]
+  stockApres    int      [not null]
+  utilisateur   ObjectId [not null]
+  dateCreation  datetime [default: `now()`]
+  dateMiseAJour datetime [default: `now()`]
+}
+
+Table promotions {
+  _id           ObjectId [pk, note: 'auto']
+  idBoutique    ObjectId [not null]
+  idProduit     ObjectId
+  idVariante    varchar  [default: null]
+  idCategorie   ObjectId
+  type          varchar  [not null, note: 'enum: pourcentage | montant']
+  valeur        float    [not null]
+  dateDebut     datetime [not null]
+  dateFin       datetime [not null]
+  statut        varchar  [default: 'active', note: 'enum: active | inactive | archive']
+  dateCreation  datetime [default: `now()`]
+  dateMiseAJour datetime [default: `now()`]
+}
+
+Table commandes {
+  _id              ObjectId [pk, note: 'auto']
+  idBoutique       ObjectId [not null]
+  reference        varchar  [unique]
+  client_nom       varchar  [not null]
+  client_prenom    varchar
+  client_email     varchar
+  client_telephone varchar
+  client_adresse   varchar
+  lignes           json     [note: '[{ idProduit, idVariante, nomProduit, couleur, unite, prixUnitaire, quantite, sousTotal }]']
+  statut           varchar  [default: 'en_attente', note: 'enum: en_attente | confirmee | expediee | livree | annulee']
+  total            float    [default: 0]
+  notes            text
+  createdAt        datetime [default: `now()`]
+  updatedAt        datetime [default: `now()`]
+}
+
+// ── Relations ─────────────────────────────────────────────────────────────────
+
+Ref: batiments.centre_id > centres._id
+Ref: etages.batiment_id > batiments._id
+Ref: emplacements.etage_id > etages._id
+Ref: appeloffres.emplacement_id > emplacements._id
+Ref: boutiques.appel_offre_id > appeloffres._id
+Ref: reponseappeloffres.appel_offre_id > appeloffres._id
+Ref: reponseappeloffres.boutique_id > boutiques._id
+Ref: reponseappeloffres.utilisateur_id > utilisateurs._id
+Ref: paiementloyers.boutique_id > boutiques._id
+Ref: paiementloyers.emplacement_id > emplacements._id
+Ref: categories.idBoutique > boutiques._id
+Ref: categories.idCategorieParent > categories._id
+Ref: tailles.typeUnite > typeunites._id
+Ref: produits.idBoutique > boutiques._id
+Ref: mouvementstocks.idBoutique > boutiques._id
+Ref: mouvementstocks.idProduit > produits._id
+Ref: mouvementstocks.utilisateur > utilisateurs._id
+Ref: promotions.idBoutique > boutiques._id
+Ref: promotions.idProduit > produits._id
+Ref: promotions.idCategorie > categories._id
+Ref: commandes.idBoutique > boutiques._id
