@@ -32,12 +32,25 @@ class PromotionService {
   }
 
   async obtenirPromotionParId(id) {
+    await this.expirerPromotionsObsoletes();
     const promo = await this.promoRepo.trouverParId(id);
     if (!promo) throw new Error("Promotion non trouvée");
     return promo;
   }
 
+  /**
+   * Archive toutes les promotions dont la dateFin est dépassée
+   */
+  async expirerPromotionsObsoletes() {
+    const now = new Date();
+    await Promotion.updateMany(
+      { statut: "active", dateFin: { $lt: now } },
+      { $set: { statut: "archive" } }
+    );
+  }
+
   async obtenirPromotionsBoutique(idBoutique, options = {}) {
+    await this.expirerPromotionsObsoletes();
     return await this.promoRepo.trouverParBoutique(idBoutique, options);
   }
 
@@ -60,6 +73,9 @@ class PromotionService {
   async annoterProduits(produits) {
     if (!Array.isArray(produits) || produits.length === 0) return produits;
     const now = new Date();
+
+    // Archiver les promotions expirées avant d'annoter
+    await this.expirerPromotionsObsoletes();
     // Début du jour courant (minuit) pour inclure les promos dont dateDebut = aujourd'hui
     const startOfDay = new Date(now);
     startOfDay.setUTCHours(0, 0, 0, 0);
